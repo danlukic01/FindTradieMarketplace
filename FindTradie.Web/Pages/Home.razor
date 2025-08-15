@@ -15,34 +15,34 @@
                 <div class="search-card mt-4">
                     <h3 class="mb-3">What service do you need?</h3>
                     <div class="search-form">
-                        <div class="form-floating mb-3">
-                            <input @bind="SearchLocation" class="form-control" id="location" placeholder=" "/>
+                        <div class="form-floating mb-3 position-relative">
+                            <input @bind="SearchLocation" class="form-control" id="location" placeholder="Enter your location" />
                             <label for="location">Your location</label>
+                            <i class="fa-solid fa-location-dot input-icon"></i>
                         </div>
-                        <div class="form-floating mb-3">
+                        <div class="form-floating mb-3 position-relative">
                             <select @bind="SelectedCategory" class="form-select" id="service">
-                                <option value=""></option>
+                                <option value="" disabled selected>Select a service</option>
                                 @foreach (var category in ServiceCategories)
                                 {
                                     <option value="@((int)category.Key)">@category.Value</option>
                                 }
                             </select>
                             <label for="service">Service needed</label>
+                            <i class="fa-solid fa-screwdriver-wrench input-icon"></i>
                         </div>
-                        <div class="form-floating mb-3">
+                        <div class="form-floating mb-3 position-relative">
                             <select @bind="SelectedUrgency" class="form-select" id="urgency">
                                 <option value="false">Within a week</option>
                                 <option value="true">Available now / Emergency</option>
                             </select>
                             <label for="urgency">When do you need this?</label>
+                            <i class="fa-solid fa-clock input-icon"></i>
                         </div>
-                        <button class="btn btn-primary btn-lg w-100" @onclick="SearchTradies" disabled="@IsSearching">
-                            @if (IsSearching)
-                            {
-                                <span class="spinner-border spinner-border-sm me-2"></span>
-                            }
-                            Find Tradies
+                        <button class="btn btn-primary btn-lg w-100 @(IsSearching ? "btn-loading" : string.Empty)" @onclick="SearchTradies" disabled="@IsSearching">
+                            <span>Find Tradies <i class="fa-solid fa-arrow-right ms-2"></i></span>
                         </button>
+                        <button class="btn btn-outline-secondary btn-lg w-100 mt-3" @onclick="NavigateToPostJob">Post a Job</button>
                     </div>
                 </div>
             </div>
@@ -57,37 +57,55 @@
     </div>
 </div>
 
+<div class="trust-badges">
+    <div class="container">
+        <div class="row text-center g-3">
+            <div class="col-6 col-md-3"><div class="badge-item"><i class="fa-solid fa-lock me-2"></i>SSL Secure</div></div>
+            <div class="col-6 col-md-3"><div class="badge-item"><i class="fa-solid fa-rotate-left me-2"></i>Money-back guarantee</div></div>
+            <div class="col-6 col-md-3"><div class="badge-item"><i class="fa-solid fa-id-card me-2"></i>Licensed & Insured</div></div>
+            <div class="col-6 col-md-3"><div class="badge-item"><i class="fa-solid fa-user-check me-2"></i>Background checked</div></div>
+        </div>
+    </div>
+</div>
+
 <div class="services bg-white">
     <div class="container">
         <h2 class="text-center mb-4">Popular Services</h2>
-        <div class="row g-4">
+        <div class="row g-4 mb-4">
             @foreach (var cat in ServiceCategories)
             {
                 <div class="col-6 col-md-3">
                     <div class="service-card">
-                        <i class="@GetIcon(cat.Key)"></i>
+                        <div class="service-icon"><i class="@GetIcon(cat.Key)"></i></div>
                         <h6>@cat.Value</h6>
                     </div>
                 </div>
             }
         </div>
+        <div class="text-center">
+            <a href="services" class="view-all-services">View All Services <i class="fa-solid fa-arrow-right ms-1"></i></a>
+        </div>
     </div>
 </div>
 
-<div class="trust-indicators">
+<div class="stats-section">
     <div class="container">
-        <div class="row">
-            <div class="col-md-4 trust-indicator">
-                <i class="fa-solid fa-user-check"></i>
-                <h4>500+ Verified Tradies</h4>
+        <div class="row g-4">
+            <div class="col-6 col-md-3 stat-item">
+                <span class="stat-number">500+</span>
+                <span class="stat-label">Verified Tradies</span>
             </div>
-            <div class="col-md-4 trust-indicator">
-                <i class="fa-solid fa-star"></i>
-                <h4>4.8 Avg Rating</h4>
+            <div class="col-6 col-md-3 stat-item">
+                <span class="stat-number">4.8</span>
+                <span class="stat-label">Avg Rating</span>
             </div>
-            <div class="col-md-4 trust-indicator">
-                <i class="fa-solid fa-briefcase"></i>
-                <h4>10k+ Jobs Completed</h4>
+            <div class="col-6 col-md-3 stat-item">
+                <span class="stat-number">10k+</span>
+                <span class="stat-label">Jobs Completed</span>
+            </div>
+            <div class="col-6 col-md-3 stat-item">
+                <span class="stat-number">24/7</span>
+                <span class="stat-label">Support</span>
             </div>
         </div>
     </div>
@@ -96,21 +114,30 @@
 <div class="how-it-works bg-white">
     <div class="container">
         <h2 class="text-center mb-5">How FindTradie Works</h2>
-        <div class="row">
+        <div class="row justify-content-between">
             <div class="col-md-4 text-center mb-4">
-                <div class="step-icon mb-3"><i class="fa-solid fa-clipboard-list fa-2x"></i></div>
-                <h4>1. Post Your Job</h4>
-                <p>Describe what you need done, add photos, and set your budget.</p>
+                <div class="step-card">
+                    <div class="step-number">1</div>
+                    <div class="step-icon mb-3"><i class="fa-solid fa-clipboard-list fa-2x"></i></div>
+                    <h4>Post Your Job</h4>
+                    <p>Describe what you need done, add photos, and set your budget.</p>
+                </div>
             </div>
             <div class="col-md-4 text-center mb-4">
-                <div class="step-icon mb-3"><i class="fa-solid fa-user-group fa-2x"></i></div>
-                <h4>2. Get Quotes</h4>
-                <p>Receive quotes from verified tradies in your area.</p>
+                <div class="step-card">
+                    <div class="step-number">2</div>
+                    <div class="step-icon mb-3"><i class="fa-solid fa-user-group fa-2x"></i></div>
+                    <h4>Get Quotes</h4>
+                    <p>Receive quotes from verified tradies in your area.</p>
+                </div>
             </div>
             <div class="col-md-4 text-center mb-4">
-                <div class="step-icon mb-3"><i class="fa-solid fa-star fa-2x"></i></div>
-                <h4>3. Hire & Review</h4>
-                <p>Choose your tradie, track progress, and leave a review.</p>
+                <div class="step-card">
+                    <div class="step-number">3</div>
+                    <div class="step-icon mb-3"><i class="fa-solid fa-star fa-2x"></i></div>
+                    <h4>Hire & Review</h4>
+                    <p>Choose your tradie, track progress, and leave a review.</p>
+                </div>
             </div>
         </div>
     </div>
@@ -122,20 +149,38 @@
         <div class="row g-4">
             <div class="col-md-4">
                 <div class="testimonial-card">
+                    <div class="testimonial-rating">
+                        <i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i>
+                    </div>
                     <p>"Great platform to find reliable tradies. Highly recommended!"</p>
-                    <div class="testimonial-author">- Sarah M.</div>
+                    <div class="testimonial-author">
+                        <div class="author-avatar">SM</div>
+                        <div><strong>Sarah M.</strong></div>
+                    </div>
                 </div>
             </div>
             <div class="col-md-4">
                 <div class="testimonial-card">
+                    <div class="testimonial-rating">
+                        <i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i>
+                    </div>
                     <p>"Found an electrician within minutes and the job was perfect."</p>
-                    <div class="testimonial-author">- James R.</div>
+                    <div class="testimonial-author">
+                        <div class="author-avatar">JR</div>
+                        <div><strong>James R.</strong></div>
+                    </div>
                 </div>
             </div>
             <div class="col-md-4">
                 <div class="testimonial-card">
+                    <div class="testimonial-rating">
+                        <i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i>
+                    </div>
                     <p>"Easy to use and the tradies are top quality."</p>
-                    <div class="testimonial-author">- Priya K.</div>
+                    <div class="testimonial-author">
+                        <div class="author-avatar">PK</div>
+                        <div><strong>Priya K.</strong></div>
+                    </div>
                 </div>
             </div>
         </div>
@@ -300,5 +345,10 @@
     private void RequestQuote(Guid tradieId)
     {
         Navigation.NavigateTo($"/post-job?tradieId={tradieId}");
+    }
+
+    private void NavigateToPostJob()
+    {
+        Navigation.NavigateTo("post-job");
     }
 }
