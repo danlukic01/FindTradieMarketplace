@@ -14,53 +14,64 @@
             <h1 class="hero-title">Find Trusted Local Tradies</h1>
             <p class="hero-subtitle">Connect with verified, available professionals in your area.</p>
             <div class="search-card mt-4">
-                <h3 class="mb-3">What service do you need?</h3>
-                <div class="search-form">
-                    <!-- Location (input) -->
-                    <div class="form-floating mb-3 field-with-icon">
-                        <i class="fa-solid fa-location-dot form-icon"></i>
-                        <input @bind="SearchLocation" class="form-control" id="location" placeholder=" " />
-                        <label for="location">Your location</label>
+                <h3>What service do you need?</h3>
+                <form class="search-form">
+                    <!-- Location field -->
+                    <div class="form-group">
+                        <label class="form-label">
+                            <span class="label-icon"><i class="fa-solid fa-location-dot"></i></span>
+                            Your location
+                        </label>
+                        <input @bind="SearchLocation" type="text" class="form-control" placeholder="Enter suburb or postcode" />
                     </div>
 
-                    <!-- Service (select) -->
-                    <div class="form-floating mb-3 field-with-icon">
-                        <i class="fa-solid fa-screwdriver-wrench form-icon"></i>
-                        <select @bind="SelectedCategory" class="form-select" id="service">
-                            <option value="" disabled selected>Select a service</option>
+                    <!-- Service selection -->
+                    <div class="form-group">
+                        <label class="form-label">
+                            <span class="label-icon"><i class="fa-solid fa-screwdriver-wrench"></i></span>
+                            Service needed
+                        </label>
+                        <select @bind="SelectedCategory" class="form-select">
+                            <option value="">Select a service</option>
                             @foreach (var c in ServiceCategories)
                             {
                                 <option value="@((int)c.Key)">@c.Value</option>
                             }
                         </select>
-                        <label for="service">Service needed</label>
                     </div>
 
-                    <!-- Urgency (select) -->
-                    <div class="form-floating mb-3 field-with-icon">
-                        <i class="fa-solid fa-clock form-icon"></i>
-                        <select @bind="SelectedUrgency" class="form-select" id="urgency">
-                            <option value="false">Within a week</option>
-                            <option value="true">Available now / Emergency</option>
+                    <!-- Urgency selection -->
+                    <div class="form-group">
+                        <label class="form-label">
+                            <span class="label-icon"><i class="fa-solid fa-clock"></i></span>
+                            When do you need this?
+                        </label>
+                        <select @bind="SelectedUrgency" class="form-select">
+                            <option value="week">Within a week</option>
+                            <option value="month">Within a month</option>
+                            <option value="urgent">Urgent (Within 24 hours)</option>
+                            <option value="emergency">Emergency (ASAP)</option>
                         </select>
-                        <label for="urgency">When do you need this?</label>
                     </div>
 
-
-
-                    <button class="btn btn-primary btn-find-tradies btn-lg w-100 @(IsSearching ? "btn-loading" : string.Empty)"
-                            @onclick="SearchTradies"
-                            disabled="@IsSearching">
-                        <span>Find Tradies <i class="fa-solid fa-arrow-right ms-2"></i></span>
+                    <!-- Action buttons -->
+                    <button type="button" class="btn btn-primary btn-lg @(IsSearching ? \"btn-loading\" : string.Empty)" @onclick="SearchTradies" disabled="@IsSearching">
+                        Find Tradies
+                        <span class="btn-arrow">→</span>
                     </button>
 
-                    <button class="btn btn-outline-secondary btn-lg w-100 mt-3" @onclick="NavigateToPostJob">Post a Job</button>
+                    <div class="divider">
+                        <span>or</span>
+                    </div>
+
+                    <button type="button" class="btn btn-outline btn-lg" @onclick="NavigateToPostJob">Post a Job</button>
+                </form>
+
+                <div class="trust-badges">
+                    <div class="trust-badge"><i class="fa-solid fa-circle-check trust-badge-icon"></i><span>Verified Tradies</span></div>
+                    <div class="trust-badge"><i class="fa-solid fa-shield-halved trust-badge-icon"></i><span>Insured</span></div>
+                    <div class="trust-badge"><i class="fa-solid fa-comments-dollar trust-badge-icon"></i><span>Free Quotes</span></div>
                 </div>
-            </div>
-            <div class="trust-badges">
-                <div class="trust-badge"><i class="fa-solid fa-circle-check"></i><span>Verified Tradies</span></div>
-                <div class="trust-badge"><i class="fa-solid fa-shield-halved"></i><span>Insured</span></div>
-                <div class="trust-badge"><i class="fa-solid fa-comments-dollar"></i><span>Free Quotes</span></div>
             </div>
         </div>
     </div>
@@ -411,7 +422,7 @@
 @code {
     private string SearchLocation = string.Empty;
     private string SelectedCategory = string.Empty;
-    private string SelectedUrgency = "false";
+    private string SelectedUrgency = "week";
     private bool IsSearching = false;
     private List<TradieProfileSummaryDto>? SearchResults;
 
@@ -459,7 +470,7 @@
                 RadiusKm: 25,
                 Categories: !string.IsNullOrEmpty(SelectedCategory) ?
                     new List<ServiceCategory> { (ServiceCategory)int.Parse(SelectedCategory) } : null,
-                AvailableNow: bool.Parse(SelectedUrgency)
+                AvailableNow: SelectedUrgency == "urgent" || SelectedUrgency == "emergency"
             );
 
             var response = await TradieService.SearchTradiesAsync(searchRequest);
