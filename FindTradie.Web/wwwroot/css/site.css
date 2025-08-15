@@ -1024,6 +1024,7 @@ h1, h2, h3, h4, h5, h6, p, span, div, label {
     cursor: pointer;
 }
 
+
 /* Register Page */
 .register-page {
     min-height: 100vh;
@@ -1202,3 +1203,38 @@ h1, h2, h3, h4, h5, h6, p, span, div, label {
         grid-template-columns: 1fr;
     }
 }
+
+/* container must be relative */
+.field-with-icon {
+    position: relative;
+}
+
+    /* the icon */
+    .field-with-icon .form-icon {
+        position: absolute;
+        left: 12px;
+        top: 50%;
+        transform: translateY(-50%);
+        pointer-events: none;
+        opacity: .65;
+        z-index: 3; /* sit above control but below label text */
+        font-size: 1rem;
+    }
+
+    /* padding so input/select text doesn't overlap the icon */
+    .field-with-icon > .form-control,
+    .field-with-icon > .form-select {
+        padding-left: 2.5rem; /* adjust to taste */
+    }
+
+    /* shift the floating label so it doesn't sit under the icon */
+    .field-with-icon > label {
+        left: 2.5rem; /* same as padding-left */
+    }
+
+    /* for floating labels to work on inputs */
+    .field-with-icon > .form-control[placeholder=""] {
+        placeholder: " ";
+    }
+/* safety if empty */
+
