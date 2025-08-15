@@ -17,11 +17,11 @@
                 <div class="search-card mt-4">
                     <h3 class="mb-3">What service do you need?</h3>
                     <div class="search-form">
-                        <div class="form-floating mb-3 input-with-icon" data-icon="📍">
+                        <div class="form-floating mb-3 input-wrapper location-input">
                             <input @bind="SearchLocation" class="form-control" id="location" placeholder="" />
                             <label for="location">Your location</label>
                         </div>
-                        <div class="form-floating mb-3 input-with-icon" data-icon="🛠️">
+                        <div class="form-floating mb-3 input-wrapper service-input">
                             <select @bind="SelectedCategory" class="form-select service-select" id="service">
                                 <option value="" disabled selected>Select a service</option>
                                 @foreach (var category in ServiceCategories)
@@ -31,7 +31,7 @@
                             </select>
                             <label for="service">Service needed</label>
                         </div>
-                        <div class="form-floating mb-3 input-with-icon" data-icon="⏱️">
+                        <div class="form-floating mb-3 input-wrapper urgency-input">
                             <select @bind="SelectedUrgency" class="form-select" id="urgency">
                                 <option value="false">Within a week</option>
                                 <option value="true">Available now / Emergency</option>
@@ -45,14 +45,14 @@
                     </div>
                 </div>
             </div>
-            <div class="col-lg-6 mt-5 mt-lg-0 text-center">
+            <div class="col-lg-6 mt-5 mt-lg-0 text-center hero-right">
                 <div class="feature-badges">
                     <div class="badge verified mb-3"><i class="fa-solid fa-circle-check me-2"></i>Verified Tradies</div>
                     <div class="badge insured mb-3"><i class="fa-solid fa-shield-halved me-2"></i>Insured</div>
                     <div class="badge quotes"><i class="fa-solid fa-comments-dollar me-2"></i>Free Quotes</div>
                 </div>
                 <div class="hero-image mt-4">
-                    <img src="images/happy-tradies.svg" alt="Happy customers" class="img-fluid" />
+                    <img src="images/happy-tradies.svg" alt="Happy customers" class="img-fluid hero-illustration" />
                 </div>
             </div>
         </div>
@@ -60,14 +60,10 @@
 </div>
 
 <div class="trust-badges">
-    <div class="container">
-        <div class="row text-center g-3">
-            <div class="col-6 col-md-3"><div class="badge-item"><i class="fa-solid fa-lock me-2"></i>SSL Secure</div></div>
-            <div class="col-6 col-md-3"><div class="badge-item"><i class="fa-solid fa-rotate-left me-2"></i>Money-back guarantee</div></div>
-            <div class="col-6 col-md-3"><div class="badge-item"><i class="fa-solid fa-id-card me-2"></i>Licensed & Insured</div></div>
-            <div class="col-6 col-md-3"><div class="badge-item"><i class="fa-solid fa-user-check me-2"></i>Background checked</div></div>
-        </div>
-    </div>
+    <div class="trust-badge">✅ 100% Satisfaction Guarantee</div>
+    <div class="trust-badge">🔒 Secure Payments</div>
+    <div class="trust-badge">📱 24/7 Support</div>
+    <div class="trust-badge">🏆 Award Winning Service</div>
 </div>
 
 <div class="services bg-white">
@@ -78,7 +74,7 @@
             {
                 <div class="col-6 col-md-3">
                     <div class="service-card">
-                        <div class="service-icon">@GetIcon(cat.Key)</div>
+                        <div class="service-icon @GetServiceIconClass(cat.Key)"></div>
                         <h6>@cat.Value</h6>
                     </div>
                 </div>
@@ -93,19 +89,19 @@
 <div class="stats-section">
     <div class="container">
         <div class="row g-4">
-            <div class="col-6 col-md-3 stat-item">
+            <div class="col-6 col-md-3 stat-card">
                 <span class="stat-number" data-count="500">0+</span>
                 <span class="stat-label">Verified Tradies</span>
             </div>
-            <div class="col-6 col-md-3 stat-item">
+            <div class="col-6 col-md-3 stat-card">
                 <span class="stat-number">4.8</span>
                 <span class="stat-label">Avg Rating</span>
             </div>
-            <div class="col-6 col-md-3 stat-item">
+            <div class="col-6 col-md-3 stat-card">
                 <span class="stat-number" data-count="10000">0+</span>
                 <span class="stat-label">Jobs Completed</span>
             </div>
-            <div class="col-6 col-md-3 stat-item">
+            <div class="col-6 col-md-3 stat-card">
                 <span class="stat-number">24/7</span>
                 <span class="stat-label">Support</span>
             </div>
@@ -199,7 +195,8 @@
                         <div class="tradie-avatar"><span class="avatar-icon">👩‍🔧</span></div>
                         <div class="tradie-info">
                             <h5>Susan's Plumbing</h5>
-                            <div class="rating">★★★★★</div>
+                            <div class="tradie-rating">★★★★★</div>
+                            <span class="tradie-availability">Available Now</span>
                         </div>
                     </div>
                 </div>
@@ -210,7 +207,8 @@
                         <div class="tradie-avatar"><span class="avatar-icon">⚡</span></div>
                         <div class="tradie-info">
                             <h5>Bright Sparks</h5>
-                            <div class="rating">★★★★★</div>
+                            <div class="tradie-rating">★★★★★</div>
+                            <span class="tradie-availability">Available Now</span>
                         </div>
                     </div>
                 </div>
@@ -221,7 +219,8 @@
                         <div class="tradie-avatar"><span class="avatar-icon">🛠️</span></div>
                         <div class="tradie-info">
                             <h5>Handy Andy</h5>
-                            <div class="rating">★★★★★</div>
+                            <div class="tradie-rating">★★★★★</div>
+                            <span class="tradie-availability">Available Now</span>
                         </div>
                     </div>
                 </div>
@@ -233,11 +232,18 @@
 <div class="recent-jobs bg-white">
     <div class="container">
         <h2 class="text-center mb-4">Recent Jobs in Your Area</h2>
-        <ul class="list-group">
-            <li class="list-group-item d-flex justify-content-between">Fix leaky tap <span>$80 - $120</span></li>
-            <li class="list-group-item d-flex justify-content-between">Install power point <span>$150 - $200</span></li>
-            <li class="list-group-item d-flex justify-content-between">Mow front lawn <span>$40 - $60</span></li>
-        </ul>
+        <div class="job-card">
+            <span>Fix leaky tap</span>
+            <span class="job-budget">$80 - $120</span>
+        </div>
+        <div class="job-card">
+            <span>Install power point</span>
+            <span class="job-budget">$150 - $200</span>
+        </div>
+        <div class="job-card">
+            <span>Mow front lawn</span>
+            <span class="job-budget">$40 - $60</span>
+        </div>
     </div>
 </div>
 
@@ -326,32 +332,41 @@
     </div>
 }
 
-<footer class="site-footer mt-5">
-    <div class="container text-center">
-        <div class="mb-2">
-            <a href="#">About</a> |
-            <a href="#">Contact</a> |
-            <a href="#">Privacy</a>
+<footer class="footer">
+    <div class="footer-content">
+        <div>
+            <div class="footer-brand">FindTradie</div>
+            <p>Connecting you with trusted tradies.</p>
+            <div class="app-badges">
+                <span class="badge bg-secondary">App Store (Coming Soon)</span>
+                <span class="badge bg-secondary">Google Play (Coming Soon)</span>
+            </div>
         </div>
-        <div class="social-links mb-2">
-            <a href="#"><i class="fa-brands fa-facebook"></i></a>
-            <a href="#"><i class="fa-brands fa-twitter"></i></a>
-            <a href="#"><i class="fa-brands fa-instagram"></i></a>
+        <div>
+            <h5>Company</h5>
+            <ul class="footer-links">
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+                <li><a href="#">Privacy</a></li>
+            </ul>
         </div>
-        <div class="mb-2">
-            <a href="#" class="btn btn-primary btn-sm">Become a Tradie</a>
+        <div>
+            <h5>Support</h5>
+            <ul class="footer-links">
+                <li><a href="#">Help Center</a></li>
+                <li><a href="#">FAQ</a></li>
+            </ul>
         </div>
-        <div class="payment-icons mb-2">
-            <i class="fa-brands fa-cc-visa"></i>
-            <i class="fa-brands fa-cc-mastercard"></i>
-            <i class="fa-brands fa-cc-paypal"></i>
+        <div>
+            <h5>Follow Us</h5>
+            <div class="social-links">
+                <a href="#"><i class="fa-brands fa-facebook"></i></a>
+                <a href="#"><i class="fa-brands fa-twitter"></i></a>
+                <a href="#"><i class="fa-brands fa-instagram"></i></a>
+            </div>
         </div>
-        <div class="app-buttons mb-2">
-            <span class="badge bg-secondary">App Store (Coming Soon)</span>
-            <span class="badge bg-secondary">Google Play (Coming Soon)</span>
-        </div>
-        <div>&copy; 2024 FindTradie. All rights reserved.</div>
     </div>
+    <div class="text-center mt-4">&copy; 2024 FindTradie. All rights reserved.</div>
 </footer>
 
 @code {
@@ -374,17 +389,17 @@
         { ServiceCategory.Handyman, "Handyman" }
     };
 
-    private Dictionary<ServiceCategory, string> ServiceIcons = new()
+    private Dictionary<ServiceCategory, string> ServiceIconClasses = new()
     {
-        { ServiceCategory.Plumbing, "🔧" },
-        { ServiceCategory.Electrical, "⚡" },
-        { ServiceCategory.Carpentry, "🔨" },
-        { ServiceCategory.Painting, "🎨" },
-        { ServiceCategory.Roofing, "🏠" },
-        { ServiceCategory.HVAC, "❄️" },
-        { ServiceCategory.Landscaping, "🌳" },
-        { ServiceCategory.Cleaning, "🧹" },
-        { ServiceCategory.Handyman, "🛠️" }
+        { ServiceCategory.Plumbing, "plumbing-icon" },
+        { ServiceCategory.Electrical, "electrical-icon" },
+        { ServiceCategory.Carpentry, "carpentry-icon" },
+        { ServiceCategory.Painting, "painting-icon" },
+        { ServiceCategory.Roofing, "roofing-icon" },
+        { ServiceCategory.HVAC, "hvac-icon" },
+        { ServiceCategory.Landscaping, "landscaping-icon" },
+        { ServiceCategory.Cleaning, "cleaning-icon" },
+        { ServiceCategory.Handyman, "handyman-icon" }
     };
 
     private async Task SearchTradies()
@@ -431,9 +446,9 @@
         return ServiceCategories.TryGetValue(category, out var name) ? name : category.ToString();
     }
 
-    private string GetIcon(ServiceCategory category)
+    private string GetServiceIconClass(ServiceCategory category)
     {
-        return ServiceIcons.TryGetValue(category, out var icon) ? icon : "🧰";
+        return ServiceIconClasses.TryGetValue(category, out var cls) ? cls : "handyman-icon";
     }
 
     private void ViewProfile(Guid tradieId)
