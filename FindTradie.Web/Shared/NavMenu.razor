@@ -1,8 +1,8 @@
 @using Microsoft.AspNetCore.Components.Authorization
 @inject AuthenticationStateProvider AuthStateProvider
 
-<nav class="navbar navbar-expand-lg navbar-light fixed-top">
-    <div class="container">
+<nav class="navbar navbar-light fixed-top top-header">
+    <div class="container header-nav">
         <a class="navbar-brand" href="">
             <i class="fa-solid fa-hammer me-2"></i>FindTradie
         </a>
@@ -10,7 +10,7 @@
             <span class="navbar-toggler-icon"></span>
         </button>
         <div class="navbar-collapse collapse @(collapseNavMenu ? string.Empty : "show")">
-            <ul class="navbar-nav ms-auto align-items-lg-center">
+            <ul class="navbar-nav ms-auto align-items-lg-center nav-links">
                 <li class="nav-item">
                     <NavLink class="nav-link" href="" Match="NavLinkMatch.All">Home</NavLink>
                 </li>
