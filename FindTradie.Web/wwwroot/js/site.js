@@ -23,10 +23,38 @@ document.addEventListener('DOMContentLoaded', () => {
         }, stepTime);
     };
 
-    document.querySelectorAll('.stat-number[data-count]').forEach(el => {
-        const end = parseInt(el.getAttribute('data-count'));
-        if (!isNaN(end)) {
-            animateValue(el, 0, end, 2000);
-        }
-    });
+    const observer = new IntersectionObserver(entries => {
+        entries.forEach(entry => {
+            if (entry.isIntersecting) {
+                const el = entry.target;
+                const end = parseInt(el.getAttribute('data-count'));
+                if (!isNaN(end)) {
+                    animateValue(el, 0, end, 2000);
+                }
+                el.classList.add('visible');
+                observer.unobserve(el);
+            }
+        });
+    }, { threshold: 0.6 });
+
+    document.querySelectorAll('.stat-number[data-count]').forEach(el => observer.observe(el));
+
+    const backToTop = document.getElementById('backToTop');
+    if (backToTop) {
+        window.addEventListener('scroll', () => {
+            backToTop.classList.toggle('show', window.scrollY > 300);
+        });
+        backToTop.addEventListener('click', () => window.scrollTo({ top: 0, behavior: 'smooth' }));
+    }
 });
+
+window.showToast = (message, type) => {
+    const toastEl = document.getElementById('statusToast');
+    if (toastEl) {
+        toastEl.classList.remove('bg-success', 'bg-danger', 'text-white');
+        toastEl.classList.add(type === 'success' ? 'bg-success' : 'bg-danger', 'text-white');
+        toastEl.querySelector('.toast-body').textContent = message;
+        const toast = new bootstrap.Toast(toastEl);
+        toast.show();
+    }
+};

@@ -9,6 +9,7 @@
 <div class="emergency-banner">Emergency Services Available</div>
 
 <div class="hero-section">
+    <div class="hero-decoration"></div>
     <div class="container">
         <div class="row align-items-center">
             <div class="col-lg-6">
@@ -57,13 +58,22 @@
             </div>
         </div>
     </div>
+    </div>
 </div>
 
-<div class="trust-badges">
-    <div class="trust-badge">✅ 100% Satisfaction Guarantee</div>
-    <div class="trust-badge">🔒 Secure Payments</div>
-    <div class="trust-badge">📱 24/7 Support</div>
-    <div class="trust-badge">🏆 Award Winning Service</div>
+<div class="trust-indicators">
+    <div class="trust-badge">
+        <i class="fas fa-shield-alt"></i>
+        <span>100% Verified</span>
+    </div>
+    <div class="trust-badge">
+        <i class="fas fa-award"></i>
+        <span>Quality Guaranteed</span>
+    </div>
+    <div class="trust-badge">
+        <i class="fas fa-lock"></i>
+        <span>Secure Payments</span>
+    </div>
 </div>
 
 <div class="services bg-white">
@@ -74,7 +84,7 @@
             {
                 <div class="col-6 col-md-3">
                     <div class="service-card">
-                        <div class="service-icon @GetServiceIconClass(cat.Key)"></div>
+                        <div class="service-icon"><i class="@GetServiceIconClass(cat.Key)"></i></div>
                         <h6>@cat.Value</h6>
                     </div>
                 </div>
@@ -190,38 +200,32 @@
         <h2 class="text-center mb-4">Featured Tradies This Week</h2>
         <div class="row g-4">
             <div class="col-md-4">
-                <div class="tradie-card">
-                    <div class="tradie-header">
-                        <div class="tradie-avatar"><span class="avatar-icon">👩‍🔧</span></div>
-                        <div class="tradie-info">
-                            <h5>Susan's Plumbing</h5>
-                            <div class="tradie-rating">★★★★★</div>
-                            <span class="tradie-availability">Available Now</span>
-                        </div>
+                <div class="tradie-card text-center">
+                    <span class="availability-badge">Available Now</span>
+                    <div class="tradie-avatar"><i class="fas fa-wrench"></i></div>
+                    <h5>Susan's Plumbing</h5>
+                    <div class="rating-stars">
+                        <i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i>
                     </div>
                 </div>
             </div>
             <div class="col-md-4">
-                <div class="tradie-card">
-                    <div class="tradie-header">
-                        <div class="tradie-avatar"><span class="avatar-icon">⚡</span></div>
-                        <div class="tradie-info">
-                            <h5>Bright Sparks</h5>
-                            <div class="tradie-rating">★★★★★</div>
-                            <span class="tradie-availability">Available Now</span>
-                        </div>
+                <div class="tradie-card text-center">
+                    <span class="availability-badge">Available Now</span>
+                    <div class="tradie-avatar"><i class="fas fa-bolt"></i></div>
+                    <h5>Bright Sparks</h5>
+                    <div class="rating-stars">
+                        <i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i>
                     </div>
                 </div>
             </div>
             <div class="col-md-4">
-                <div class="tradie-card">
-                    <div class="tradie-header">
-                        <div class="tradie-avatar"><span class="avatar-icon">🛠️</span></div>
-                        <div class="tradie-info">
-                            <h5>Handy Andy</h5>
-                            <div class="tradie-rating">★★★★★</div>
-                            <span class="tradie-availability">Available Now</span>
-                        </div>
+                <div class="tradie-card text-center">
+                    <span class="availability-badge">Available Now</span>
+                    <div class="tradie-avatar"><i class="fas fa-hammer"></i></div>
+                    <h5>Handy Andy</h5>
+                    <div class="rating-stars">
+                        <i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i>
                     </div>
                 </div>
             </div>
@@ -233,16 +237,25 @@
     <div class="container">
         <h2 class="text-center mb-4">Recent Jobs in Your Area</h2>
         <div class="job-card">
-            <span>Fix leaky tap</span>
-            <span class="job-budget">$80 - $120</span>
+            <div>
+                <div class="job-title">Fix leaky tap</div>
+                <div class="job-location">Melbourne CBD</div>
+            </div>
+            <div class="job-budget">$80 - $120</div>
         </div>
         <div class="job-card">
-            <span>Install power point</span>
-            <span class="job-budget">$150 - $200</span>
+            <div>
+                <div class="job-title">Install power point</div>
+                <div class="job-location">Sydney</div>
+            </div>
+            <div class="job-budget">$150 - $200</div>
         </div>
         <div class="job-card">
-            <span>Mow front lawn</span>
-            <span class="job-budget">$40 - $60</span>
+            <div>
+                <div class="job-title">Mow front lawn</div>
+                <div class="job-location">Brisbane</div>
+            </div>
+            <div class="job-budget">$40 - $60</div>
         </div>
     </div>
 </div>
@@ -332,11 +345,19 @@
     </div>
 }
 
+<section class="cta-tradies">
+    <div class="container text-center">
+        <h2>Are You a Tradie?</h2>
+        <p>Join 500+ professionals growing their business with FindTradie</p>
+        <button class="btn btn-white btn-lg">Start Earning Today</button>
+    </div>
+</section>
+
 <footer class="footer">
-    <div class="footer-content">
+    <div class="footer-grid">
         <div>
             <div class="footer-brand">FindTradie</div>
-            <p>Connecting you with trusted tradies.</p>
+            <p class="footer-description">Connecting you with trusted tradies.</p>
             <div class="app-badges">
                 <span class="badge bg-secondary">App Store (Coming Soon)</span>
                 <span class="badge bg-secondary">Google Play (Coming Soon)</span>
@@ -358,16 +379,31 @@
             </ul>
         </div>
         <div>
+            <h5>Services</h5>
+            <ul class="footer-links">
+                <li><a href="#">Plumbing</a></li>
+                <li><a href="#">Electrical</a></li>
+            </ul>
+        </div>
+        <div>
             <h5>Follow Us</h5>
             <div class="social-links">
-                <a href="#"><i class="fa-brands fa-facebook"></i></a>
-                <a href="#"><i class="fa-brands fa-twitter"></i></a>
-                <a href="#"><i class="fa-brands fa-instagram"></i></a>
+                <a href="#" class="social-link"><i class="fa-brands fa-facebook"></i></a>
+                <a href="#" class="social-link"><i class="fa-brands fa-twitter"></i></a>
+                <a href="#" class="social-link"><i class="fa-brands fa-instagram"></i></a>
             </div>
         </div>
     </div>
     <div class="text-center mt-4">&copy; 2024 FindTradie. All rights reserved.</div>
 </footer>
+
+<button id="backToTop" class="back-to-top"><i class="fas fa-arrow-up"></i></button>
+
+<div class="toast-container position-fixed top-0 end-0 p-3">
+    <div id="statusToast" class="toast" role="alert" aria-live="assertive" aria-atomic="true">
+        <div class="toast-body"></div>
+    </div>
+</div>
 
 @code {
     private string SearchLocation = string.Empty;
@@ -391,15 +427,15 @@
 
     private Dictionary<ServiceCategory, string> ServiceIconClasses = new()
     {
-        { ServiceCategory.Plumbing, "plumbing-icon" },
-        { ServiceCategory.Electrical, "electrical-icon" },
-        { ServiceCategory.Carpentry, "carpentry-icon" },
-        { ServiceCategory.Painting, "painting-icon" },
-        { ServiceCategory.Roofing, "roofing-icon" },
-        { ServiceCategory.HVAC, "hvac-icon" },
-        { ServiceCategory.Landscaping, "landscaping-icon" },
-        { ServiceCategory.Cleaning, "cleaning-icon" },
-        { ServiceCategory.Handyman, "handyman-icon" }
+        { ServiceCategory.Plumbing, "fa-solid fa-wrench" },
+        { ServiceCategory.Electrical, "fa-solid fa-bolt" },
+        { ServiceCategory.Carpentry, "fa-solid fa-hammer" },
+        { ServiceCategory.Painting, "fa-solid fa-paint-roller" },
+        { ServiceCategory.Roofing, "fa-solid fa-house" },
+        { ServiceCategory.HVAC, "fa-solid fa-temperature-high" },
+        { ServiceCategory.Landscaping, "fa-solid fa-tree" },
+        { ServiceCategory.Cleaning, "fa-solid fa-broom" },
+        { ServiceCategory.Handyman, "fa-solid fa-tools" }
     };
 
     private async Task SearchTradies()
@@ -448,7 +484,7 @@
 
     private string GetServiceIconClass(ServiceCategory category)
     {
-        return ServiceIconClasses.TryGetValue(category, out var cls) ? cls : "handyman-icon";
+        return ServiceIconClasses.TryGetValue(category, out var cls) ? cls : "fa-solid fa-tools";
     }
 
     private void ViewProfile(Guid tradieId)
