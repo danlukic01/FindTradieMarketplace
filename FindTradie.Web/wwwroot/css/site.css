@@ -502,41 +502,183 @@ main {
     font-size: 1.125rem;
 }
 
-/* Service Cards */
+/* Popular Services */
+.popular-services {
+    padding: 80px 0;
+    background: #f8fafc;
+}
+
+.section-title {
+    text-align: center;
+    font-size: 36px;
+    font-weight: 700;
+    color: #1a202c;
+    margin-bottom: 12px;
+}
+
+.section-subtitle {
+    text-align: center;
+    color: #64748b;
+    font-size: 18px;
+    margin-bottom: 50px;
+}
+
+.services-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 24px;
+    max-width: 1200px;
+    margin: 0 auto;
+}
+
 .service-card {
     background: white;
-    padding: 1.5rem;
-    border-radius: 12px;
-    box-shadow: 0 2px 8px rgba(0,0,0,0.08);
-    transition: all 0.3s;
-    cursor: pointer;
+    padding: 30px 24px;
+    border-radius: 16px;
     text-align: center;
+    position: relative;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    border: 2px solid transparent;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.06);
 }
 
 .service-card:hover {
-    transform: translateY(-5px);
-    box-shadow: 0 10px 25px rgba(0,0,0,0.15);
+    transform: translateY(-8px);
+    box-shadow: 0 12px 32px rgba(0,0,0,0.12);
+    border-color: #3b82f6;
 }
 
-.service-icon {
-    font-size: 2.5rem;
-    color: var(--primary);
-    margin: 0 auto 0.5rem;
-}
-
-.service-card:hover .service-icon {
-    transform: scale(1.1);
+.service-icon-wrapper {
+    width: 80px;
+    height: 80px;
+    margin: 0 auto 20px;
+    background: linear-gradient(135deg, #eff6ff, #dbeafe);
+    border-radius: 20px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
     transition: all 0.3s;
 }
 
-.view-all-services {
-    color: #667eea;
-    font-weight: 600;
-    text-decoration: none;
+.service-card:hover .service-icon-wrapper {
+    background: linear-gradient(135deg, #3b82f6, #2563eb);
+    transform: scale(1.1) rotate(5deg);
 }
 
-.view-all-services:hover {
-    text-decoration: underline;
+.service-icon {
+    font-size: 36px;
+    transition: all 0.3s;
+}
+
+.service-card:hover .service-icon {
+    transform: scale(1.2);
+    filter: brightness(0) invert(1);
+}
+
+.service-name {
+    font-size: 20px;
+    font-weight: 600;
+    color: #1a202c;
+    margin-bottom: 8px;
+}
+
+.service-description {
+    font-size: 14px;
+    color: #64748b;
+    margin-bottom: 0;
+}
+
+.service-arrow {
+    position: absolute;
+    top: 20px;
+    right: 20px;
+    width: 32px;
+    height: 32px;
+    background: #f1f5f9;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    opacity: 0;
+    transform: translateX(-10px);
+    transition: all 0.3s;
+    color: #3b82f6;
+    font-weight: bold;
+}
+
+.service-card:hover .service-arrow {
+    opacity: 1;
+    transform: translateX(0);
+}
+
+.services-footer {
+    text-align: center;
+    margin-top: 40px;
+}
+
+.btn-view-all {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 14px 32px;
+    background: white;
+    color: #3b82f6;
+    border: 2px solid #3b82f6;
+    border-radius: 50px;
+    font-weight: 600;
+    text-decoration: none;
+    transition: all 0.3s;
+}
+
+.btn-view-all:hover {
+    background: #3b82f6;
+    color: white;
+    transform: translateY(-2px);
+    box-shadow: 0 10px 25px rgba(59, 130, 246, 0.25);
+}
+
+.btn-view-all span {
+    transition: transform 0.3s;
+}
+
+.btn-view-all:hover span {
+    transform: translateX(4px);
+}
+
+.service-badge {
+    position: absolute;
+    top: -10px;
+    right: 20px;
+    background: #10b981;
+    color: white;
+    padding: 4px 12px;
+    border-radius: 20px;
+    font-size: 12px;
+    font-weight: 600;
+}
+
+@media (max-width: 768px) {
+    .services-grid {
+        grid-template-columns: repeat(2, 1fr);
+        gap: 16px;
+    }
+    .service-card {
+        padding: 20px 16px;
+    }
+    .service-icon-wrapper {
+        width: 60px;
+        height: 60px;
+    }
+    .service-icon {
+        font-size: 28px;
+    }
+}
+
+@media (max-width: 480px) {
+    .services-grid {
+        grid-template-columns: 1fr;
+    }
 }
 
 /* Stats Section */
@@ -930,9 +1072,6 @@ main {
     }
     .search-card {
         margin-top: 2rem;
-    }
-    .service-card {
-        margin-bottom: 1rem;
     }
     .step-card:not(:last-child)::after {
         display: none;

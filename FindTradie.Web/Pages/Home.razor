@@ -78,25 +78,111 @@
 </div>
 
 
-<div class="services bg-white">
+<section class="popular-services">
     <div class="container">
-        <h2 class="text-center mb-4">Popular Services</h2>
-        <div class="row g-4 mb-4">
-            @foreach (var cat in ServiceCategories)
-            {
-                <div class="col-6 col-md-3">
-                    <div class="service-card">
-                        <div class="service-icon"><i class="@GetServiceIconClass(cat.Key)"></i></div>
-                        <h6>@cat.Value</h6>
-                    </div>
+        <h2 class="section-title">Popular Services</h2>
+        <p class="section-subtitle">Find trusted professionals for any home service</p>
+
+        <div class="services-grid">
+            <div class="service-card">
+                <div class="service-badge">245 Available</div>
+                <div class="service-icon-wrapper">
+                    <span class="service-icon">🔧</span>
                 </div>
-            }
+                <h3 class="service-name">Plumbing</h3>
+                <p class="service-description">Leaks, pipes, drainage</p>
+                <span class="service-arrow">→</span>
+            </div>
+
+            <div class="service-card">
+                <div class="service-badge">189 Available</div>
+                <div class="service-icon-wrapper">
+                    <span class="service-icon">⚡</span>
+                </div>
+                <h3 class="service-name">Electrical</h3>
+                <p class="service-description">Wiring, outlets, lighting</p>
+                <span class="service-arrow">→</span>
+            </div>
+
+            <div class="service-card">
+                <div class="service-badge">154 Available</div>
+                <div class="service-icon-wrapper">
+                    <span class="service-icon">🔨</span>
+                </div>
+                <h3 class="service-name">Carpentry</h3>
+                <p class="service-description">Furniture, framing, repairs</p>
+                <span class="service-arrow">→</span>
+            </div>
+
+            <div class="service-card">
+                <div class="service-badge">132 Available</div>
+                <div class="service-icon-wrapper">
+                    <span class="service-icon">🎨</span>
+                </div>
+                <h3 class="service-name">Painting</h3>
+                <p class="service-description">Interior, exterior, touch-ups</p>
+                <span class="service-arrow">→</span>
+            </div>
+
+            <div class="service-card">
+                <div class="service-badge">98 Available</div>
+                <div class="service-icon-wrapper">
+                    <span class="service-icon">🏠</span>
+                </div>
+                <h3 class="service-name">Roofing</h3>
+                <p class="service-description">Repairs, gutters, installation</p>
+                <span class="service-arrow">→</span>
+            </div>
+
+            <div class="service-card">
+                <div class="service-badge">176 Available</div>
+                <div class="service-icon-wrapper">
+                    <span class="service-icon">❄️</span>
+                </div>
+                <h3 class="service-name">Heating & Cooling</h3>
+                <p class="service-description">HVAC, air con, heating</p>
+                <span class="service-arrow">→</span>
+            </div>
+
+            <div class="service-card">
+                <div class="service-badge">210 Available</div>
+                <div class="service-icon-wrapper">
+                    <span class="service-icon">🌳</span>
+                </div>
+                <h3 class="service-name">Landscaping</h3>
+                <p class="service-description">Gardens, lawns, trees</p>
+                <span class="service-arrow">→</span>
+            </div>
+
+            <div class="service-card">
+                <div class="service-badge">167 Available</div>
+                <div class="service-icon-wrapper">
+                    <span class="service-icon">🧹</span>
+                </div>
+                <h3 class="service-name">Cleaning</h3>
+                <p class="service-description">House, office, end of lease</p>
+                <span class="service-arrow">→</span>
+            </div>
+
+            <div class="service-card">
+                <div class="service-badge">221 Available</div>
+                <div class="service-icon-wrapper">
+                    <span class="service-icon">🛠️</span>
+                </div>
+                <h3 class="service-name">Handyman</h3>
+                <p class="service-description">General repairs & tasks</p>
+                <span class="service-arrow">→</span>
+            </div>
         </div>
-        <div class="text-center">
-            <a href="services" class="view-all-services">View All Services <i class="fa-solid fa-arrow-right ms-1"></i></a>
+
+        <div class="services-footer">
+            <a href="services" class="btn-view-all">
+                View All Services
+                <span>→</span>
+            </a>
         </div>
     </div>
-</div>
+</section>
 
 <div class="stats-section">
     <div class="container">
@@ -439,18 +525,6 @@
         { ServiceCategory.Handyman, "Handyman" }
     };
 
-    private Dictionary<ServiceCategory, string> ServiceIconClasses = new()
-    {
-        { ServiceCategory.Plumbing, "fa-solid fa-wrench" },
-        { ServiceCategory.Electrical, "fa-solid fa-bolt" },
-        { ServiceCategory.Carpentry, "fa-solid fa-hammer" },
-        { ServiceCategory.Painting, "fa-solid fa-paint-roller" },
-        { ServiceCategory.Roofing, "fa-solid fa-house" },
-        { ServiceCategory.HVAC, "fa-solid fa-temperature-high" },
-        { ServiceCategory.Landscaping, "fa-solid fa-tree" },
-        { ServiceCategory.Cleaning, "fa-solid fa-broom" },
-        { ServiceCategory.Handyman, "fa-solid fa-tools" }
-    };
 
     private async Task SearchTradies()
     {
@@ -496,10 +570,6 @@
         return ServiceCategories.TryGetValue(category, out var name) ? name : category.ToString();
     }
 
-    private string GetServiceIconClass(ServiceCategory category)
-    {
-        return ServiceIconClasses.TryGetValue(category, out var cls) ? cls : "fa-solid fa-tools";
-    }
 
     private void ViewProfile(Guid tradieId)
     {
