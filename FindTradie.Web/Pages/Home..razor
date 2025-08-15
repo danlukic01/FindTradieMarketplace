@@ -1,0 +1,243 @@
+﻿// ===== HOMEPAGE =====
+// Pages/Home.razor
+@page "/"
+@using FindTradie.Services.TradieManagement.DTOs
+@using FindTradie.Shared.Domain.Enums
+@inject FindTradie.Web.Services.ITradieApiService TradieService
+@inject NavigationManager Navigation
+
+<PageTitle>FindTradie - Find Trusted Local Tradies</PageTitle>
+
+<div class="hero-section">
+    <div class="container">
+        <div class="row align-items-center">
+            <div class="col-lg-6">
+                <h1 class="hero-title">Find Trusted Local Tradies</h1>
+                <p class="hero-subtitle">Connect with verified, available professionals in your area. Get quotes, book services, and track progress - all in one place.</p>
+                
+                <div class="search-card">
+                    <h3>What service do you need?</h3>
+                    
+                    <div class="search-form">
+                        <div class="form-group mb-3">
+                            <label for="location">Your location</label>
+                            <input @bind="SearchLocation" class="form-control" id="location" placeholder="Enter suburb or postcode" />
+                        </div>
+                        
+                        <div class="form-group mb-3">
+                            <label for="service">Service needed</label>
+                            <select @bind="SelectedCategory" class="form-select" id="service">
+                                <option value="">Select a service</option>
+                                @foreach (var category in ServiceCategories)
+                                {
+                                    <option value="@((int)category.Key)">@category.Value</option>
+                                }
+                            </select>
+                        </div>
+                        
+                        <div class="form-group mb-3">
+                            <label for="urgency">When do you need this?</label>
+                            <select @bind="SelectedUrgency" class="form-select" id="urgency">
+                                <option value="false">Within a week</option>
+                                <option value="true">Available now / Emergency</option>
+                            </select>
+                        </div>
+                        
+                        <button class="btn btn-primary btn-lg w-100" @onclick="SearchTradies" disabled="@IsSearching">
+                            @if (IsSearching)
+                            {
+                                <span class="spinner-border spinner-border-sm me-2"></span>
+                            }
+                            Find Tradies
+                        </button>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="col-lg-6">
+                <div class="hero-image">
+                    <div class="feature-badges">
+                        <div class="badge verified">
+                            <span class="badge-icon">✓</span>
+                            <span>Verified Tradies</span>
+                        </div>
+                        <div class="badge available">
+                            <span class="badge-icon">⚡</span>
+                            <span>Available Now</span>
+                        </div>
+                        <div class="badge insured">
+                            <span class="badge-icon">🛡️</span>
+                            <span>Fully Insured</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="how-it-works">
+    <div class="container">
+        <h2 class="text-center mb-5">How FindTradie Works</h2>
+        <div class="row">
+            <div class="col-md-4 text-center">
+                <div class="step-icon">📋</div>
+                <h4>1. Post Your Job</h4>
+                <p>Describe what you need done, add photos, and set your budget. It takes just minutes.</p>
+            </div>
+            <div class="col-md-4 text-center">
+                <div class="step-icon">👥</div>
+                <h4>2. Get Quotes</h4>
+                <p>Receive quotes from verified tradies in your area. Compare prices and reviews.</p>
+            </div>
+            <div class="col-md-4 text-center">
+                <div class="step-icon">⭐</div>
+                <h4>3. Hire & Review</h4>
+                <p>Choose your tradie, track progress, and leave a review when the job is complete.</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+@if (SearchResults?.Any() == true)
+{
+    <div class="search-results">
+        <div class="container">
+            <h3>Available Tradies Near You</h3>
+            <div class="row">
+                @foreach (var tradie in SearchResults)
+                {
+                    <div class="col-lg-4 col-md-6 mb-4">
+                        <div class="tradie-card">
+                            <div class="tradie-header">
+                                <div class="tradie-avatar">
+                                    <span class="avatar-icon">👷</span>
+                                </div>
+                                <div class="tradie-info">
+                                    <h5>@tradie.BusinessName</h5>
+                                    <div class="rating">
+                                        @for (int i = 1; i <= 5; i++)
+                                        {
+                                            <span class="star @(i <= tradie.Rating ? "filled" : "")">★</span>
+                                        }
+                                        <span class="rating-text">@tradie.Rating.ToString("0.0") (@tradie.ReviewCount reviews)</span>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <p class="tradie-description">@tradie.Description</p>
+                            
+                            <div class="tradie-services">
+                                @foreach (var category in tradie.ServiceCategories.Take(3))
+                                {
+                                    <span class="service-badge">@GetCategoryName(category)</span>
+                                }
+                            </div>
+                            
+                            <div class="tradie-footer">
+                                <div class="distance">📍 @tradie.DistanceKm.ToString("0.0")km away</div>
+                                <div class="availability">
+                                    @if (tradie.IsAvailable)
+                                    {
+                                        <span class="status available">Available Now</span>
+                                    }
+                                    else
+                                    {
+                                        <span class="status busy">Busy</span>
+                                    }
+                                </div>
+                            </div>
+                            
+                            <div class="card-actions">
+                                <button class="btn btn-outline-primary" @onclick="() => ViewProfile(tradie.Id)">
+                                    View Profile
+                                </button>
+                                <button class="btn btn-primary" @onclick="() => RequestQuote(tradie.Id)">
+                                    Get Quote
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                }
+            </div>
+        </div>
+    </div>
+}
+
+@code {
+    private string SearchLocation = "";
+    private string SelectedCategory = "";
+    private string SelectedUrgency = "false";
+    private bool IsSearching = false;
+    private List<TradieProfileSummaryDto>? SearchResults;
+
+    private Dictionary<ServiceCategory, string> ServiceCategories = new()
+    {
+        { ServiceCategory.Plumbing, "Plumbing" },
+        { ServiceCategory.Electrical, "Electrical" },
+        { ServiceCategory.Carpentry, "Carpentry" },
+        { ServiceCategory.Painting, "Painting" },
+        { ServiceCategory.Roofing, "Roofing" },
+        { ServiceCategory.HVAC, "Heating & Cooling" },
+        { ServiceCategory.Landscaping, "Landscaping" },
+        { ServiceCategory.Cleaning, "Cleaning" },
+        { ServiceCategory.Handyman, "Handyman" }
+    };
+
+    private async Task SearchTradies()
+    {
+        if (string.IsNullOrWhiteSpace(SearchLocation))
+        {
+            return;
+        }
+
+        IsSearching = true;
+        StateHasChanged();
+
+        try
+        {
+            // For demo purposes, using Melbourne coordinates
+            // In a real app, you'd geocode the SearchLocation
+            var searchRequest = new SearchTradiesRequest(
+                Latitude: -37.8136,
+                Longitude: 144.9631,
+                RadiusKm: 25,
+                Categories: !string.IsNullOrEmpty(SelectedCategory) ? 
+                    new List<ServiceCategory> { (ServiceCategory)int.Parse(SelectedCategory) } : null,
+                AvailableNow: bool.Parse(SelectedUrgency)
+            );
+
+            var response = await TradieService.SearchTradiesAsync(searchRequest);
+            
+            if (response.Success && response.Data != null)
+            {
+                SearchResults = response.Data;
+            }
+        }
+        catch (Exception ex)
+        {
+            // Handle error
+            Console.WriteLine($"Search error: {ex.Message}");
+        }
+        finally
+        {
+            IsSearching = false;
+            StateHasChanged();
+        }
+    }
+
+    private string GetCategoryName(ServiceCategory category)
+    {
+        return ServiceCategories.TryGetValue(category, out var name) ? name : category.ToString();
+    }
+
+    private void ViewProfile(Guid tradieId)
+    {
+        Navigation.NavigateTo($"/tradie/{tradieId}");
+    }
+
+    private void RequestQuote(Guid tradieId)
+    {
+        Navigation.NavigateTo($"/post-job?tradieId={tradieId}");
+    }
+}

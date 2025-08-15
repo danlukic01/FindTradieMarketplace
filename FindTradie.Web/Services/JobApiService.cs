@@ -1,0 +1,276 @@
+﻿// Services/JobApiService.cs
+using FindTradie.Services.JobManagement.DTOs;
+using FindTradie.Shared.Contracts.Common;
+using FindTradie.Shared.Domain.Enums;
+using System.Text.Json;
+using System.Text;
+
+namespace FindTradie.Web.Services;
+
+public class JobApiService : IJobApiService
+{
+    private readonly HttpClient _httpClient;
+    private readonly IAuthService _authService;
+    private readonly ILogger<JobApiService> _logger;
+
+    public JobApiService(IHttpClientFactory httpClientFactory, IAuthService authService, ILogger<JobApiService> logger)
+    {
+        _httpClient = httpClientFactory.CreateClient("FindTradieAPI");
+        _authService = authService;
+        _logger = logger;
+    }
+
+    private async Task SetAuthorizationHeaderAsync()
+    {
+        var token = await _authService.GetTokenAsync();
+        if (!string.IsNullOrEmpty(token))
+        {
+            _httpClient.DefaultRequestHeaders.Authorization =
+                new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", token);
+        }
+    }
+
+    public async Task<ApiResponse<JobDetailDto>> CreateJobAsync(CreateJobRequest request)
+    {
+        try
+        {
+            await SetAuthorizationHeaderAsync();
+            var json = JsonSerializer.Serialize(request);
+            var content = new StringContent(json, Encoding.UTF8, "application/json");
+
+            var response = await _httpClient.PostAsync("/api/jobs", content);
+            var responseContent = await response.Content.ReadAsStringAsync();
+
+            return JsonSerializer.Deserialize<ApiResponse<JobDetailDto>>(responseContent, new JsonSerializerOptions
+            {
+                PropertyNameCaseInsensitive = true
+            }) ?? new ApiResponse<JobDetailDto> { Success = false, Message = "Failed to deserialize response" };
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error creating job");
+            return new ApiResponse<JobDetailDto>
+            {
+                Success = false,
+                Message = "An error occurred while creating the job",
+                Errors = new List<string> { ex.Message }
+            };
+        }
+    }
+
+    public async Task<ApiResponse<JobDetailDto>> GetJobAsync(Guid id)
+    {
+        try
+        {
+            var response = await _httpClient.GetAsync($"/api/jobs/{id}");
+            var content = await response.Content.ReadAsStringAsync();
+
+            return JsonSerializer.Deserialize<ApiResponse<JobDetailDto>>(content, new JsonSerializerOptions
+            {
+                PropertyNameCaseInsensitive = true
+            }) ?? new ApiResponse<JobDetailDto> { Success = false, Message = "Failed to deserialize response" };
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error getting job {Id}", id);
+            return new ApiResponse<JobDetailDto>
+            {
+                Success = false,
+                Message = "An error occurred while retrieving the job",
+                Errors = new List<string> { ex.Message }
+            };
+        }
+    }
+
+    public async Task<ApiResponse<JobDetailDto>> UpdateJobAsync(Guid id, UpdateJobRequest request)
+    {
+        try
+        {
+            await SetAuthorizationHeaderAsync();
+            var json = JsonSerializer.Serialize(request);
+            var content = new StringContent(json, Encoding.UTF8, "application/json");
+
+            var response = await _httpClient.PutAsync($"/api/jobs/{id}", content);
+            var responseContent = await response.Content.ReadAsStringAsync();
+
+            return JsonSerializer.Deserialize<ApiResponse<JobDetailDto>>(responseContent, new JsonSerializerOptions
+            {
+                PropertyNameCaseInsensitive = true
+            }) ?? new ApiResponse<JobDetailDto> { Success = false, Message = "Failed to deserialize response" };
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error updating job {Id}", id);
+            return new ApiResponse<JobDetailDto>
+            {
+                Success = false,
+                Message = "An error occurred while updating the job",
+                Errors = new List<string> { ex.Message }
+            };
+        }
+    }
+
+    public async Task<ApiResponse<List<JobSummaryDto>>> SearchJobsAsync(JobSearchRequest request)
+    {
+        try
+        {
+            var json = JsonSerializer.Serialize(request);
+            var content = new StringContent(json, Encoding.UTF8, "application/json");
+
+            var response = await _httpClient.PostAsync("/api/jobs/search", content);
+            var responseContent = await response.Content.ReadAsStringAsync();
+
+            return JsonSerializer.Deserialize<ApiResponse<List<JobSummaryDto>>>(responseContent, new JsonSerializerOptions
+            {
+                PropertyNameCaseInsensitive = true
+            }) ?? new ApiResponse<List<JobSummaryDto>> { Success = false, Message = "Failed to deserialize response" };
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error searching jobs");
+            return new ApiResponse<List<JobSummaryDto>>
+            {
+                Success = false,
+                Message = "An error occurred while searching jobs",
+                Errors = new List<string> { ex.Message }
+            };
+        }
+    }
+
+    public async Task<ApiResponse<List<JobSummaryDto>>> GetCustomerJobsAsync(Guid customerId, int pageNumber = 1, int pageSize = 20)
+    {
+        try
+        {
+            await SetAuthorizationHeaderAsync();
+            var response = await _httpClient.GetAsync($"/api/jobs/customer/{customerId}?pageNumber={pageNumber}&pageSize={pageSize}");
+            var content = await response.Content.ReadAsStringAsync();
+
+            return JsonSerializer.Deserialize<ApiResponse<List<JobSummaryDto>>>(content, new JsonSerializerOptions
+            {
+                PropertyNameCaseInsensitive = true
+            }) ?? new ApiResponse<List<JobSummaryDto>> { Success = false, Message = "Failed to deserialize response" };
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error getting customer jobs for {CustomerId}", customerId);
+            return new ApiResponse<List<JobSummaryDto>>
+            {
+                Success = false,
+                Message = "An error occurred while retrieving jobs",
+                Errors = new List<string> { ex.Message }
+            };
+        }
+    }
+
+    public async Task<ApiResponse<List<JobSummaryDto>>> GetTradieJobsAsync(Guid tradieId, int pageNumber = 1, int pageSize = 20)
+    {
+        try
+        {
+            await SetAuthorizationHeaderAsync();
+            var response = await _httpClient.GetAsync($"/api/jobs/tradie/{tradieId}?pageNumber={pageNumber}&pageSize={pageSize}");
+            var content = await response.Content.ReadAsStringAsync();
+
+            return JsonSerializer.Deserialize<ApiResponse<List<JobSummaryDto>>>(content, new JsonSerializerOptions
+            {
+                PropertyNameCaseInsensitive = true
+            }) ?? new ApiResponse<List<JobSummaryDto>> { Success = false, Message = "Failed to deserialize response" };
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error getting tradie jobs for {TradieId}", tradieId);
+            return new ApiResponse<List<JobSummaryDto>>
+            {
+                Success = false,
+                Message = "An error occurred while retrieving jobs",
+                Errors = new List<string> { ex.Message }
+            };
+        }
+    }
+
+    public async Task<ApiResponse<bool>> UpdateJobStatusAsync(Guid id, JobStatus status, string? reason = null)
+    {
+        try
+        {
+            await SetAuthorizationHeaderAsync();
+            var request = new { Status = status, Reason = reason };
+            var json = JsonSerializer.Serialize(request);
+            var content = new StringContent(json, Encoding.UTF8, "application/json");
+
+            var response = await _httpClient.PatchAsync($"/api/jobs/{id}/status", content);
+            var responseContent = await response.Content.ReadAsStringAsync();
+
+            return JsonSerializer.Deserialize<ApiResponse<bool>>(responseContent, new JsonSerializerOptions
+            {
+                PropertyNameCaseInsensitive = true
+            }) ?? new ApiResponse<bool> { Success = false, Message = "Failed to deserialize response" };
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error updating job status {Id}", id);
+            return new ApiResponse<bool>
+            {
+                Success = false,
+                Message = "An error occurred while updating job status",
+                Errors = new List<string> { ex.Message }
+            };
+        }
+    }
+
+    public async Task<ApiResponse<bool>> AssignTradieAsync(Guid jobId, Guid tradieId, Guid quoteId)
+    {
+        try
+        {
+            await SetAuthorizationHeaderAsync();
+            var request = new { TradieId = tradieId, QuoteId = quoteId };
+            var json = JsonSerializer.Serialize(request);
+            var content = new StringContent(json, Encoding.UTF8, "application/json");
+
+            var response = await _httpClient.PostAsync($"/api/jobs/{jobId}/assign", content);
+            var responseContent = await response.Content.ReadAsStringAsync();
+
+            return JsonSerializer.Deserialize<ApiResponse<bool>>(responseContent, new JsonSerializerOptions
+            {
+                PropertyNameCaseInsensitive = true
+            }) ?? new ApiResponse<bool> { Success = false, Message = "Failed to deserialize response" };
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error assigning tradie to job {JobId}", jobId);
+            return new ApiResponse<bool>
+            {
+                Success = false,
+                Message = "An error occurred while assigning tradie",
+                Errors = new List<string> { ex.Message }
+            };
+        }
+    }
+
+    public async Task<ApiResponse<bool>> CompleteJobAsync(Guid id, string? completionNotes = null)
+    {
+        try
+        {
+            await SetAuthorizationHeaderAsync();
+            var request = new { CompletionNotes = completionNotes };
+            var json = JsonSerializer.Serialize(request);
+            var content = new StringContent(json, Encoding.UTF8, "application/json");
+
+            var response = await _httpClient.PostAsync($"/api/jobs/{id}/complete", content);
+            var responseContent = await response.Content.ReadAsStringAsync();
+
+            return JsonSerializer.Deserialize<ApiResponse<bool>>(responseContent, new JsonSerializerOptions
+            {
+                PropertyNameCaseInsensitive = true
+            }) ?? new ApiResponse<bool> { Success = false, Message = "Failed to deserialize response" };
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error completing job {Id}", id);
+            return new ApiResponse<bool>
+            {
+                Success = false,
+                Message = "An error occurred while completing job",
+                Errors = new List<string> { ex.Message }
+            };
+        }
+    }
+}

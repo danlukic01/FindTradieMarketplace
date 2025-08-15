@@ -1,0 +1,35 @@
+﻿// Shared/LoginDisplay.razor
+@using Microsoft.AspNetCore.Components.Authorization
+@using FindTradie.Web.Auth
+@inject AuthenticationStateProvider AuthStateProvider
+@inject NavigationManager Navigation
+@inject FindTradie.Web.Services.IAuthService AuthService
+
+<AuthorizeView>
+    <Authorized>
+        <div class="user-info">
+            <span class="user-name">Hello, @context.User.Identity?.Name!</span>
+            <button class="nav-link btn btn-link" @onclick="LogoutAsync">Log out</button>
+        </div>
+    </Authorized>
+    <NotAuthorized>
+        <div class="auth-links">
+            <a href="login" class="btn btn-primary me-2">Log in</a>
+            <a href="register" class="btn btn-outline-primary">Register</a>
+        </div>
+    </NotAuthorized>
+</AuthorizeView>
+
+@code {
+    private async Task LogoutAsync()
+    {
+        await AuthService.LogoutAsync();
+
+        if (AuthStateProvider is CustomAuthStateProvider customProvider)
+        {
+            customProvider.NotifyUserLogout();
+        }
+
+        Navigation.NavigateTo("/");
+    }
+}

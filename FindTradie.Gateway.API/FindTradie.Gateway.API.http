@@ -1,0 +1,6 @@
+@FindTradie.Gateway.API_HostAddress = http://localhost:5047
+
+GET {{FindTradie.Gateway.API_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###

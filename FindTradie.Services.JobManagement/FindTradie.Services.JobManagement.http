@@ -1,0 +1,6 @@
+@FindTradie.Services.JobManagement_HostAddress = http://localhost:5100
+
+GET {{FindTradie.Services.JobManagement_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###
