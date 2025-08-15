@@ -1,5 +1,3 @@
-﻿// ===== HOMEPAGE =====
-// Pages/Home.razor
 @page "/"
 @using FindTradie.Services.TradieManagement.DTOs
 @using FindTradie.Shared.Domain.Enums
@@ -13,36 +11,31 @@
         <div class="row align-items-center">
             <div class="col-lg-6">
                 <h1 class="hero-title">Find Trusted Local Tradies</h1>
-                <p class="hero-subtitle">Connect with verified, available professionals in your area. Get quotes, book services, and track progress - all in one place.</p>
-                
-                <div class="search-card">
-                    <h3>What service do you need?</h3>
-                    
+                <p class="hero-subtitle">Connect with verified, available professionals in your area.</p>
+                <div class="search-card mt-4">
+                    <h3 class="mb-3">What service do you need?</h3>
                     <div class="search-form">
-                        <div class="form-group mb-3">
+                        <div class="form-floating mb-3">
+                            <input @bind="SearchLocation" class="form-control" id="location" placeholder=" "/>
                             <label for="location">Your location</label>
-                            <input @bind="SearchLocation" class="form-control" id="location" placeholder="Enter suburb or postcode" />
                         </div>
-                        
-                        <div class="form-group mb-3">
-                            <label for="service">Service needed</label>
+                        <div class="form-floating mb-3">
                             <select @bind="SelectedCategory" class="form-select" id="service">
-                                <option value="">Select a service</option>
+                                <option value=""></option>
                                 @foreach (var category in ServiceCategories)
                                 {
                                     <option value="@((int)category.Key)">@category.Value</option>
                                 }
                             </select>
+                            <label for="service">Service needed</label>
                         </div>
-                        
-                        <div class="form-group mb-3">
-                            <label for="urgency">When do you need this?</label>
+                        <div class="form-floating mb-3">
                             <select @bind="SelectedUrgency" class="form-select" id="urgency">
                                 <option value="false">Within a week</option>
                                 <option value="true">Available now / Emergency</option>
                             </select>
+                            <label for="urgency">When do you need this?</label>
                         </div>
-                        
                         <button class="btn btn-primary btn-lg w-100" @onclick="SearchTradies" disabled="@IsSearching">
                             @if (IsSearching)
                             {
@@ -53,47 +46,97 @@
                     </div>
                 </div>
             </div>
-            
-            <div class="col-lg-6">
-                <div class="hero-image">
-                    <div class="feature-badges">
-                        <div class="badge verified">
-                            <span class="badge-icon">✓</span>
-                            <span>Verified Tradies</span>
-                        </div>
-                        <div class="badge available">
-                            <span class="badge-icon">⚡</span>
-                            <span>Available Now</span>
-                        </div>
-                        <div class="badge insured">
-                            <span class="badge-icon">🛡️</span>
-                            <span>Fully Insured</span>
-                        </div>
-                    </div>
+            <div class="col-lg-6 mt-5 mt-lg-0 text-center">
+                <div class="feature-badges">
+                    <div class="badge verified mb-3"><i class="fa-solid fa-circle-check me-2"></i>Verified Tradies</div>
+                    <div class="badge available mb-3"><i class="fa-solid fa-bolt me-2"></i>Available Now</div>
+                    <div class="badge insured"><i class="fa-solid fa-shield-halved me-2"></i>Fully Insured</div>
                 </div>
             </div>
         </div>
     </div>
 </div>
 
-<div class="how-it-works">
+<div class="services bg-white">
+    <div class="container">
+        <h2 class="text-center mb-4">Popular Services</h2>
+        <div class="row g-4">
+            @foreach (var cat in ServiceCategories)
+            {
+                <div class="col-6 col-md-3">
+                    <div class="service-card">
+                        <i class="@GetIcon(cat.Key)"></i>
+                        <h6>@cat.Value</h6>
+                    </div>
+                </div>
+            }
+        </div>
+    </div>
+</div>
+
+<div class="trust-indicators">
+    <div class="container">
+        <div class="row">
+            <div class="col-md-4 trust-indicator">
+                <i class="fa-solid fa-user-check"></i>
+                <h4>500+ Verified Tradies</h4>
+            </div>
+            <div class="col-md-4 trust-indicator">
+                <i class="fa-solid fa-star"></i>
+                <h4>4.8 Avg Rating</h4>
+            </div>
+            <div class="col-md-4 trust-indicator">
+                <i class="fa-solid fa-briefcase"></i>
+                <h4>10k+ Jobs Completed</h4>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="how-it-works bg-white">
     <div class="container">
         <h2 class="text-center mb-5">How FindTradie Works</h2>
         <div class="row">
-            <div class="col-md-4 text-center">
-                <div class="step-icon">📋</div>
+            <div class="col-md-4 text-center mb-4">
+                <div class="step-icon mb-3"><i class="fa-solid fa-clipboard-list fa-2x"></i></div>
                 <h4>1. Post Your Job</h4>
-                <p>Describe what you need done, add photos, and set your budget. It takes just minutes.</p>
+                <p>Describe what you need done, add photos, and set your budget.</p>
             </div>
-            <div class="col-md-4 text-center">
-                <div class="step-icon">👥</div>
+            <div class="col-md-4 text-center mb-4">
+                <div class="step-icon mb-3"><i class="fa-solid fa-user-group fa-2x"></i></div>
                 <h4>2. Get Quotes</h4>
-                <p>Receive quotes from verified tradies in your area. Compare prices and reviews.</p>
+                <p>Receive quotes from verified tradies in your area.</p>
             </div>
-            <div class="col-md-4 text-center">
-                <div class="step-icon">⭐</div>
+            <div class="col-md-4 text-center mb-4">
+                <div class="step-icon mb-3"><i class="fa-solid fa-star fa-2x"></i></div>
                 <h4>3. Hire & Review</h4>
-                <p>Choose your tradie, track progress, and leave a review when the job is complete.</p>
+                <p>Choose your tradie, track progress, and leave a review.</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="testimonials">
+    <div class="container">
+        <h2 class="text-center mb-4">What Customers Say</h2>
+        <div class="row g-4">
+            <div class="col-md-4">
+                <div class="testimonial-card">
+                    <p>"Great platform to find reliable tradies. Highly recommended!"</p>
+                    <div class="testimonial-author">- Sarah M.</div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="testimonial-card">
+                    <p>"Found an electrician within minutes and the job was perfect."</p>
+                    <div class="testimonial-author">- James R.</div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="testimonial-card">
+                    <p>"Easy to use and the tradies are top quality."</p>
+                    <div class="testimonial-author">- Priya K.</div>
+                </div>
             </div>
         </div>
     </div>
@@ -124,17 +167,14 @@
                                     </div>
                                 </div>
                             </div>
-                            
                             <p class="tradie-description">@tradie.Description</p>
-                            
-                            <div class="tradie-services">
+                            <div class="tradie-services mb-3">
                                 @foreach (var category in tradie.ServiceCategories.Take(3))
                                 {
                                     <span class="service-badge">@GetCategoryName(category)</span>
                                 }
                             </div>
-                            
-                            <div class="tradie-footer">
+                            <div class="tradie-footer d-flex justify-content-between">
                                 <div class="distance">📍 @tradie.DistanceKm.ToString("0.0")km away</div>
                                 <div class="availability">
                                     @if (tradie.IsAvailable)
@@ -147,14 +187,9 @@
                                     }
                                 </div>
                             </div>
-                            
-                            <div class="card-actions">
-                                <button class="btn btn-outline-primary" @onclick="() => ViewProfile(tradie.Id)">
-                                    View Profile
-                                </button>
-                                <button class="btn btn-primary" @onclick="() => RequestQuote(tradie.Id)">
-                                    Get Quote
-                                </button>
+                            <div class="card-actions mt-3">
+                                <button class="btn btn-outline-primary" @onclick="() => ViewProfile(tradie.Id)">View Profile</button>
+                                <button class="btn btn-primary" @onclick="() => RequestQuote(tradie.Id)">Get Quote</button>
                             </div>
                         </div>
                     </div>
@@ -164,9 +199,20 @@
     </div>
 }
 
+<footer class="site-footer mt-5">
+    <div class="container text-center">
+        <div class="mb-2">
+            <a href="#">About</a> |
+            <a href="#">Contact</a> |
+            <a href="#">Privacy</a>
+        </div>
+        <div>&copy; 2024 FindTradie. All rights reserved.</div>
+    </div>
+</footer>
+
 @code {
-    private string SearchLocation = "";
-    private string SelectedCategory = "";
+    private string SearchLocation = string.Empty;
+    private string SelectedCategory = string.Empty;
     private string SelectedUrgency = "false";
     private bool IsSearching = false;
     private List<TradieProfileSummaryDto>? SearchResults;
@@ -184,6 +230,19 @@
         { ServiceCategory.Handyman, "Handyman" }
     };
 
+    private Dictionary<ServiceCategory, string> ServiceIcons = new()
+    {
+        { ServiceCategory.Plumbing, "fa-solid fa-faucet" },
+        { ServiceCategory.Electrical, "fa-solid fa-bolt" },
+        { ServiceCategory.Carpentry, "fa-solid fa-ruler-combined" },
+        { ServiceCategory.Painting, "fa-solid fa-paint-roller" },
+        { ServiceCategory.Roofing, "fa-solid fa-house" },
+        { ServiceCategory.HVAC, "fa-solid fa-temperature-high" },
+        { ServiceCategory.Landscaping, "fa-solid fa-seedling" },
+        { ServiceCategory.Cleaning, "fa-solid fa-soap" },
+        { ServiceCategory.Handyman, "fa-solid fa-screwdriver-wrench" }
+    };
+
     private async Task SearchTradies()
     {
         if (string.IsNullOrWhiteSpace(SearchLocation))
@@ -196,19 +255,17 @@
 
         try
         {
-            // For demo purposes, using Melbourne coordinates
-            // In a real app, you'd geocode the SearchLocation
             var searchRequest = new SearchTradiesRequest(
                 Latitude: -37.8136,
                 Longitude: 144.9631,
                 RadiusKm: 25,
-                Categories: !string.IsNullOrEmpty(SelectedCategory) ? 
+                Categories: !string.IsNullOrEmpty(SelectedCategory) ?
                     new List<ServiceCategory> { (ServiceCategory)int.Parse(SelectedCategory) } : null,
                 AvailableNow: bool.Parse(SelectedUrgency)
             );
 
             var response = await TradieService.SearchTradiesAsync(searchRequest);
-            
+
             if (response.Success && response.Data != null)
             {
                 SearchResults = response.Data;
@@ -216,7 +273,6 @@
         }
         catch (Exception ex)
         {
-            // Handle error
             Console.WriteLine($"Search error: {ex.Message}");
         }
         finally
@@ -229,6 +285,11 @@
     private string GetCategoryName(ServiceCategory category)
     {
         return ServiceCategories.TryGetValue(category, out var name) ? name : category.ToString();
+    }
+
+    private string GetIcon(ServiceCategory category)
+    {
+        return ServiceIcons.TryGetValue(category, out var icon) ? icon : "fa-solid fa-toolbox";
     }
 
     private void ViewProfile(Guid tradieId)

@@ -1,87 +1,66 @@
-﻿// Shared/NavMenu.razor
 @using Microsoft.AspNetCore.Components.Authorization
 @inject AuthenticationStateProvider AuthStateProvider
-@inject NavigationManager Navigation
 
-<div class="top-row ps-3 navbar navbar-dark">
-    <div class="container-fluid">
+<nav class="navbar navbar-expand-lg navbar-light fixed-top">
+    <div class="container">
         <a class="navbar-brand" href="">
-            <span class="brand-logo">🔨</span>
-            FindTradie
+            <i class="fa-solid fa-hammer me-2"></i>FindTradie
         </a>
-        <button title="Navigation menu" class="navbar-toggler" @onclick="ToggleNavMenu">
+        <button class="navbar-toggler" @onclick="ToggleNavMenu">
             <span class="navbar-toggler-icon"></span>
         </button>
-    </div>
-</div>
-
-<div class="@NavMenuCssClass nav-scrollable" @onclick="CollapseNavMenu">
-    <nav class="flex-column">
-        <div class="nav-item px-3">
-            <NavLink class="nav-link" href="" Match="NavLinkMatch.All">
-                <span class="oi oi-home" aria-hidden="true"></span> Home
-            </NavLink>
+        <div class="navbar-collapse collapse @(collapseNavMenu ? string.Empty : "show")">
+            <ul class="navbar-nav ms-auto align-items-lg-center">
+                <li class="nav-item">
+                    <NavLink class="nav-link" href="" Match="NavLinkMatch.All">Home</NavLink>
+                </li>
+                <AuthorizeView>
+                    <Authorized>
+                        <li class="nav-item">
+                            <NavLink class="nav-link" href="dashboard">Dashboard</NavLink>
+                        </li>
+                        <li class="nav-item">
+                            <NavLink class="nav-link" href="jobs">My Jobs</NavLink>
+                        </li>
+                        @if (IsTradie)
+                        {
+                            <li class="nav-item">
+                                <NavLink class="nav-link" href="tradie/profile">My Profile</NavLink>
+                            </li>
+                            <li class="nav-item">
+                                <NavLink class="nav-link" href="tradie/jobs">Browse Jobs</NavLink>
+                            </li>
+                        }
+                        else
+                        {
+                            <li class="nav-item">
+                                <NavLink class="nav-link" href="post-job">Post a Job</NavLink>
+                            </li>
+                            <li class="nav-item">
+                                <NavLink class="nav-link" href="find-tradies">Find Tradies</NavLink>
+                            </li>
+                        }
+                        <li class="nav-item ms-lg-3">
+                            <LoginDisplay />
+                        </li>
+                    </Authorized>
+                    <NotAuthorized>
+                        <li class="nav-item">
+                            <NavLink class="nav-link" href="find-tradies">Find Tradies</NavLink>
+                        </li>
+                        <li class="nav-item ms-lg-3">
+                            <LoginDisplay />
+                        </li>
+                    </NotAuthorized>
+                </AuthorizeView>
+            </ul>
         </div>
-
-        <AuthorizeView>
-            <Authorized>
-                <div class="nav-item px-3">
-                    <NavLink class="nav-link" href="dashboard">
-                        <span class="oi oi-dashboard" aria-hidden="true"></span> Dashboard
-                    </NavLink>
-                </div>
-                
-                <div class="nav-item px-3">
-                    <NavLink class="nav-link" href="jobs">
-                        <span class="oi oi-list-rich" aria-hidden="true"></span> My Jobs
-                    </NavLink>
-                </div>
-
-                @if (IsTradie)
-                {
-                    <div class="nav-item px-3">
-                        <NavLink class="nav-link" href="tradie/profile">
-                            <span class="oi oi-person" aria-hidden="true"></span> My Profile
-                        </NavLink>
-                    </div>
-                    
-                    <div class="nav-item px-3">
-                        <NavLink class="nav-link" href="tradie/jobs">
-                            <span class="oi oi-wrench" aria-hidden="true"></span> Browse Jobs
-                        </NavLink>
-                    </div>
-                }
-                else
-                {
-                    <div class="nav-item px-3">
-                        <NavLink class="nav-link" href="post-job">
-                            <span class="oi oi-plus" aria-hidden="true"></span> Post a Job
-                        </NavLink>
-                    </div>
-                    
-                    <div class="nav-item px-3">
-                        <NavLink class="nav-link" href="find-tradies">
-                            <span class="oi oi-magnifying-glass" aria-hidden="true"></span> Find Tradies
-                        </NavLink>
-                    </div>
-                }
-            </Authorized>
-            <NotAuthorized>
-                <div class="nav-item px-3">
-                    <NavLink class="nav-link" href="find-tradies">
-                        <span class="oi oi-magnifying-glass" aria-hidden="true"></span> Find Tradies
-                    </NavLink>
-                </div>
-            </NotAuthorized>
-        </AuthorizeView>
-    </nav>
-</div>
+    </div>
+</nav>
 
 @code {
     private bool collapseNavMenu = true;
     private bool IsTradie = false;
-
-    private string? NavMenuCssClass => collapseNavMenu ? "collapse" : null;
 
     protected override async Task OnInitializedAsync()
     {
@@ -89,17 +68,12 @@
         if (authState.User.Identity?.IsAuthenticated == true)
         {
             var userTypeClaim = authState.User.FindFirst("UserType")?.Value;
-            IsTradie = userTypeClaim == "2"; // UserType.Tradie = 2
+            IsTradie = userTypeClaim == "2";
         }
     }
 
     private void ToggleNavMenu()
     {
         collapseNavMenu = !collapseNavMenu;
-    }
-
-    private void CollapseNavMenu()
-    {
-        collapseNavMenu = true;
     }
 }
