@@ -5,70 +5,71 @@
 <link rel="stylesheet" href="css/help-faq.css" />
 
 <div class="faq-page">
-  <!-- Hero Section -->
-  <section class="hero-section-small">
-    <div class="container">
-      <h1>Frequently Asked Questions</h1>
-      <p class="hero-subtitle">Quick answers to common questions about FindTradie</p>
-    </div>
-  </section>
-
-  <!-- FAQ Categories Tabs -->
-  <section class="faq-section">
-    <div class="container">
-      <!-- Category Tabs -->
-      <div class="faq-tabs" role="tablist" aria-label="FAQ categories">
-        @foreach (var tab in Tabs)
-        {
-          <button class="faq-tab @(ActiveTab == tab ? "active" : "")"
-                  role="tab"
-                  aria-selected="@(ActiveTab == tab)"
-                  @onclick="() => SetTab(tab)">
-            @TabLabel(tab)
-          </button>
-        }
-      </div>
-
-      <!-- FAQ Content -->
-      <div class="faq-content">
-        @foreach (var (item, idx) in VisibleFaqs.Select((x, i) => (x, i)))
-        {
-          <div class="faq-item @(item.Open ? "open" : "")">
-            <button class="faq-question"
-                    aria-expanded="@item.Open"
-                    aria-controls="faq-@idx"
-                    @onclick="() => Toggle(idx)">
-              <span>@item.Question</span>
-              <span class="faq-icon" aria-hidden="true">@((item.Open ? "−" : "+"))</span>
-            </button>
-            <div id="faq-@idx" class="faq-answer" role="region">
-              @((MarkupString)item.AnswerHtml)
-            </div>
-          </div>
-        }
-      </div>
-    </div>
-  </section>
-
-  <!-- Still Have Questions -->
-  <section class="more-questions">
-    <div class="container">
-      <div class="questions-cta">
-        <h2>Didn't find your answer?</h2>
-        <p>Check our comprehensive Help Center or contact our support team</p>
-        <div class="cta-buttons">
-          <a href="/help" class="btn btn-outline">Visit Help Center</a>
-          <a href="/contact" class="btn btn-primary">Contact Support</a>
+    <!-- Hero Section -->
+    <section class="hero-section-small">
+        <div class="container">
+            <h1>Frequently Asked Questions</h1>
+            <p class="hero-subtitle">Quick answers to common questions about FindTradie</p>
         </div>
-      </div>
-    </div>
-  </section>
+    </section>
+
+    <!-- FAQ Categories Tabs -->
+    <section class="faq-section">
+        <div class="container">
+            <!-- Category Tabs -->
+            <div class="faq-tabs" role="tablist" aria-label="FAQ categories">
+                @foreach (var tab in Tabs)
+                {
+                    <button class="faq-tab @(ActiveTab == tab ? "active" : "")"
+                            role="tab"
+                            aria-selected="@(ActiveTab == tab)"
+                            @onclick="() => SetTab(tab)">
+                        @TabLabel(tab)
+                    </button>
+                }
+            </div>
+
+            <!-- FAQ Content -->
+            <div class="faq-content">
+                @foreach (var (item, idx) in VisibleFaqs.Select((x, i) => (x, i)))
+                {
+                    <div class="faq-item @(item.Open ? "open" : "")">
+                        <button class="faq-question"
+                                aria-expanded="@item.Open"
+                                aria-controls="faq-@idx"
+                                @onclick="() => Toggle(idx)">
+                            <span>@item.Question</span>
+                            <span class="faq-icon" aria-hidden="true">@((item.Open ? "−" : "+"))</span>
+                        </button>
+                        <div id="faq-@idx" class="faq-answer" role="region">
+                            @((MarkupString)item.AnswerHtml)
+                        </div>
+                    </div>
+                }
+            </div>
+        </div>
+    </section>
+
+    <!-- Still Have Questions -->
+    <section class="more-questions">
+        <div class="container">
+            <div class="questions-cta">
+                <h2>Didn't find your answer?</h2>
+                <p>Check our comprehensive Help Center or contact our support team</p>
+                <div class="cta-buttons">
+                    <a href="/help" class="btn btn-outline">Visit Help Center</a>
+                    <a href="/contact" class="btn btn-primary">Contact Support</a>
+                </div>
+            </div>
+        </div>
+    </section>
 </div>
 
 @code {
     private enum FaqCategory { General, Customers, Tradies, Payments, Safety }
 
-    private record Faq(string Question, string AnswerHtml, FaqCategory Category)
+    // Name changed to avoid clash with the component class
+    private record FaqItem(string Question, string AnswerHtml, FaqCategory Category)
     {
         public bool Open { get; set; }
     }
@@ -80,13 +81,15 @@
     };
 
     private FaqCategory ActiveTab = FaqCategory.General;
-    private List<Faq> VisibleFaqs => AllFaqs.Where(f => f.Category == ActiveTab).ToList();
+
+    private List<FaqItem> VisibleFaqs => AllFaqs.Where(f => f.Category == ActiveTab).ToList();
 
     private void SetTab(FaqCategory cat)
     {
         ActiveTab = cat;
         // close all when switching
         foreach (var f in AllFaqs) f.Open = false;
+        StateHasChanged();
     }
 
     private void Toggle(int index)
@@ -94,6 +97,7 @@
         var list = VisibleFaqs;
         if (index < 0 || index >= list.Count) return;
         list[index].Open = !list[index].Open;
+        StateHasChanged();
     }
 
     private static string TabLabel(FaqCategory cat) => cat switch
@@ -106,15 +110,16 @@
         _ => cat.ToString()
     };
 
-    // Content (expanded from your draft)
-    private readonly List<Faq> AllFaqs = new()
+    // Content (expanded from your draft) — using explicit new + verbatim strings
+    private readonly List<FaqItem> AllFaqs = new()
     {
         // General
-        new("What is FindTradie?", @"""
+        new FaqItem("What is FindTradie?", @"
             <p>FindTradie is Australia's trusted marketplace connecting homeowners with verified, insured local tradies. We make it easy to find reliable professionals for any home service, from emergency repairs to renovations.</p>
             <p>All tradies undergo verification and are rated by real customers.</p>
-        """, FaqCategory.General),
-        new("How does FindTradie work?", @"""
+        ", FaqCategory.General),
+
+        new FaqItem("How does FindTradie work?", @"
             <p>It's simple:</p>
             <ol>
               <li><strong>Post your job:</strong> Describe what you need done and add photos</li>
@@ -123,17 +128,19 @@
               <li><strong>Get it done:</strong> Your chosen tradie completes the work</li>
               <li><strong>Leave a review:</strong> Help others by sharing your experience</li>
             </ol>
-        """, FaqCategory.General),
-        new("Is FindTradie free to use?", @"""
+        ", FaqCategory.General),
+
+        new FaqItem("Is FindTradie free to use?", @"
             <p>For customers: <strong>Yes, completely free!</strong> Post jobs and receive quotes at no cost.</p>
             <p>For tradies: We offer flexible subscription plans starting from $99/month, with a 14-day free trial.</p>
-        """, FaqCategory.General),
-        new("Which areas does FindTradie service?", @"""
+        ", FaqCategory.General),
+
+        new FaqItem("Which areas does FindTradie service?", @"
             <p>We currently operate in major Australian cities and surrounding areas, including Sydney, Melbourne, Brisbane/Gold Coast, Perth, Adelaide, and Canberra. We're expanding soon—join the waitlist if your area isn't covered.</p>
-        """, FaqCategory.General),
+        ", FaqCategory.General),
 
         // Customers
-        new("How do I post a job?", @"""
+        new FaqItem("How do I post a job?", @"
             <p>Posting a job is easy:</p>
             <ol>
               <li>Click <em>Post a Job</em> on the homepage</li>
@@ -144,25 +151,28 @@
               <li>Submit your job post</li>
             </ol>
             <p>You'll start receiving quotes within hours.</p>
-        """, FaqCategory.Customers),
-        new("How many quotes will I receive?", @"""
+        ", FaqCategory.Customers),
+
+        new FaqItem("How many quotes will I receive?", @"
             <p>Typically 3–5 quotes in 24–48 hours. This varies by job type, location, seasonality, and budget.</p>
-        """, FaqCategory.Customers),
-        new("What if I need emergency service?", @"""
+        ", FaqCategory.Customers),
+
+        new FaqItem("What if I need emergency service?", @"
             <p>Select <strong>Emergency – ASAP</strong> when posting your job. We'll prioritise your request to available tradies—responses often arrive within 1–2 hours. For urgent hazards, call 1300 TRADIE.</p>
-        """, FaqCategory.Customers),
-        new("Can I cancel a job after accepting a quote?", @"""
+        ", FaqCategory.Customers),
+
+        new FaqItem("Can I cancel a job after accepting a quote?", @"
             <p>Yes, but timing matters:</p>
             <ul>
-              <li><strong>>24 hours before:</strong> Free cancellation</li>
-              <li><strong><24 hours:</strong> A cancellation fee may apply</li>
+              <li><strong>&gt; 24 hours before:</strong> Free cancellation</li>
+              <li><strong>&lt; 24 hours:</strong> A cancellation fee may apply</li>
               <li><strong>After work starts:</strong> Subject to the tradie’s terms</li>
             </ul>
             <p>Always communicate with your tradie to reschedule or cancel.</p>
-        """, FaqCategory.Customers),
+        ", FaqCategory.Customers),
 
         // Tradies
-        new("How do I become a verified tradie?", @"""
+        new FaqItem("How do I become a verified tradie?", @"
             <p>Verification steps:</p>
             <ol>
               <li>Apply online (ABN, contact details)</li>
@@ -170,16 +180,18 @@
               <li>Background & reference checks</li>
               <li>Profile review by our team (2–3 business days)</li>
             </ol>
-        """, FaqCategory.Tradies),
-        new("How much does it cost to join as a tradie?", @"""
+        ", FaqCategory.Tradies),
+
+        new FaqItem("How much does it cost to join as a tradie?", @"
             <table class='pricing-table'>
               <tr><td><strong>Starter</strong></td><td>$99/month</td><td>Up to 15 quotes/month</td></tr>
               <tr><td><strong>Professional</strong></td><td>$199/month</td><td>Up to 40 quotes/month</td></tr>
               <tr><td><strong>Business</strong></td><td>$399/month</td><td>Unlimited quotes</td></tr>
             </table>
             <p>All plans include a 14-day free trial. No setup fees.</p>
-        """, FaqCategory.Tradies),
-        new("How do I get more jobs?", @"""
+        ", FaqCategory.Tradies),
+
+        new FaqItem("How do I get more jobs?", @"
             <ul>
               <li><strong>Complete your profile:</strong> Photos, certifications, services</li>
               <li><strong>Respond quickly:</strong> Quotes within 2–4 hours perform best</li>
@@ -188,26 +200,28 @@
               <li><strong>Show portfolio:</strong> Upload recent work</li>
               <li><strong>Price competitively:</strong> Check local market rates</li>
             </ul>
-        """, FaqCategory.Tradies),
+        ", FaqCategory.Tradies),
 
         // Payments
-        new("What payment methods are accepted?", @"""
+        new FaqItem("What payment methods are accepted?", @"
             <p>We accept Visa, Mastercard, Amex, PayPal, bank transfer, and Afterpay (for jobs over $500). Payments are processed securely via Stripe.</p>
-        """, FaqCategory.Payments),
-        new("When do I pay for the service?", @"""
+        ", FaqCategory.Payments),
+
+        new FaqItem("When do I pay for the service?", @"
             <ul>
               <li><strong>Small jobs (&lt;$500):</strong> Usually on completion</li>
               <li><strong>Larger jobs:</strong> Often require a 10–30% deposit</li>
               <li><strong>Projects:</strong> Milestone payments are common</li>
             </ul>
             <p>Never pay 100% upfront. Use our secure payment system for protection.</p>
-        """, FaqCategory.Payments),
+        ", FaqCategory.Payments),
 
         // Safety
-        new("Are all tradies insured?", @"""
+        new FaqItem("Are all tradies insured?", @"
             <p>Yes. Every tradie must hold public liability insurance (min $5M) with annual re-verification. Additional trade-specific cover may be required (e.g., electrical).</p>
-        """, FaqCategory.Safety),
-        new("What if something goes wrong?", @"""
+        ", FaqCategory.Safety),
+
+        new FaqItem("What if something goes wrong?", @"
             <ol>
               <li>Contact the tradie directly—most issues resolve quickly</li>
               <li>Use our Resolution Center to lodge a complaint</li>
@@ -215,6 +229,6 @@
               <li>Money-back guarantee for eligible cases under our protection policy</li>
             </ol>
             <p>Email <a href='mailto:support@findtradie.com.au'>support@findtradie.com.au</a> or call 1300 TRADIE.</p>
-        """, FaqCategory.Safety),
+        ", FaqCategory.Safety),
     };
 }
