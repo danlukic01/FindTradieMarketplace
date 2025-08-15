@@ -16,30 +16,44 @@
             <div class="search-card mt-4">
                 <h3 class="mb-3">What service do you need?</h3>
                 <div class="search-form">
-                    <div class="form-floating mb-3 input-wrapper location-input">
-                        <input @bind="SearchLocation" class="form-control" id="location" placeholder="" />
+                    <!-- Location (input) -->
+                    <div class="form-floating mb-3 field-with-icon">
+                        <i class="fa-solid fa-location-dot form-icon"></i>
+                        <input @bind="SearchLocation" class="form-control" id="location" placeholder=" " />
                         <label for="location">Your location</label>
                     </div>
-                    <div class="form-floating mb-3 input-wrapper service-input">
-                        <select @bind="SelectedCategory" class="form-select service-select" id="service">
+
+                    <!-- Service (select) -->
+                    <div class="form-floating mb-3 field-with-icon">
+                        <i class="fa-solid fa-screwdriver-wrench form-icon"></i>
+                        <select @bind="SelectedCategory" class="form-select" id="service">
                             <option value="" disabled selected>Select a service</option>
-                            @foreach (var category in ServiceCategories)
+                            @foreach (var c in ServiceCategories)
                             {
-                                <option value="@((int)category.Key)">@category.Value</option>
+                                <option value="@((int)c.Key)">@c.Value</option>
                             }
                         </select>
                         <label for="service">Service needed</label>
                     </div>
-                    <div class="form-floating mb-3 input-wrapper urgency-input">
+
+                    <!-- Urgency (select) -->
+                    <div class="form-floating mb-3 field-with-icon">
+                        <i class="fa-solid fa-clock form-icon"></i>
                         <select @bind="SelectedUrgency" class="form-select" id="urgency">
                             <option value="false">Within a week</option>
                             <option value="true">Available now / Emergency</option>
                         </select>
                         <label for="urgency">When do you need this?</label>
                     </div>
-                    <button class="btn btn-primary btn-find-tradies btn-lg w-100 @(IsSearching ? \"btn-loading\" : string.Empty)" @onclick="SearchTradies" disabled="@IsSearching">
+
+
+
+                    <button class="btn btn-primary btn-find-tradies btn-lg w-100 @(IsSearching ? "btn-loading" : string.Empty)"
+                            @onclick="SearchTradies"
+                            disabled="@IsSearching">
                         <span>Find Tradies <i class="fa-solid fa-arrow-right ms-2"></i></span>
                     </button>
+
                     <button class="btn btn-outline-secondary btn-lg w-100 mt-3" @onclick="NavigateToPostJob">Post a Job</button>
                 </div>
             </div>
@@ -48,9 +62,6 @@
                 <div class="trust-badge"><i class="fa-solid fa-shield-halved"></i><span>Insured</span></div>
                 <div class="trust-badge"><i class="fa-solid fa-comments-dollar"></i><span>Free Quotes</span></div>
             </div>
-        </div>
-        <div class="hero-right">
-            <img src="images/happy-tradies.svg" alt="Happy customers" class="img-fluid hero-illustration" />
         </div>
     </div>
 </div>
