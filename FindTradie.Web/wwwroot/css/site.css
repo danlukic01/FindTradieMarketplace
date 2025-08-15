@@ -5,10 +5,24 @@
     box-sizing: border-box;
 }
 
+:root {
+    --primary: #3b82f6;
+    --secondary: #8b5cf6;
+    --success: #10b981;
+    --text-primary: #1f2937;
+    --text-secondary: #6b7280;
+    --font-display: 'Poppins', sans-serif;
+    --font-body: 'Inter', sans-serif;
+}
+
 body {
-    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-    color: #2d3748;
+    font-family: var(--font-body);
+    color: var(--text-primary);
     background: #ffffff;
+}
+
+h1, h2, h3 {
+    font-family: var(--font-display);
 }
 
 /* Layout fixes */
@@ -47,9 +61,19 @@ main {
     padding: 0 !important;
 }
 
+/* Emergency banner */
+.emergency-banner {
+    background: var(--secondary);
+    color: white;
+    text-align: center;
+    padding: 0.5rem 0;
+    font-weight: 600;
+}
+
 /* Hero Section */
 .hero-section {
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    background-image: radial-gradient(circle at 1px 1px, rgba(255,255,255,0.15) 1px, transparent 0), linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
+    background-size: 20px 20px, auto;
     padding: 60px 0;
     color: white;
     position: relative;
@@ -135,6 +159,11 @@ main {
     transform: translateY(-2px);
 }
 
+.service-select option {
+    padding: 10px;
+    line-height: 1.5;
+}
+
 .form-floating label {
     position: absolute;
     top: 50%;
@@ -157,13 +186,22 @@ main {
     color: #667eea;
 }
 
-.input-icon {
+.input-with-icon {
+    position: relative;
+}
+
+.input-with-icon::before {
+    content: attr(data-icon);
     position: absolute;
-    right: 1rem;
+    left: 15px;
     top: 50%;
     transform: translateY(-50%);
-    color: #94a3b8;
     pointer-events: none;
+}
+
+.input-with-icon input,
+.input-with-icon select {
+    padding-left: 2.5rem;
 }
 
 /* Buttons */
@@ -187,6 +225,25 @@ main {
     background: #2563eb;
     transform: translateY(-2px);
     box-shadow: 0 10px 20px rgba(49, 130, 206, 0.3);
+}
+
+.btn-find-tradies {
+    background: linear-gradient(135deg, var(--primary), var(--secondary));
+    position: relative;
+    overflow: hidden;
+}
+
+.btn-find-tradies::after {
+    content: '→';
+    position: absolute;
+    right: -20px;
+    top: 50%;
+    transform: translateY(-50%);
+    transition: right 0.3s;
+}
+
+.btn-find-tradies:hover::after {
+    right: 20px;
 }
 
 .btn-loading {
@@ -294,10 +351,18 @@ main {
 }
 
 .stat-number {
-    font-size: 2.5rem;
-    font-weight: 700;
-    color: #667eea;
+    background: linear-gradient(135deg, var(--primary), var(--secondary));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    font-size: 3rem;
+    font-weight: 800;
     display: block;
+    animation: countUp 2s ease-out;
+}
+
+@keyframes countUp {
+    from { opacity: 0; }
+    to { opacity: 1; }
 }
 
 .stat-label {
@@ -343,25 +408,31 @@ main {
 /* Testimonials */
 .testimonial-card {
     background: white;
-    padding: 2rem;
-    border-radius: 12px;
-    box-shadow: 0 5px 20px rgba(0,0,0,0.08);
+    border-left: 4px solid var(--primary);
+    padding: 1.5rem;
+    margin: 1rem;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.05);
     position: relative;
 }
 
-.testimonial-card::before {
-    content: '"';
-    position: absolute;
-    top: -10px;
-    left: 20px;
-    font-size: 60px;
-    color: #667eea;
-    opacity: 0.2;
+.testimonial-stars {
+    color: #fbbf24;
+    font-size: 1.2rem;
+    margin-bottom: 0.5rem;
 }
 
-.testimonial-rating {
-    color: #fbbf24;
-    margin-bottom: 1rem;
+.testimonial-text {
+    position: relative;
+    padding-left: 1.5rem;
+}
+
+.testimonial-text::before {
+    content: '"';
+    font-size: 3rem;
+    color: #e5e7eb;
+    position: absolute;
+    top: -10px;
+    left: -5px;
 }
 
 .testimonial-author {
@@ -395,6 +466,35 @@ main {
     border-radius: 8px;
     box-shadow: 0 2px 6px rgba(0,0,0,0.05);
     font-weight: 500;
+}
+
+/* New Sections */
+.featured-tradies,
+.recent-jobs,
+.trust-security {
+    padding: 60px 0;
+}
+
+.trust-security .trust-badge {
+    background: white;
+    padding: 1.5rem;
+    border-radius: 12px;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.05);
+}
+
+.trust-security .trust-badge .icon {
+    font-size: 2rem;
+    margin-bottom: 0.5rem;
+}
+
+.site-footer .social-links a {
+    margin: 0 0.5rem;
+    color: inherit;
+}
+
+.payment-icons i {
+    font-size: 2rem;
+    margin: 0 0.25rem;
 }
 
 /* Mobile adjustments */
