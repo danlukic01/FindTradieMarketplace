@@ -1,0 +1,363 @@
+@page "/help"
+@using System.Text.RegularExpressions
+
+<PageTitle>Help Center • FindTradie</PageTitle>
+
+<link rel="stylesheet" href="css/help-faq.css" />
+
+<div class="help-center-page">
+  <!-- Hero Section with Search -->
+  <section class="hero-section-help">
+    <div class="container">
+      <h1>How can we help you?</h1>
+      <p class="hero-subtitle">Find answers to your questions or contact our support team</p>
+
+      <div class="help-search-wrapper" role="search" aria-label="Help Center search">
+        <div class="help-search-box">
+          <span class="search-icon" aria-hidden="true">🔍</span>
+          <input
+            type="text"
+            class="help-search-input"
+            placeholder="Search for help articles... (e.g., 'post a job', 'get verified', 'payment')"
+            @bind="SearchTerm"
+            @bind:event="oninput"
+            @onkeydown="OnSearchKeydown"
+            aria-label="Search help articles" />
+
+          <button class="search-btn" @onclick="RunSearch" aria-label="Search">Search</button>
+        </div>
+
+        <!-- Live search results -->
+        @if (ShowResults)
+        {
+          <div class="help-search-results" role="listbox" aria-label="Search results">
+            @if (FilteredArticles.Count == 0)
+            {
+              <div class="no-results">No results for “@SearchTerm”. Try different keywords.</div>
+            }
+            else
+            {
+              @foreach (var a in FilteredArticles.Take(8))
+              {
+                <a class="result-item" href="@a.Url" role="option">
+                  <div class="result-title">@a.Title</div>
+                  <div class="result-meta">@a.Audience • @a.Category</div>
+                </a>
+              }
+            }
+          </div>
+        }
+
+        <!-- Quick search suggestions -->
+        <div class="quick-searches">
+          <span>Popular searches:</span>
+          <button type="button" class="quick-link" @onclick='() => QuickSearch("How to post a job")'>How to post a job</button>
+          <button type="button" class="quick-link" @onclick='() => QuickSearch("Verification process")'>Verification process</button>
+          <button type="button" class="quick-link" @onclick='() => QuickSearch("Payment methods")'>Payment methods</button>
+          <button type="button" class="quick-link" @onclick='() => QuickSearch("Cancel a job")'>Cancel a job</button>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- User Type Selection -->
+  <section class="user-type-help">
+    <div class="container">
+      <h2 class="text-center">I need help as a...</h2>
+      <div class="user-type-cards" role="tablist" aria-label="Help audience">
+        <button class="user-card customer-card @(IsCustomerView ? "active" : "")"
+                role="tab"
+                aria-selected="@IsCustomerView"
+                @onclick="() => SetAudience(true)">
+          <div class="user-icon">🏠</div>
+          <h3>Customer</h3>
+          <p>I need to hire a tradie</p>
+          <span class="card-arrow" aria-hidden="true">→</span>
+        </button>
+
+        <button class="user-card tradie-card @(!IsCustomerView ? "active" : "")"
+                role="tab"
+                aria-selected="@(!IsCustomerView)"
+                @onclick="() => SetAudience(false)">
+          <div class="user-icon">🔧</div>
+          <h3>Tradie</h3>
+          <p>I provide services</p>
+          <span class="card-arrow" aria-hidden="true">→</span>
+        </button>
+      </div>
+    </div>
+  </section>
+
+  <!-- Help Categories Grid -->
+  <section class="help-categories">
+    <div class="container">
+      <h2>Browse Help Topics</h2>
+
+      <!-- Customer Help Topics -->
+      @if (IsCustomerView)
+      {
+        <div id="customer-topics" class="help-topics-grid" role="region" aria-label="Customer help topics">
+          <div class="help-category-card">
+            <div class="category-icon">📝</div>
+            <h3>Getting Started</h3>
+            <ul class="help-links">
+              <li><a href="/help/create-account">Create an account</a></li>
+              <li><a href="/help/post-first-job">Post your first job</a></li>
+              <li><a href="/help/how-it-works">How FindTradie works</a></li>
+              <li><a href="/help/service-areas">Service areas</a></li>
+            </ul>
+          </div>
+
+          <div class="help-category-card">
+            <div class="category-icon">💼</div>
+            <h3>Posting Jobs</h3>
+            <ul class="help-links">
+              <li><a href="/help/job-details">Writing job descriptions</a></li>
+              <li><a href="/help/add-photos">Adding photos</a></li>
+              <li><a href="/help/set-budget">Setting your budget</a></li>
+              <li><a href="/help/emergency-jobs">Emergency jobs</a></li>
+            </ul>
+          </div>
+
+          <div class="help-category-card">
+            <div class="category-icon">📋</div>
+            <h3>Managing Quotes</h3>
+            <ul class="help-links">
+              <li><a href="/help/review-quotes">Reviewing quotes</a></li>
+              <li><a href="/help/compare-tradies">Comparing tradies</a></li>
+              <li><a href="/help/accept-quote">Accepting a quote</a></li>
+              <li><a href="/help/negotiate">Negotiating prices</a></li>
+            </ul>
+          </div>
+
+          <div class="help-category-card">
+            <div class="category-icon">💳</div>
+            <h3>Payments & Billing</h3>
+            <ul class="help-links">
+              <li><a href="/help/payment-methods">Payment methods</a></li>
+              <li><a href="/help/secure-payment">Secure payment system</a></li>
+              <li><a href="/help/invoices">Invoices & receipts</a></li>
+              <li><a href="/help/refunds">Refunds & disputes</a></li>
+            </ul>
+          </div>
+
+          <div class="help-category-card">
+            <div class="category-icon">⭐</div>
+            <h3>Reviews & Ratings</h3>
+            <ul class="help-links">
+              <li><a href="/help/leave-review">Leaving reviews</a></li>
+              <li><a href="/help/rating-system">Rating system</a></li>
+              <li><a href="/help/review-guidelines">Review guidelines</a></li>
+              <li><a href="/help/report-review">Report inappropriate reviews</a></li>
+            </ul>
+          </div>
+
+          <div class="help-category-card">
+            <div class="category-icon">🚡️</div>
+            <h3>Trust & Safety</h3>
+            <ul class="help-links">
+              <li><a href="/help/verified-tradies">Verified tradies</a></li>
+              <li><a href="/help/insurance">Insurance coverage</a></li>
+              <li><a href="/help/safety-tips">Safety tips</a></li>
+              <li><a href="/help/report-issue">Report an issue</a></li>
+            </ul>
+          </div>
+        </div>
+      }
+      else
+      {
+        <!-- Tradie Help Topics -->
+        <div id="tradie-topics" class="help-topics-grid" role="region" aria-label="Tradie help topics">
+          <div class="help-category-card">
+            <div class="category-icon">🚀</div>
+            <h3>Getting Started</h3>
+            <ul class="help-links">
+              <li><a href="/help/tradie-signup">Sign up as a tradie</a></li>
+              <li><a href="/help/verification">Verification process</a></li>
+              <li><a href="/help/profile-setup">Set up your profile</a></li>
+              <li><a href="/help/subscription-plans">Subscription plans</a></li>
+            </ul>
+          </div>
+
+          <div class="help-category-card">
+            <div class="category-icon">🔍</div>
+            <h3>Finding Work</h3>
+            <ul class="help-links">
+              <li><a href="/help/browse-jobs">Browse available jobs</a></li>
+              <li><a href="/help/job-alerts">Set up job alerts</a></li>
+              <li><a href="/help/service-areas">Set service areas</a></li>
+              <li><a href="/help/availability">Manage availability</a></li>
+            </ul>
+          </div>
+
+          <div class="help-category-card">
+            <div class="category-icon">💰</div>
+            <h3>Quoting & Pricing</h3>
+            <ul class="help-links">
+              <li><a href="/help/create-quote">Creating quotes</a></li>
+              <li><a href="/help/pricing-guide">Pricing guidelines</a></li>
+              <li><a href="/help/quote-templates">Quote templates</a></li>
+              <li><a href="/help/win-more-jobs">Tips to win jobs</a></li>
+            </ul>
+          </div>
+
+          <div class="help-category-card">
+            <div class="category-icon">📊</div>
+            <h3>Growing Your Business</h3>
+            <ul class="help-links">
+              <li><a href="/help/profile-optimization">Optimize your profile</a></li>
+              <li><a href="/help/get-reviews">Getting reviews</a></li>
+              <li><a href="/help/ranking">Improve ranking</a></li>
+              <li><a href="/help/analytics">View analytics</a></li>
+            </ul>
+          </div>
+        </div>
+      }
+    </div>
+  </section>
+
+  <!-- Video Tutorials -->
+  <section class="video-tutorials">
+    <div class="container">
+      <h2>Video Tutorials</h2>
+      <div class="video-grid">
+        <a class="video-card" href="/help/video/post-job">
+          <div class="video-thumbnail">
+            <span class="play-icon">▶️</span>
+          </div>
+          <h4>How to Post a Job</h4>
+          <p>2 min watch</p>
+        </a>
+        <a class="video-card" href="/help/video/choose-tradie">
+          <div class="video-thumbnail">
+            <span class="play-icon">▶️</span>
+          </div>
+          <h4>Choosing the Right Tradie</h4>
+          <p>3 min watch</p>
+        </a>
+        <a class="video-card" href="/help/video/verification">
+          <div class="video-thumbnail">
+            <span class="play-icon">▶️</span>
+          </div>
+          <h4>Tradie Verification Process</h4>
+          <p>4 min watch</p>
+        </a>
+      </div>
+    </div>
+  </section>
+
+  <!-- Contact Support -->
+  <section class="contact-support-section">
+    <div class="container">
+      <div class="support-cta">
+        <h2>Still need help?</h2>
+        <p>Our support team is here to assist you</p>
+        <div class="support-options">
+          <a href="/contact" class="support-option">
+            <span class="option-icon">💬</span>
+            <h4>Live Chat</h4>
+            <p>Chat with our team</p>
+          </a>
+          <a href="mailto:support@findtradie.com.au" class="support-option">
+            <span class="option-icon">📧</span>
+            <h4>Email Support</h4>
+            <p>Get help via email</p>
+          </a>
+          <a href="tel:1300872343" class="support-option">
+            <span class="option-icon">📞</span>
+            <h4>Call Us</h4>
+            <p>1300 TRADIE</p>
+          </a>
+        </div>
+      </div>
+    </div>
+  </section>
+</div>
+
+@code {
+    private bool IsCustomerView = true;
+    private string SearchTerm = string.Empty;
+    private bool ShowResults => !string.IsNullOrWhiteSpace(SearchTerm);
+    private List<HelpArticle> FilteredArticles = new();
+
+    private record HelpArticle(string Title, string Url, string Audience, string Category, string[] Keywords);
+
+    // Minimal index; add more as you create articles
+    private readonly List<HelpArticle> Index = new()
+    {
+        new("Create an account", "/help/create-account", "Customer", "Getting Started", new[] { "signup","register","account","login" }),
+        new("Post your first job", "/help/post-first-job", "Customer", "Getting Started", new[] { "post job","job","create job","new job" }),
+        new("How FindTradie works", "/help/how-it-works", "Both", "Getting Started", new[] { "how it works","overview","guide" }),
+        new("Service areas", "/help/service-areas", "Both", "Getting Started", new[] { "locations","coverage","areas" }),
+        new("Writing job descriptions", "/help/job-details", "Customer", "Posting Jobs", new[] { "description","scope","details" }),
+        new("Adding photos", "/help/add-photos", "Customer", "Posting Jobs", new[] { "images","photos","attachments" }),
+        new("Setting your budget", "/help/set-budget", "Customer", "Posting Jobs", new[] { "price","cost","budget" }),
+        new("Emergency jobs", "/help/emergency-jobs", "Customer", "Posting Jobs", new[] { "asap","urgent","emergency" }),
+        new("Reviewing quotes", "/help/review-quotes", "Customer", "Managing Quotes", new[] { "quotes","compare","offers" }),
+        new("Comparing tradies", "/help/compare-tradies", "Customer", "Managing Quotes", new[] { "compare","ratings","profiles" }),
+        new("Accepting a quote", "/help/accept-quote", "Customer", "Managing Quotes", new[] { "accept","approve","hire" }),
+        new("Negotiating prices", "/help/negotiate", "Customer", "Managing Quotes", new[] { "negotiate","price","counter" }),
+        new("Payment methods", "/help/payment-methods", "Both", "Payments", new[] { "card","paypal","bank","afterpay","payment" }),
+        new("Secure payment system", "/help/secure-payment", "Both", "Payments", new[] { "security","stripe","escrow" }),
+        new("Invoices & receipts", "/help/invoices", "Both", "Payments", new[] { "invoice","receipt","billing" }),
+        new("Refunds & disputes", "/help/refunds", "Both", "Payments", new[] { "refund","chargeback","dispute" }),
+        new("Leaving reviews", "/help/leave-review", "Customer", "Reviews", new[] { "review","rating","feedback" }),
+        new("Rating system", "/help/rating-system", "Both", "Reviews", new[] { "stars","score","ratings" }),
+        new("Review guidelines", "/help/review-guidelines", "Both", "Reviews", new[] { "policy","guidelines","rules" }),
+        new("Report inappropriate reviews", "/help/report-review", "Both", "Reviews", new[] { "report","flag","abuse" }),
+        new("Verified tradies", "/help/verified-tradies", "Both", "Trust & Safety", new[] { "verify","background","check" }),
+        new("Insurance coverage", "/help/insurance", "Both", "Trust & Safety", new[] { "insurance","liability","coverage" }),
+        new("Safety tips", "/help/safety-tips", "Both", "Trust & Safety", new[] { "safety","tips","onsite" }),
+        new("Report an issue", "/help/report-issue", "Both", "Trust & Safety", new[] { "complaint","issue","problem" }),
+        new("Sign up as a tradie", "/help/tradie-signup", "Tradie", "Getting Started", new[] { "join","signup","tradie account" }),
+        new("Verification process", "/help/verification", "Tradie", "Getting Started", new[] { "verify","documents","id","abn","insurance" }),
+        new("Set up your profile", "/help/profile-setup", "Tradie", "Getting Started", new[] { "profile","photo","bio","services" }),
+        new("Subscription plans", "/help/subscription-plans", "Tradie", "Getting Started", new[] { "pricing","plans","trial" }),
+        new("Browse available jobs", "/help/browse-jobs", "Tradie", "Finding Work", new[] { "jobs","feed","browse" }),
+        new("Set up job alerts", "/help/job-alerts", "Tradie", "Finding Work", new[] { "alerts","notifications" }),
+        new("Set service areas", "/help/service-areas", "Tradie", "Finding Work", new[] { "areas","distance","radius" }),
+        new("Manage availability", "/help/availability", "Tradie", "Finding Work", new[] { "availability","calendar","schedule" }),
+        new("Creating quotes", "/help/create-quote", "Tradie", "Quoting & Pricing", new[] { "quote","proposal" }),
+        new("Pricing guidelines", "/help/pricing-guide", "Tradie", "Quoting & Pricing", new[] { "pricing","rates" }),
+        new("Quote templates", "/help/quote-templates", "Tradie", "Quoting & Pricing", new[] { "template","sample" }),
+        new("Tips to win jobs", "/help/win-more-jobs", "Tradie", "Quoting & Pricing", new[] { "win","convert","best practices" }),
+        new("Optimize your profile", "/help/profile-optimization", "Tradie", "Growing Your Business", new[] { "optimize","ranking" }),
+        new("Getting reviews", "/help/get-reviews", "Tradie", "Growing Your Business", new[] { "reviews","ask","follow up" }),
+        new("Improve ranking", "/help/ranking", "Tradie", "Growing Your Business", new[] { "ranking","quality","responsiveness" }),
+        new("View analytics", "/help/analytics", "Tradie", "Growing Your Business", new[] { "analytics","performance" }),
+    };
+
+    private void SetAudience(bool customer) => IsCustomerView = customer;
+
+    private void QuickSearch(string term)
+    {
+        SearchTerm = term;
+        RunSearch();
+    }
+
+    private void OnSearchKeydown(KeyboardEventArgs e)
+    {
+        if (e.Key == "Enter") RunSearch();
+    }
+
+    private void RunSearch()
+    {
+        if (string.IsNullOrWhiteSpace(SearchTerm))
+        {
+            FilteredArticles = new();
+            return;
+        }
+
+        var term = SearchTerm.Trim();
+        // Case-insensitive contains on title + keywords
+        FilteredArticles = Index
+            .Where(a =>
+                a.Title.Contains(term, StringComparison.OrdinalIgnoreCase) ||
+                a.Category.Contains(term, StringComparison.OrdinalIgnoreCase) ||
+                a.Audience.Contains(term, StringComparison.OrdinalIgnoreCase) ||
+                a.Keywords.Any(k => k.Contains(term, StringComparison.OrdinalIgnoreCase)))
+            .OrderBy(a => a.Audience == (IsCustomerView ? "Customer" : "Tradie") ? 0 : 1) // bias to selected audience
+            .ThenBy(a => a.Title)
+            .ToList();
+    }
+}
