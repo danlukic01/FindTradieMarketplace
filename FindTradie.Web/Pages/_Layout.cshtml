@@ -10,13 +10,24 @@
     <title>FindTradie - Find Trusted Local Tradies</title>
     <base href="~/" />
     <link rel="stylesheet" href="css/bootstrap/bootstrap.min.css" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" integrity="sha512-yHqp7N0e3DlaRrJhr2Yz2N3K6Dx4zY/boYYGr2susx1bXodH4qzM0gc3KJ2YMBX1IzBgE4c3BmPf8jj0M9BM2w==" crossorigin="anonymous" referrerpolicy="no-referrer" />
     <link href="css/site.css" rel="stylesheet" />
     <link href="FindTradie.Web.styles.css" rel="stylesheet" />
     <component type="typeof(HeadOutlet)" render-mode="ServerPrerendered" />
 </head>
 <body>
     @RenderBody()
-
     <script src="_framework/blazor.server.js"></script>
+    <script>
+        window.addEventListener('scroll', function () {
+            var nav = document.querySelector('.navbar');
+            if (!nav) return;
+            if (window.scrollY > 50) {
+                nav.classList.add('scrolled');
+            } else {
+                nav.classList.remove('scrolled');
+            }
+        });
+    </script>
 </body>
 </html>
