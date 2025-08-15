@@ -46,6 +46,13 @@ document.addEventListener('DOMContentLoaded', () => {
         });
         backToTop.addEventListener('click', () => window.scrollTo({ top: 0, behavior: 'smooth' }));
     }
+
+    const mobileToggle = document.querySelector('.mobile-menu-toggle');
+    const mobileMenu = document.querySelector('.mobile-nav');
+    mobileToggle?.addEventListener('click', () => {
+        mobileMenu?.classList.toggle('active');
+        mobileToggle.classList.toggle('active');
+    });
 });
 
 window.showToast = (message, type) => {
