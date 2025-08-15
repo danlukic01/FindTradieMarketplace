@@ -6,77 +6,66 @@
 
 <PageTitle>Register - FindTradie</PageTitle>
 
-<div class="auth-container">
-    <div class="auth-card">
-        <div class="auth-header">
+<div class="register-page">
+    <div class="register-card">
+        <div class="register-header">
             <h2>Join FindTradie</h2>
             <p>Create your account to get started</p>
         </div>
 
-        <div class="auth-form">
+        <form class="register-form">
             @if (!string.IsNullOrEmpty(ErrorMessage))
             {
                 <div class="alert alert-danger">@ErrorMessage</div>
             }
 
-            <div class="form-group mb-3">
-                <label>I am a:</label>
-                <div class="user-type-selector">
-                    <div class="form-check">
-                        <input class="form-check-input" type="radio" name="userType" id="customer" 
-                               @onchange="() => SelectedUserType = UserType.Customer" 
-                               checked="@(SelectedUserType == UserType.Customer)" />
-                        <label class="form-check-label" for="customer">
-                            <strong>Customer</strong> - I need services
-                        </label>
-                    </div>
-                    <div class="form-check">
-                        <input class="form-check-input" type="radio" name="userType" id="tradie"
-                               @onchange="() => SelectedUserType = UserType.Tradie"
-                               checked="@(SelectedUserType == UserType.Tradie)" />
-                        <label class="form-check-label" for="tradie">
-                            <strong>Tradie</strong> - I provide services
-                        </label>
-                    </div>
+            <div class="user-type-selector">
+                <div class="type-card @(SelectedUserType == UserType.Customer ? "active" : string.Empty)" @onclick="() => SelectedUserType = UserType.Customer">
+                    <div class="type-icon">🏠</div>
+                    <div class="type-label">Customer</div>
+                    <div class="type-description">I need services</div>
+                </div>
+                <div class="type-card @(SelectedUserType == UserType.Tradie ? "active" : string.Empty)" @onclick="() => SelectedUserType = UserType.Tradie">
+                    <div class="type-icon">🔧</div>
+                    <div class="type-label">Tradie</div>
+                    <div class="type-description">I provide services</div>
                 </div>
             </div>
 
-            <div class="row">
-                <div class="col-md-6">
-                    <div class="form-group mb-3">
-                        <label for="firstName">First Name</label>
-                        <input @bind="FirstName" type="text" class="form-control" id="firstName" placeholder="First name" />
-                    </div>
+            <div class="form-row">
+                <div class="form-group">
+                    <label for="firstName">First Name</label>
+                    <input @bind="FirstName" type="text" class="form-control" id="firstName" placeholder="John" />
                 </div>
-                <div class="col-md-6">
-                    <div class="form-group mb-3">
-                        <label for="lastName">Last Name</label>
-                        <input @bind="LastName" type="text" class="form-control" id="lastName" placeholder="Last name" />
-                    </div>
+                <div class="form-group">
+                    <label for="lastName">Last Name</label>
+                    <input @bind="LastName" type="text" class="form-control" id="lastName" placeholder="Smith" />
                 </div>
             </div>
 
-            <div class="form-group mb-3">
+            <div class="form-group">
                 <label for="email">Email Address</label>
-                <input @bind="Email" type="email" class="form-control" id="email" placeholder="Enter your email" />
+                <input @bind="Email" type="email" class="form-control" id="email" placeholder="john@example.com" />
             </div>
 
-            <div class="form-group mb-3">
+            <div class="form-group">
                 <label for="phone">Phone Number</label>
-                <input @bind="PhoneNumber" type="tel" class="form-control" id="phone" placeholder="Enter your phone number" />
+                <input @bind="PhoneNumber" type="tel" class="form-control" id="phone" placeholder="0412 345 678" />
             </div>
 
-            <div class="form-group mb-3">
-                <label for="password">Password</label>
-                <input @bind="Password" type="password" class="form-control" id="password" placeholder="Create a password" />
+            <div class="form-row">
+                <div class="form-group">
+                    <label for="password">Password</label>
+                    <input @bind-value="Password" @bind-value:event="oninput" type="password" class="form-control" id="password" placeholder="Min 8 characters" />
+                    <div class="password-strength @PasswordStrength"></div>
+                </div>
+                <div class="form-group">
+                    <label for="confirmPassword">Confirm Password</label>
+                    <input @bind="ConfirmPassword" type="password" class="form-control" id="confirmPassword" placeholder="Confirm password" />
+                </div>
             </div>
 
-            <div class="form-group mb-3">
-                <label for="confirmPassword">Confirm Password</label>
-                <input @bind="ConfirmPassword" type="password" class="form-control" id="confirmPassword" placeholder="Confirm your password" />
-            </div>
-
-            <button class="btn btn-primary w-100 mb-3" @onclick="RegisterAsync" disabled="@IsLoading">
+            <button type="button" class="btn-submit" @onclick="RegisterAsync" disabled="@IsLoading">
                 @if (IsLoading)
                 {
                     <span class="spinner-border spinner-border-sm me-2"></span>
@@ -84,10 +73,10 @@
                 Create Account
             </button>
 
-            <div class="auth-links text-center">
-                <p>Already have an account? <a href="/login">Sign in here</a></p>
+            <div class="form-footer">
+                Already have an account? <a href="/login">Sign in here</a>
             </div>
-        </div>
+        </form>
     </div>
 </div>
 
@@ -101,6 +90,14 @@
     private string ConfirmPassword = "";
     private string ErrorMessage = "";
     private bool IsLoading = false;
+    private string PasswordStrength =>
+        string.IsNullOrEmpty(Password)
+            ? string.Empty
+            : Password.Length < 6
+                ? "strength-weak"
+                : Password.Length < 10
+                    ? "strength-medium"
+                    : "strength-strong";
 
     private async Task RegisterAsync()
     {
