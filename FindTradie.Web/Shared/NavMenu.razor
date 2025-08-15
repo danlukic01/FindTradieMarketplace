@@ -1,79 +1,60 @@
 @using Microsoft.AspNetCore.Components.Authorization
 @inject AuthenticationStateProvider AuthStateProvider
 
-<nav class="navbar navbar-light fixed-top top-header">
-    <div class="container header-nav">
-        <a class="navbar-brand" href="">
-            <i class="fa-solid fa-hammer me-2"></i>FindTradie
-        </a>
-        <button class="navbar-toggler" @onclick="ToggleNavMenu">
-            <span class="navbar-toggler-icon"></span>
-        </button>
-        <div class="navbar-collapse collapse @(collapseNavMenu ? string.Empty : "show")">
-            <ul class="navbar-nav ms-auto align-items-lg-center nav-links">
-                <li class="nav-item">
-                    <NavLink class="nav-link" href="" Match="NavLinkMatch.All">Home</NavLink>
-                </li>
-                <AuthorizeView>
-                    <Authorized>
-                        <li class="nav-item">
-                            <NavLink class="nav-link" href="dashboard">Dashboard</NavLink>
-                        </li>
-                        <li class="nav-item">
-                            <NavLink class="nav-link" href="jobs">My Jobs</NavLink>
-                        </li>
-                        @if (IsTradie)
-                        {
-                            <li class="nav-item">
-                                <NavLink class="nav-link" href="tradie/profile">My Profile</NavLink>
-                            </li>
-                            <li class="nav-item">
-                                <NavLink class="nav-link" href="tradie/jobs">Browse Jobs</NavLink>
-                            </li>
-                        }
-                        else
-                        {
-                            <li class="nav-item">
-                                <NavLink class="nav-link" href="post-job">Post a Job</NavLink>
-                            </li>
-                            <li class="nav-item">
-                                <NavLink class="nav-link" href="find-tradies">Find Tradies</NavLink>
-                            </li>
-                        }
-                        <li class="nav-item ms-lg-3">
-                            <LoginDisplay />
-                        </li>
-                    </Authorized>
-                    <NotAuthorized>
-                        <li class="nav-item">
-                            <NavLink class="nav-link" href="find-tradies">Find Tradies</NavLink>
-                        </li>
-                        <li class="nav-item ms-lg-3">
-                            <LoginDisplay />
-                        </li>
-                    </NotAuthorized>
-                </AuthorizeView>
-            </ul>
+<header class="main-header">
+    <div class="header-container">
+        <div class="header-left">
+            <a href="/" class="brand">
+                <span class="brand-icon">🔨</span>
+                <span class="brand-name">FindTradie</span>
+            </a>
+            <nav class="desktop-nav">
+                <NavLink href="/" class="nav-link" Match="NavLinkMatch.All">Home</NavLink>
+                <NavLink href="/find-tradies" class="nav-link">Find Tradies</NavLink>
+                <NavLink href="/how-it-works" class="nav-link">How It Works</NavLink>
+                <NavLink href="/post-job" class="nav-link">Post a Job</NavLink>
+            </nav>
+        </div>
+        <div class="header-right">
+            <AuthorizeView>
+                <Authorized>
+                    <LoginDisplay />
+                </Authorized>
+                <NotAuthorized>
+                    <a href="/register" class="btn btn-outline">Register</a>
+                    <a href="/login" class="btn btn-primary">Log in</a>
+                </NotAuthorized>
+            </AuthorizeView>
+            <button class="mobile-menu-toggle" @onclick="ToggleNavMenu">
+                <span></span>
+                <span></span>
+                <span></span>
+            </button>
         </div>
     </div>
-</nav>
+    <nav class="mobile-nav @(collapseNavMenu ? string.Empty : "active")">
+        <NavLink href="/" class="nav-link" Match="NavLinkMatch.All" @onclick="ToggleNavMenu">Home</NavLink>
+        <NavLink href="/find-tradies" class="nav-link" @onclick="ToggleNavMenu">Find Tradies</NavLink>
+        <NavLink href="/how-it-works" class="nav-link" @onclick="ToggleNavMenu">How It Works</NavLink>
+        <NavLink href="/post-job" class="nav-link" @onclick="ToggleNavMenu">Post a Job</NavLink>
+        <AuthorizeView>
+            <Authorized>
+                <LoginDisplay />
+            </Authorized>
+            <NotAuthorized>
+                <a href="/register" class="nav-link" @onclick="ToggleNavMenu">Register</a>
+                <a href="/login" class="nav-link" @onclick="ToggleNavMenu">Log in</a>
+            </NotAuthorized>
+        </AuthorizeView>
+    </nav>
+</header>
 
 @code {
     private bool collapseNavMenu = true;
-    private bool IsTradie = false;
-
-    protected override async Task OnInitializedAsync()
-    {
-        var authState = await AuthStateProvider.GetAuthenticationStateAsync();
-        if (authState.User.Identity?.IsAuthenticated == true)
-        {
-            var userTypeClaim = authState.User.FindFirst("UserType")?.Value;
-            IsTradie = userTypeClaim == "2";
-        }
-    }
 
     private void ToggleNavMenu()
     {
         collapseNavMenu = !collapseNavMenu;
     }
 }
+
