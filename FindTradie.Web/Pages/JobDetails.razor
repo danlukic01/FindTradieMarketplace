@@ -1,0 +1,474 @@
+﻿@page "/jobs/{JobId:guid}"
+@using FindTradie.Web.Services
+@inject IJobApiService JobService
+@inject NavigationManager Navigation
+@inject AuthenticationStateProvider AuthStateProvider
+
+<PageTitle>@job?.Title - Job Details | FindTradie</PageTitle>
+
+<link rel="stylesheet" href="css/job-details.css" />
+
+<div class="job-details-page">
+    @if (isLoading)
+    {
+        <div class="loading-container">
+            <div class="spinner-border text-primary" role="status">
+                <span class="visually-hidden">Loading job details...</span>
+            </div>
+        </div>
+    }
+    else if (job == null)
+    {
+        <div class="error-container">
+            <h2>Job Not Found</h2>
+            <p>The job you're looking for doesn't exist or has been removed.</p>
+            <a href="/browse-jobs" class="btn btn-primary">Browse Other Jobs</a>
+        </div>
+    }
+    else
+    {
+        <!-- Breadcrumb Navigation -->
+        <div class="breadcrumb-section">
+            <div class="container">
+                <nav aria-label="breadcrumb">
+                    <ol class="breadcrumb">
+                        <li class="breadcrumb-item"><a href="/">Home</a></li>
+                        <li class="breadcrumb-item"><a href="/browse-jobs">Browse Jobs</a></li>
+                        <li class="breadcrumb-item active">@job.Title</li>
+                    </ol>
+                </nav>
+            </div>
+        </div>
+
+        <!-- Main Content -->
+        <div class="container">
+            <div class="job-details-grid">
+                <!-- Left Column - Main Details -->
+                <div class="main-content">
+                    <!-- Job Header Card -->
+                    <div class="detail-card job-header-card">
+                        @if (job.IsUrgent)
+                        {
+                            <span class="urgent-badge-large">🚨 URGENT JOB</span>
+                        }
+
+                        <div class="job-header-info">
+                            <h1 class="job-title-large">@job.Title</h1>
+                            <div class="job-meta-row">
+                                <span class="category-badge-large">@job.Category</span>
+                                <span class="posted-time">
+                                    <i class="icon-clock"></i> Posted @job.PostedTime
+                                </span>
+                                <span class="job-id">Job ID: #@job.JobNumber</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Description Card -->
+                    <div class="detail-card">
+                        <h2 class="card-title">
+                            <i class="icon-description"></i> Job Description
+                        </h2>
+                        <div class="description-content">
+                            <p>@job.Description</p>
+
+                            @if (!string.IsNullOrEmpty(job.AdditionalDetails))
+                            {
+                                <div class="additional-details">
+                                    <h3>Additional Details:</h3>
+                                    <p>@job.AdditionalDetails</p>
+                                </div>
+                            }
+                        </div>
+                    </div>
+
+                    <!-- Photos Section -->
+                    @if (job.Photos != null && job.Photos.Any())
+                    {
+                        <div class="detail-card">
+                            <h2 class="card-title">
+                                <i class="icon-camera"></i> Photos (@job.Photos.Count)
+                            </h2>
+                            <div class="photo-gallery">
+                                @foreach (var photo in job.Photos)
+                                {
+                                    <div class="photo-item" @onclick="() => OpenPhotoModal(photo)">
+                                        <img src="@photo.ThumbnailUrl" alt="Job photo" />
+                                        <div class="photo-overlay">
+                                            <i class="icon-expand"></i>
+                                        </div>
+                                    </div>
+                                }
+                            </div>
+                        </div>
+                    }
+
+                    <!-- Requirements Section -->
+                    <div class="detail-card">
+                        <h2 class="card-title">
+                            <i class="icon-checklist"></i> Job Requirements
+                        </h2>
+                        <div class="requirements-grid">
+                            <div class="requirement-item">
+                                <div class="requirement-label">Service Type</div>
+                                <div class="requirement-value">@job.ServiceType</div>
+                            </div>
+                            <div class="requirement-item">
+                                <div class="requirement-label">Property Type</div>
+                                <div class="requirement-value">@job.PropertyType</div>
+                            </div>
+                            <div class="requirement-item">
+                                <div class="requirement-label">Access Hours</div>
+                                <div class="requirement-value">@job.AccessHours</div>
+                            </div>
+                            <div class="requirement-item">
+                                <div class="requirement-label">Parking Available</div>
+                                <div class="requirement-value">
+                                    @if (job.HasParking)
+                                    {
+                                        <span class="badge-yes">Yes</span>
+                                    }
+                                    else
+                                    {
+                                        <span class="badge-no">No</span>
+                                    }
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Customer Info (Partially Hidden) -->
+                    <div class="detail-card">
+                        <h2 class="card-title">
+                            <i class="icon-user"></i> Posted By
+                        </h2>
+                        <div class="customer-info">
+                            <div class="customer-avatar">
+                                @job.CustomerInitials
+                            </div>
+                            <div class="customer-details">
+                                <div class="customer-name">@job.CustomerName</div>
+                                <div class="customer-stats">
+                                    <span><i class="icon-star"></i> @job.CustomerRating ★</span>
+                                    <span><i class="icon-briefcase"></i> @job.CustomerJobsPosted jobs posted</span>
+                                    <span><i class="icon-calendar"></i> Member since @job.CustomerMemberSince</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Right Column - Sidebar -->
+                <div class="sidebar">
+                    <!-- Quote Action Card -->
+                    <div class="detail-card action-card">
+                        <div class="budget-display">
+                            <div class="budget-label">Budget Range</div>
+                            <div class="budget-amount">$@job.BudgetMin - $@job.BudgetMax</div>
+                        </div>
+
+                        <div class="timeframe-display">
+                            <div class="timeframe-label">Timeframe</div>
+                            <div class="timeframe-value">@job.Timeframe</div>
+                        </div>
+
+                        @if (hasAlreadyQuoted)
+                        {
+                            <button class="btn btn-success btn-lg btn-block" disabled>
+                                <i class="icon-check"></i> Quote Submitted
+                            </button>
+                            <a href="/my-quotes" class="btn btn-outline btn-block mt-2">View My Quotes</a>
+                        }
+                        else if (job.Status == "Closed")
+                        {
+                            <button class="btn btn-secondary btn-lg btn-block" disabled>
+                                Job Closed
+                            </button>
+                        }
+                        else
+                        {
+                            <button class="btn btn-primary btn-lg btn-block" @onclick="SendQuote">
+                                <i class="icon-send"></i> Send Quote
+                            </button>
+                            <p class="quote-hint">@job.QuotesRemaining quotes remaining</p>
+                        }
+
+                        <div class="job-stats">
+                            <div class="stat-item">
+                                <span class="stat-value">@job.QuoteCount</span>
+                                <span class="stat-label">Quotes</span>
+                            </div>
+                            <div class="stat-item">
+                                <span class="stat-value">@job.ViewCount</span>
+                                <span class="stat-label">Views</span>
+                            </div>
+                            <div class="stat-item">
+                                <span class="stat-value">@job.InterestedCount</span>
+                                <span class="stat-label">Interested</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Location Card -->
+                    <div class="detail-card location-card">
+                        <h3 class="card-subtitle">
+                            <i class="icon-location"></i> Location
+                        </h3>
+                        <div class="location-info">
+                            <div class="location-text">
+                                <strong>@job.Suburb</strong>
+                                <span class="distance">@job.Distance km from you</span>
+                            </div>
+                            <div class="map-preview">
+                                <!-- Map would go here -->
+                                <div class="map-placeholder">
+                                    <i class="icon-map"></i>
+                                    <span>Map View</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Share Actions -->
+                    <div class="detail-card share-card">
+                        <button class="btn btn-outline btn-block" @onclick="SaveJob">
+                            <i class="icon-bookmark"></i> Save Job
+                        </button>
+                        <button class="btn btn-outline btn-block" @onclick="ShareJob">
+                            <i class="icon-share"></i> Share Job
+                        </button>
+                        <button class="btn btn-outline btn-block" @onclick="ReportJob">
+                            <i class="icon-flag"></i> Report Job
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Similar Jobs Section -->
+            @if (similarJobs != null && similarJobs.Any())
+            {
+                <div class="similar-jobs-section">
+                    <h2 class="section-title">Similar Jobs Near You</h2>
+                    <div class="similar-jobs-grid">
+                        @foreach (var similarJob in similarJobs.Take(3))
+                        {
+                            <div class="similar-job-card" @onclick="() => ViewJob(similarJob.Id)">
+                                <h4>@similarJob.Title</h4>
+                                <p class="job-category">@similarJob.Category</p>
+                                <p class="job-location">@similarJob.Location</p>
+                                <div class="job-footer">
+                                    <span class="job-budget">$@similarJob.BudgetMin - $@similarJob.BudgetMax</span>
+                                    <span class="job-quotes">@similarJob.QuoteCount quotes</span>
+                                </div>
+                            </div>
+                        }
+                    </div>
+                </div>
+            }
+        </div>
+    }
+</div>
+
+<!-- Photo Modal -->
+@if (showPhotoModal && selectedPhoto != null)
+{
+    <div class="photo-modal" @onclick="ClosePhotoModal">
+        <div class="modal-content" @onclick:stopPropagation="true">
+            <button class="modal-close" @onclick="ClosePhotoModal">&times;</button>
+            <img src="@selectedPhoto.FullUrl" alt="Job photo" />
+        </div>
+    </div>
+}
+
+@code {
+    [Parameter] public Guid JobId { get; set; }
+
+    private JobDetailsDto? job;
+    private List<SimilarJobDto>? similarJobs;
+    private bool isLoading = true;
+    private bool hasAlreadyQuoted = false;
+    private bool showPhotoModal = false;
+    private PhotoDto? selectedPhoto;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadJobDetails();
+        await CheckIfAlreadyQuoted();
+        await LoadSimilarJobs();
+    }
+
+    private async Task LoadJobDetails()
+    {
+        isLoading = true;
+        try
+        {
+            // Mock data for demonstration
+            job = new JobDetailsDto
+                {
+                    Id = JobId,
+                    JobNumber = "JOB2024001",
+                    Title = "Fix Leaking Bathroom Tap",
+                    Category = "Plumbing",
+                    Description = "My bathroom tap has been leaking for about a week now. The leak appears to be coming from the base of the tap where it connects to the basin. It's getting progressively worse and needs urgent attention as it's wasting water and could damage the vanity unit.",
+                    AdditionalDetails = "The tap is approximately 5 years old. Brand appears to be Caroma. The leak is constant, not just when the tap is turned on. Previous plumber mentioned it might need new O-rings or washers.",
+                    ServiceType = "Repair",
+                    PropertyType = "Residential - House",
+                    AccessHours = "Weekdays 9am-5pm, Weekends anytime",
+                    HasParking = true,
+                    BudgetMin = 200,
+                    BudgetMax = 400,
+                    Timeframe = "ASAP",
+                    IsUrgent = true,
+                    Status = "Open",
+                    PostedTime = "2 hours ago",
+                    QuoteCount = 3,
+                    ViewCount = 15,
+                    InterestedCount = 8,
+                    QuotesRemaining = 7,
+                    CustomerName = "Sarah M.",
+                    CustomerInitials = "SM",
+                    CustomerRating = 4.8m,
+                    CustomerJobsPosted = 12,
+                    CustomerMemberSince = "2022",
+                    Suburb = "Surry Hills, Sydney",
+                    Distance = 5.2,
+                    Photos = new List<PhotoDto>
+                {
+                    new PhotoDto { ThumbnailUrl = "/images/job-photo-1-thumb.jpg", FullUrl = "/images/job-photo-1.jpg" },
+                    new PhotoDto { ThumbnailUrl = "/images/job-photo-2-thumb.jpg", FullUrl = "/images/job-photo-2.jpg" },
+                    new PhotoDto { ThumbnailUrl = "/images/job-photo-3-thumb.jpg", FullUrl = "/images/job-photo-3.jpg" }
+                }
+                };
+        }
+        finally
+        {
+            isLoading = false;
+        }
+    }
+
+    private async Task CheckIfAlreadyQuoted()
+    {
+        // Check if current tradie has already submitted a quote
+        await Task.CompletedTask;
+        hasAlreadyQuoted = false;
+    }
+
+    private async Task LoadSimilarJobs()
+    {
+        // Load similar jobs in the same category and area
+        similarJobs = new List<SimilarJobDto>
+        {
+            new SimilarJobDto
+            {
+                Id = Guid.NewGuid(),
+                Title = "Replace Kitchen Tap",
+                Category = "Plumbing",
+                Location = "Darlinghurst",
+                BudgetMin = 300,
+                BudgetMax = 500,
+                QuoteCount = 5
+            },
+            new SimilarJobDto
+            {
+                Id = Guid.NewGuid(),
+                Title = "Fix Running Toilet",
+                Category = "Plumbing",
+                Location = "Paddington",
+                BudgetMin = 150,
+                BudgetMax = 300,
+                QuoteCount = 2
+            }
+        };
+        await Task.CompletedTask;
+    }
+
+    private void SendQuote()
+    {
+        Navigation.NavigateTo($"/send-quote/{JobId}");
+    }
+
+    private void ViewJob(Guid jobId)
+    {
+        Navigation.NavigateTo($"/jobs/{jobId}");
+    }
+
+    private void OpenPhotoModal(PhotoDto photo)
+    {
+        selectedPhoto = photo;
+        showPhotoModal = true;
+    }
+
+    private void ClosePhotoModal()
+    {
+        showPhotoModal = false;
+        selectedPhoto = null;
+    }
+
+    private async Task SaveJob()
+    {
+        // Implement save functionality
+        await Task.CompletedTask;
+    }
+
+    private async Task ShareJob()
+    {
+        // Implement share functionality
+        await Task.CompletedTask;
+    }
+
+    private async Task ReportJob()
+    {
+        // Implement report functionality
+        await Task.CompletedTask;
+    }
+
+    // DTOs
+    private class JobDetailsDto
+    {
+        public Guid Id { get; set; }
+        public string JobNumber { get; set; } = "";
+        public string Title { get; set; } = "";
+        public string Category { get; set; } = "";
+        public string Description { get; set; } = "";
+        public string AdditionalDetails { get; set; } = "";
+        public string ServiceType { get; set; } = "";
+        public string PropertyType { get; set; } = "";
+        public string AccessHours { get; set; } = "";
+        public bool HasParking { get; set; }
+        public decimal BudgetMin { get; set; }
+        public decimal BudgetMax { get; set; }
+        public string Timeframe { get; set; } = "";
+        public bool IsUrgent { get; set; }
+        public string Status { get; set; } = "";
+        public string PostedTime { get; set; } = "";
+        public int QuoteCount { get; set; }
+        public int ViewCount { get; set; }
+        public int InterestedCount { get; set; }
+        public int QuotesRemaining { get; set; }
+        public string CustomerName { get; set; } = "";
+        public string CustomerInitials { get; set; } = "";
+        public decimal CustomerRating { get; set; }
+        public int CustomerJobsPosted { get; set; }
+        public string CustomerMemberSince { get; set; } = "";
+        public string Suburb { get; set; } = "";
+        public double Distance { get; set; }
+        public List<PhotoDto> Photos { get; set; } = new();
+    }
+
+    private class PhotoDto
+    {
+        public string ThumbnailUrl { get; set; } = "";
+        public string FullUrl { get; set; } = "";
+    }
+
+    private class SimilarJobDto
+    {
+        public Guid Id { get; set; }
+        public string Title { get; set; } = "";
+        public string Category { get; set; } = "";
+        public string Location { get; set; } = "";
+        public decimal BudgetMin { get; set; }
+        public decimal BudgetMax { get; set; }
+        public int QuoteCount { get; set; }
+    }
+}

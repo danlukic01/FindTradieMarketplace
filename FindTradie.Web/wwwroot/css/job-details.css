@@ -1,0 +1,479 @@
+﻿/* Job Details Page Styles - Fixed Layout */
+.job-details-page {
+    min-height: 100vh;
+    background: #f5f7fa;
+}
+
+    .job-details-page .container {
+        max-width: 1400px;
+        margin: 0 auto;
+        padding: 0 24px;
+    }
+
+/* Breadcrumb */
+.breadcrumb-section {
+    background: white;
+    border-bottom: 1px solid #e2e8f0;
+    padding: 20px 0;
+    margin-bottom: 32px;
+}
+
+.breadcrumb {
+    margin: 0;
+    padding: 0;
+    background: transparent;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 14px;
+    list-style: none;
+}
+
+.breadcrumb-item {
+    display: inline;
+}
+
+    .breadcrumb-item:not(:last-child)::after {
+        content: "/";
+        margin: 0 8px;
+        color: #cbd5e0;
+    }
+
+    .breadcrumb-item a {
+        color: #667eea;
+        text-decoration: none;
+    }
+
+        .breadcrumb-item a:hover {
+            text-decoration: underline;
+        }
+
+/* Main Grid Layout - Fixed for proper display */
+.job-details-grid {
+    display: grid;
+    grid-template-columns: 1fr 400px;
+    gap: 32px;
+    margin-top: 32px;
+}
+
+.main-content {
+    min-width: 0; /* Prevent grid blowout */
+}
+
+.sidebar {
+    position: sticky;
+    top: 24px;
+    height: fit-content;
+}
+
+/* Detail Cards */
+.detail-card {
+    background: white;
+    border-radius: 12px;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+    padding: 32px;
+    margin-bottom: 24px;
+}
+
+/* Job Header Card - Fixed styling */
+.job-header-card {
+    padding: 32px;
+}
+
+.urgent-badge-large {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    background: #ef4444;
+    color: white;
+    padding: 8px 16px;
+    border-radius: 6px;
+    font-size: 12px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-bottom: 20px;
+}
+
+.job-title-large {
+    font-size: 2rem;
+    font-weight: 700;
+    color: #1a202c;
+    margin: 0 0 16px 0;
+    line-height: 1.3;
+}
+
+.job-meta-row {
+    display: flex;
+    align-items: center;
+    gap: 24px;
+    flex-wrap: wrap;
+    color: #64748b;
+    font-size: 14px;
+}
+
+.category-badge-large {
+    display: inline-block;
+    background: #e0e7ff;
+    color: #4f46e5;
+    padding: 6px 14px;
+    border-radius: 6px;
+    font-size: 13px;
+    font-weight: 600;
+}
+
+.posted-time {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+/* Card Titles */
+.card-title {
+    font-size: 1.25rem;
+    font-weight: 600;
+    color: #1a202c;
+    margin: 0 0 24px 0;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+/* Description Content */
+.description-content {
+    color: #475569;
+    line-height: 1.8;
+    font-size: 15px;
+}
+
+    .description-content p {
+        margin: 0 0 16px 0;
+    }
+
+.additional-details {
+    margin-top: 24px;
+    padding-top: 24px;
+    border-top: 1px solid #e2e8f0;
+}
+
+    .additional-details h3 {
+        font-size: 1rem;
+        font-weight: 600;
+        color: #1a202c;
+        margin: 0 0 12px 0;
+    }
+
+/* Photo Gallery */
+.photo-gallery {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    gap: 16px;
+}
+
+.photo-item {
+    position: relative;
+    border-radius: 8px;
+    overflow: hidden;
+    cursor: pointer;
+    aspect-ratio: 16/9;
+    background: #f1f5f9;
+}
+
+    .photo-item img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+    }
+
+/* Requirements Grid */
+.requirements-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 20px;
+}
+
+.requirement-item {
+    padding: 16px;
+    background: #f8fafc;
+    border-radius: 8px;
+}
+
+.requirement-label {
+    font-size: 12px;
+    color: #64748b;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-bottom: 6px;
+}
+
+.requirement-value {
+    font-size: 15px;
+    color: #1a202c;
+    font-weight: 600;
+}
+
+/* Customer Info */
+.customer-info {
+    display: flex;
+    align-items: center;
+    gap: 20px;
+}
+
+.customer-avatar {
+    width: 56px;
+    height: 56px;
+    background: linear-gradient(135deg, #667eea, #764ba2);
+    color: white;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 20px;
+    font-weight: 600;
+}
+
+.customer-details {
+    flex: 1;
+}
+
+.customer-name {
+    font-size: 16px;
+    font-weight: 600;
+    color: #1a202c;
+    margin-bottom: 6px;
+}
+
+.customer-stats {
+    display: flex;
+    gap: 16px;
+    font-size: 13px;
+    color: #64748b;
+}
+
+/* Sidebar Cards - Fixed width and styling */
+.action-card {
+    background: white;
+    padding: 28px;
+}
+
+.budget-display {
+    text-align: center;
+    padding: 24px;
+    background: linear-gradient(135deg, #f0f4ff, #e0e7ff);
+    border-radius: 12px;
+    margin-bottom: 20px;
+}
+
+.budget-label {
+    font-size: 12px;
+    color: #64748b;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-bottom: 8px;
+}
+
+.budget-amount {
+    font-size: 32px;
+    font-weight: 700;
+    color: #1a202c;
+}
+
+.timeframe-display {
+    text-align: center;
+    padding: 16px;
+    background: #fef3c7;
+    border-radius: 8px;
+    margin-bottom: 24px;
+}
+
+.timeframe-value {
+    font-size: 18px;
+    font-weight: 600;
+    color: #92400e;
+}
+
+/* Buttons - Fixed styling */
+.btn {
+    padding: 14px 28px;
+    border: none;
+    border-radius: 8px;
+    font-size: 15px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+    text-decoration: none;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    width: 100%;
+    margin-bottom: 12px;
+}
+
+.btn-primary {
+    background: #4f46e5;
+    color: white;
+}
+
+    .btn-primary:hover {
+        background: #4338ca;
+        transform: translateY(-1px);
+        box-shadow: 0 10px 20px rgba(79, 70, 229, 0.2);
+    }
+
+.btn-outline {
+    background: white;
+    color: #64748b;
+    border: 2px solid #e2e8f0;
+}
+
+    .btn-outline:hover {
+        border-color: #cbd5e0;
+        background: #f8fafc;
+    }
+
+.btn-lg {
+    padding: 16px 32px;
+    font-size: 16px;
+}
+
+/* Job Stats */
+.job-stats {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 12px;
+    padding: 20px 0;
+    border-top: 1px solid #e2e8f0;
+    margin-top: 20px;
+}
+
+.stat-item {
+    text-align: center;
+}
+
+.stat-value {
+    display: block;
+    font-size: 24px;
+    font-weight: 700;
+    color: #1a202c;
+    margin-bottom: 4px;
+}
+
+.stat-label {
+    font-size: 12px;
+    color: #64748b;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+/* Location Card */
+.location-card {
+    background: white;
+}
+
+.location-info {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+}
+
+.location-text {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+    .location-text strong {
+        font-size: 16px;
+        color: #1a202c;
+    }
+
+.distance {
+    font-size: 14px;
+    color: #64748b;
+}
+
+.map-placeholder {
+    height: 180px;
+    background: #f1f5f9;
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #94a3b8;
+    font-size: 14px;
+}
+
+/* Share Card */
+.share-card .btn {
+    margin-bottom: 8px;
+}
+
+/* Similar Jobs Section */
+.similar-jobs-section {
+    margin-top: 48px;
+}
+
+.section-title {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: #1a202c;
+    margin-bottom: 24px;
+}
+
+.similar-jobs-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 24px;
+}
+
+.similar-job-card {
+    background: white;
+    border-radius: 12px;
+    padding: 24px;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+    cursor: pointer;
+    transition: all 0.3s;
+}
+
+    .similar-job-card:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
+    }
+
+/* Responsive Design */
+@media (max-width: 1024px) {
+    .job-details-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .sidebar {
+        position: static;
+    }
+
+    .similar-jobs-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
+
+@media (max-width: 768px) {
+    .job-details-page .container {
+        padding: 0 16px;
+    }
+
+    .detail-card {
+        padding: 20px;
+    }
+
+    .job-title-large {
+        font-size: 1.5rem;
+    }
+
+    .requirements-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .similar-jobs-grid {
+        grid-template-columns: 1fr;
+    }
+}

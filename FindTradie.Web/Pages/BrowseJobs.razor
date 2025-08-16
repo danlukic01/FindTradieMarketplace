@@ -1,4 +1,4 @@
-@page "/browse-jobs"
+﻿@page "/browse-jobs"
 @using FindTradie.Web.Services
 @inject IJobApiService JobService
 @inject NavigationManager Navigation
@@ -6,238 +6,192 @@
 
 <PageTitle>Browse Jobs - FindTradie</PageTitle>
 
+<link rel="stylesheet" href="css/browse-jobs.css" />
+
 <div class="browse-jobs-page">
     <!-- Header Section -->
-    <div class="page-header">
+    <div class="browse-jobs-header">
         <div class="container">
             <h1>Available Jobs in Your Area</h1>
-            <p class="text-muted">Find and quote on jobs that match your skills</p>
+            <p>Find and quote on jobs that match your skills</p>
         </div>
     </div>
 
-    <!-- Filters and Search Bar -->
-    <div class="filters-section">
-        <div class="container">
-            <div class="row g-3">
-                <!-- Search Bar -->
-                <div class="col-lg-4">
-                    <div class="search-wrapper">
-                        <i class="bi bi-search search-icon"></i>
-                        <input type="text" class="form-control search-input" 
-                               placeholder="Search jobs by keyword..." 
-                               @bind="searchTerm" 
-                               @oninput="@((e) => OnSearchChanged(e.Value.ToString()))" />
-                    </div>
-                </div>
+    <!-- Main Content Container -->
+    <div class="container">
+        <!-- Filters Section -->
+        <div class="filters-section">
+            <div class="filter-row">
+                <input type="text"
+                       class="filter-input"
+                       placeholder="Search jobs by keyword..."
+                       @bind="searchTerm"
+                       @oninput="@((e) => OnSearchChanged(e.Value?.ToString()))" />
 
-                <!-- Category Filter -->
-                <div class="col-lg-2">
-                    <select class="form-select" @bind="selectedCategory">
-                        <option value="">All Categories</option>
-                        <option value="plumbing">Plumbing</option>
-                        <option value="electrical">Electrical</option>
-                        <option value="carpentry">Carpentry</option>
-                        <option value="painting">Painting</option>
-                        <option value="landscaping">Landscaping</option>
-                        <option value="hvac">HVAC</option>
-                        <option value="roofing">Roofing</option>
-                        <option value="tiling">Tiling</option>
-                    </select>
-                </div>
+                <select class="filter-select" @bind="selectedCategory">
+                    <option value="">All Categories</option>
+                    <option value="plumbing">Plumbing</option>
+                    <option value="electrical">Electrical</option>
+                    <option value="carpentry">Carpentry</option>
+                    <option value="painting">Painting</option>
+                    <option value="landscaping">Landscaping</option>
+                    <option value="cleaning">Cleaning</option>
+                </select>
 
-                <!-- Distance Filter -->
-                <div class="col-lg-2">
-                    <select class="form-select" @bind="selectedDistance">
-                        <option value="5">Within 5km</option>
-                        <option value="10">Within 10km</option>
-                        <option value="20">Within 20km</option>
-                        <option value="50">Within 50km</option>
-                        <option value="100">Within 100km</option>
-                    </select>
-                </div>
+                <select class="filter-select" @bind="selectedDistance">
+                    <option value="">Within 20km</option>
+                    <option value="5">Within 5km</option>
+                    <option value="10">Within 10km</option>
+                    <option value="30">Within 30km</option>
+                    <option value="50">Within 50km</option>
+                </select>
 
-                <!-- Budget Range -->
-                <div class="col-lg-2">
-                    <select class="form-select" @bind="selectedBudget">
-                        <option value="">Any Budget</option>
-                        <option value="0-500">Under $500</option>
-                        <option value="500-1000">$500 - $1,000</option>
-                        <option value="1000-5000">$1,000 - $5,000</option>
-                        <option value="5000+">Over $5,000</option>
-                    </select>
-                </div>
+                <select class="filter-select" @bind="selectedBudget">
+                    <option value="">Any Budget</option>
+                    <option value="0-500">Under $500</option>
+                    <option value="500-1000">$500 - $1000</option>
+                    <option value="1000-5000">$1000 - $5000</option>
+                    <option value="5000+">Over $5000</option>
+                </select>
 
-                <!-- Urgency Filter -->
-                <div class="col-lg-2">
-                    <select class="form-select" @bind="selectedUrgency">
-                        <option value="">Any Timeframe</option>
-                        <option value="urgent">Urgent (Today)</option>
-                        <option value="soon">This Week</option>
-                        <option value="flexible">Flexible</option>
-                    </select>
-                </div>
-            </div>
-
-            <!-- Active Filters Display -->
-            @if (HasActiveFilters())
-            {
-                <div class="active-filters mt-3">
-                    <span class="me-2">Active filters:</span>
-                    @if (!string.IsNullOrEmpty(searchTerm))
-                    {
-                        <span class="filter-tag">
-                            @searchTerm
-                            <i class="bi bi-x" @onclick="() => searchTerm = string.Empty"></i>
-                        </span>
-                    }
-                    @if (!string.IsNullOrEmpty(selectedCategory))
-                    {
-                        <span class="filter-tag">
-                            @selectedCategory
-                            <i class="bi bi-x" @onclick="() => selectedCategory = string.Empty"></i>
-                        </span>
-                    }
-                    <button class="btn btn-link btn-sm" @onclick="ClearAllFilters">Clear all</button>
-                </div>
-            }
-        </div>
-    </div>
-
-    <!-- Stats Bar -->
-    <div class="stats-bar">
-        <div class="container">
-            <div class="row">
-                <div class="col-6">
-                    <span class="fw-bold">@filteredJobs.Count jobs</span> matching your criteria
-                </div>
-                <div class="col-6 text-end">
-                    <div class="btn-group" role="group">
-                        <button class="btn btn-sm @(viewMode == "grid" ? "btn-primary" : "btn-outline-primary")" 
-                                @onclick='() => viewMode = "grid"'>
-                            <i class="bi bi-grid-3x3-gap"></i> Grid
-                        </button>
-                        <button class="btn btn-sm @(viewMode == "list" ? "btn-primary" : "btn-outline-primary")" 
-                                @onclick='() => viewMode = "list"'>
-                            <i class="bi bi-list-ul"></i> List
-                        </button>
-                    </div>
-                </div>
+                <select class="filter-select" @bind="selectedTimeframe">
+                    <option value="">Any Timeframe</option>
+                    <option value="urgent">ASAP / Urgent</option>
+                    <option value="week">This Week</option>
+                    <option value="month">This Month</option>
+                    <option value="flexible">Flexible</option>
+                </select>
             </div>
         </div>
-    </div>
 
-    <!-- Jobs Grid/List -->
-    <div class="jobs-content">
-        <div class="container">
-            @if (isLoading)
-            {
-                <div class="text-center py-5">
-                    <div class="spinner-border text-primary" role="status">
-                        <span class="visually-hidden">Loading jobs...</span>
-                    </div>
-                    <p class="mt-3">Loading available jobs...</p>
+        <!-- Jobs Header with Count and View Toggle -->
+        <div class="jobs-header">
+            <div class="jobs-count">
+                @filteredJobs.Count jobs matching your criteria
+            </div>
+            <div class="view-toggle">
+                <button class="view-toggle-btn @(viewMode == "grid" ? "active" : "")"
+                        @onclick='() => viewMode = "grid"'>
+                    Grid
+                </button>
+                <button class="view-toggle-btn @(viewMode == "list" ? "active" : "")"
+                        @onclick='() => viewMode = "list"'>
+                    List
+                </button>
+            </div>
+        </div>
+
+        <!-- Jobs Display -->
+        @if (isLoading)
+        {
+            <div class="loading-spinner">
+                <div class="spinner-border text-primary" role="status">
+                    <span class="visually-hidden">Loading jobs...</span>
                 </div>
-            }
-            else if (!filteredJobs.Any())
-            {
-                <div class="no-jobs-found">
-                    <i class="bi bi-inbox" style="font-size: 4rem; color: #dee2e6;"></i>
-                    <h3>No jobs found</h3>
-                    <p>Try adjusting your filters or check back later for new opportunities</p>
-                    <button class="btn btn-primary" @onclick="ClearAllFilters">Clear Filters</button>
-                </div>
-            }
-            else
-            {
-                <div class="@(viewMode == "grid" ? "jobs-grid" : "jobs-list")">
-                    @foreach (var job in filteredJobs)
-                    {
-                        <div class="job-card @(job.IsUrgent ? "urgent" : "")">
-                            @if (job.IsUrgent)
-                            {
-                                <span class="urgency-badge">URGENT</span>
-                            }
-                            
+            </div>
+        }
+        else if (!filteredJobs.Any())
+        {
+            <div class="empty-state">
+                <div class="empty-state-icon">🔍</div>
+                <h3>No jobs found</h3>
+                <p>Try adjusting your filters or check back later for new opportunities.</p>
+                <button class="btn btn-primary" @onclick="ResetFilters">Reset Filters</button>
+            </div>
+        }
+        else
+        {
+            <div class="@(viewMode == "grid" ? "jobs-grid" : "jobs-list")">
+                @foreach (var job in filteredJobs)
+                {
+                    <div class="job-card">
+                        @* Option 1: Badge positioned on top edge *@
+                        @if (job.IsUrgent)
+                        {
+                            <span class="urgent-badge">URGENT</span>
+                        }
+
+                        <div class="job-card-content">
                             <div class="job-card-header">
-                                <h3 class="job-title">@job.Title</h3>
-                                <span class="job-category badge bg-secondary">@job.Category</span>
+                                <div>
+                                    <h3 class="job-title">
+                                        @job.Title
+                                        @* Option 2: Inline badge next to title *@
+                                        @* @if (job.IsUrgent)
+                                        {
+                                            <span class="urgent-badge-inline">URGENT</span>
+                                        } *@
+                                    </h3>
+                                    <span class="job-category">@job.Category</span>
+                                </div>
                             </div>
 
-                            <div class="job-card-body">
-                                <p class="job-description">@job.Description</p>
-                                
-                                <div class="job-details">
-                                    <div class="detail-item">
-                                        <i class="bi bi-geo-alt"></i>
-                                        <span>@job.Location (@job.Distance km away)</span>
-                                    </div>
-                                    <div class="detail-item">
-                                        <i class="bi bi-calendar"></i>
-                                        <span>Posted @job.PostedTimeAgo</span>
-                                    </div>
-                                    <div class="detail-item">
-                                        <i class="bi bi-cash-stack"></i>
-                                        <span class="budget">@job.BudgetDisplay</span>
-                                    </div>
-                                    <div class="detail-item">
-                                        <i class="bi bi-clock"></i>
-                                        <span>@job.TimeframeDisplay</span>
-                                    </div>
+                            <p class="job-description">@job.Description</p>
+
+                            <div class="job-info">
+                                <span class="job-info-item">
+                                    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                              d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                              d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+                                    </svg>
+                                    @job.Location (@job.Distance km away)
+                                </span>
+                                <span class="job-info-item">
+                                    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                              d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                    </svg>
+                                    Posted @job.PostedTime
+                                </span>
+                            </div>
+
+                            @if (job.PhotoCount > 0)
+                            {
+                                <div class="job-photos">
+                                    <svg class="photo-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                              d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                                    </svg>
+                                    @job.PhotoCount photos attached
                                 </div>
+                            }
 
-                                @if (job.HasPhotos)
-                                {
-                                    <div class="job-photos">
-                                        <i class="bi bi-camera"></i>
-                                        <span>@job.PhotoCount photos attached</span>
-                                    </div>
-                                }
-
-                                <div class="job-stats">
-                                    <span class="stat-item">
-                                        <i class="bi bi-chat-dots"></i> @job.QuotesCount quotes
-                                    </span>
-                                    <span class="stat-item">
-                                        <i class="bi bi-eye"></i> @job.ViewsCount views
-                                    </span>
+                            <div class="job-stats">
+                                <div class="job-stat">
+                                    <span class="job-stat-value">@job.QuoteCount</span>
+                                    <span>quotes</span>
+                                </div>
+                                <div class="job-stat">
+                                    <span class="job-stat-value">@job.ViewCount</span>
+                                    <span>views</span>
                                 </div>
                             </div>
 
                             <div class="job-card-footer">
-                                <button class="btn btn-outline-primary" @onclick="() => ViewJobDetails(job.Id)">
-                                    <i class="bi bi-info-circle"></i> View Details
-                                </button>
-                                <button class="btn btn-primary" @onclick="() => QuickQuote(job.Id)">
-                                    <i class="bi bi-send"></i> Send Quote
+                                <div class="job-budget">
+                                    <span class="budget-label">Budget</span>
+                                    <span class="budget-amount">$@job.BudgetMin - $@job.BudgetMax</span>
+                                </div>
+                                <div class="job-timing">
+                                    <strong>@job.Timeframe</strong>
+                                </div>
+                            </div>
+
+                            <div class="job-actions">
+                                <a href="/jobs/@job.Id" class="btn-view-details">
+                                    View Details
+                                </a>
+                                <button class="btn-send-quote" @onclick="() => SendQuote(job.Id)">
+                                    Send Quote
                                 </button>
                             </div>
                         </div>
-                    }
-                </div>
-
-                <!-- Pagination -->
-                @if (totalPages > 1)
-                {
-                    <nav aria-label="Jobs pagination" class="mt-4">
-                        <ul class="pagination justify-content-center">
-                            <li class="page-item @(currentPage == 1 ? "disabled" : "")">
-                                <button class="page-link" @onclick="() => ChangePage(currentPage - 1)">Previous</button>
-                            </li>
-                            @for (int i = 1; i <= totalPages; i++)
-                            {
-                                var pageNum = i;
-                                <li class="page-item @(currentPage == pageNum ? "active" : "")">
-                                    <button class="page-link" @onclick="() => ChangePage(pageNum)">@pageNum</button>
-                                </li>
-                            }
-                            <li class="page-item @(currentPage == totalPages ? "disabled" : "")">
-                                <button class="page-link" @onclick="() => ChangePage(currentPage + 1)">Next</button>
-                            </li>
-                        </ul>
-                    </nav>
+                    </div>
                 }
-            }
-        </div>
+            </div>
+        }
     </div>
 </div>
 
@@ -246,18 +200,13 @@
     private List<JobDto> filteredJobs = new();
     private bool isLoading = true;
     private string viewMode = "grid";
-    
+
     // Filter properties
     private string searchTerm = "";
     private string selectedCategory = "";
     private string selectedDistance = "20";
     private string selectedBudget = "";
-    private string selectedUrgency = "";
-    
-    // Pagination
-    private int currentPage = 1;
-    private int pageSize = 12;
-    private int totalPages = 1;
+    private string selectedTimeframe = "";
 
     protected override async Task OnInitializedAsync()
     {
@@ -269,9 +218,45 @@
         isLoading = true;
         try
         {
-            // Call your API to get jobs
-            // For now, using mock data
-            allJobs = GetMockJobs();
+            // Mock data for demonstration
+            allJobs = new List<JobDto>
+            {
+                new JobDto
+                {
+                    Id = Guid.NewGuid(),
+                    Title = "Fix Leaking Bathroom Tap",
+                    Category = "Plumbing",
+                    Description = "Bathroom tap has been leaking for a week. Need urgent repair.",
+                    Location = "Surry Hills, Sydney",
+                    Distance = 5.2,
+                    BudgetMin = 200,
+                    BudgetMax = 400,
+                    PostedTime = "2 hours ago",
+                    Timeframe = "ASAP",
+                    IsUrgent = true,
+                    PhotoCount = 3,
+                    QuoteCount = 3,
+                    ViewCount = 15
+                },
+                new JobDto
+                {
+                    Id = Guid.NewGuid(),
+                    Title = "Install Ceiling Fans in 3 Bedrooms",
+                    Category = "Electrical",
+                    Description = "Need 3 ceiling fans installed in bedrooms. Wiring already in place.",
+                    Location = "Bondi, Sydney",
+                    Distance = 8.7,
+                    BudgetMin = 600,
+                    BudgetMax = 900,
+                    PostedTime = "5 hours ago",
+                    Timeframe = "This week",
+                    IsUrgent = false,
+                    PhotoCount = 0,
+                    QuoteCount = 5,
+                    ViewCount = 22
+                }
+            };
+
             ApplyFilters();
         }
         finally
@@ -282,140 +267,71 @@
 
     private void ApplyFilters()
     {
-        var query = allJobs.AsQueryable();
+        filteredJobs = allJobs;
 
-        if (!string.IsNullOrEmpty(searchTerm))
+        // Apply search filter
+        if (!string.IsNullOrWhiteSpace(searchTerm))
         {
-            query = query.Where(j => j.Title.Contains(searchTerm, StringComparison.OrdinalIgnoreCase) ||
-                                    j.Description.Contains(searchTerm, StringComparison.OrdinalIgnoreCase));
+            filteredJobs = filteredJobs.Where(j =>
+                j.Title.Contains(searchTerm, StringComparison.OrdinalIgnoreCase) ||
+                j.Description.Contains(searchTerm, StringComparison.OrdinalIgnoreCase)
+            ).ToList();
         }
 
+        // Apply category filter
         if (!string.IsNullOrEmpty(selectedCategory))
         {
-            query = query.Where(j => j.Category.Equals(selectedCategory, StringComparison.OrdinalIgnoreCase));
+            filteredJobs = filteredJobs.Where(j =>
+                j.Category.Equals(selectedCategory, StringComparison.OrdinalIgnoreCase)
+            ).ToList();
         }
 
-        if (!string.IsNullOrEmpty(selectedDistance))
+        // Apply timeframe filter
+        if (selectedTimeframe == "urgent")
         {
-            var maxDistance = int.Parse(selectedDistance);
-            query = query.Where(j => j.Distance <= maxDistance);
+            filteredJobs = filteredJobs.Where(j => j.IsUrgent).ToList();
         }
 
-        // Apply budget filter
-        if (!string.IsNullOrEmpty(selectedBudget))
-        {
-            // Parse budget range and filter
-        }
-
-        if (!string.IsNullOrEmpty(selectedUrgency))
-        {
-            if (selectedUrgency == "urgent")
-                query = query.Where(j => j.IsUrgent);
-        }
-
-        filteredJobs = query.ToList();
-        totalPages = (int)Math.Ceiling(filteredJobs.Count / (double)pageSize);
-    }
-
-    private bool HasActiveFilters()
-    {
-        return !string.IsNullOrEmpty(searchTerm) || 
-               !string.IsNullOrEmpty(selectedCategory) || 
-               !string.IsNullOrEmpty(selectedBudget) || 
-               !string.IsNullOrEmpty(selectedUrgency);
-    }
-
-    private void ClearAllFilters()
-    {
-        searchTerm = "";
-        selectedCategory = "";
-        selectedBudget = "";
-        selectedUrgency = "";
-        ApplyFilters();
+        StateHasChanged();
     }
 
     private void OnSearchChanged(string value)
     {
-        searchTerm = value;
+        searchTerm = value ?? "";
         ApplyFilters();
     }
 
-    private void ViewJobDetails(int jobId)
+    private void ResetFilters()
     {
-        Navigation.NavigateTo($"/job-details/{jobId}");
+        searchTerm = "";
+        selectedCategory = "";
+        selectedDistance = "20";
+        selectedBudget = "";
+        selectedTimeframe = "";
+        ApplyFilters();
     }
 
-    private void QuickQuote(int jobId)
+    private void SendQuote(Guid jobId)
     {
         Navigation.NavigateTo($"/send-quote/{jobId}");
     }
 
-    private void ChangePage(int page)
+    // Job DTO class
+    private class JobDto
     {
-        if (page >= 1 && page <= totalPages)
-        {
-            currentPage = page;
-        }
-    }
-
-    // Mock data generator
-    private List<JobDto> GetMockJobs()
-    {
-        return new List<JobDto>
-        {
-            new JobDto 
-            { 
-                Id = 1, 
-                Title = "Fix Leaking Bathroom Tap", 
-                Category = "Plumbing",
-                Description = "Bathroom tap has been leaking for a week. Need urgent repair.",
-                Location = "Surry Hills, Sydney",
-                Distance = 5.2,
-                BudgetDisplay = "$200 - $400",
-                TimeframeDisplay = "ASAP",
-                PostedTimeAgo = "2 hours ago",
-                QuotesCount = 3,
-                ViewsCount = 15,
-                IsUrgent = true,
-                HasPhotos = true,
-                PhotoCount = 3
-            },
-            new JobDto 
-            { 
-                Id = 2, 
-                Title = "Install Ceiling Fans in 3 Bedrooms", 
-                Category = "Electrical",
-                Description = "Need 3 ceiling fans installed in bedrooms. Wiring already in place.",
-                Location = "Bondi, Sydney",
-                Distance = 8.7,
-                BudgetDisplay = "$600 - $900",
-                TimeframeDisplay = "This week",
-                PostedTimeAgo = "5 hours ago",
-                QuotesCount = 5,
-                ViewsCount = 22,
-                IsUrgent = false,
-                HasPhotos = false
-            },
-            // Add more mock jobs as needed
-        };
-    }
-
-    // DTO class
-    public class JobDto
-    {
-        public int Id { get; set; }
-        public string Title { get; set; }
-        public string Category { get; set; }
-        public string Description { get; set; }
-        public string Location { get; set; }
+        public Guid Id { get; set; }
+        public string Title { get; set; } = "";
+        public string Category { get; set; } = "";
+        public string Description { get; set; } = "";
+        public string Location { get; set; } = "";
         public double Distance { get; set; }
-        public string BudgetDisplay { get; set; }
-        public string TimeframeDisplay { get; set; }
-        public string PostedTimeAgo { get; set; }
-        public int QuotesCount { get; set; }
-        public int ViewsCount { get; set; }
+        public decimal BudgetMin { get; set; }
+        public decimal BudgetMax { get; set; }
+        public string PostedTime { get; set; } = "";
+        public string Timeframe { get; set; } = "";
         public bool IsUrgent { get; set; }
-        public bool HasPhotos { get; set; }
         public int PhotoCount { get; set; }
+        public int QuoteCount { get; set; }
+        public int ViewCount { get; set; }
     }
 }

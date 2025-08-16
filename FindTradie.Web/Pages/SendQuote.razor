@@ -1,0 +1,489 @@
+﻿@page "/send-quote/{JobId:guid}"
+@using FindTradie.Web.Services
+@inject IQuoteApiService QuoteService
+@inject IJobApiService JobService
+@inject NavigationManager Navigation
+@inject AuthenticationStateProvider AuthStateProvider
+
+<PageTitle>Send Quote - FindTradie</PageTitle>
+
+<link rel="stylesheet" href="css/send-quote.css" />
+
+<div class="send-quote-page">
+    <div class="container">
+        <!-- Progress Indicator -->
+        <div class="progress-indicator">
+            <div class="progress-step active">
+                <span class="step-number">1</span>
+                <span class="step-label">Quote Details</span>
+            </div>
+            <div class="progress-line"></div>
+            <div class="progress-step @(currentStep >= 2 ? "active" : "")">
+                <span class="step-number">2</span>
+                <span class="step-label">Review</span>
+            </div>
+            <div class="progress-line"></div>
+            <div class="progress-step @(currentStep >= 3 ? "active" : "")">
+                <span class="step-number">3</span>
+                <span class="step-label">Submit</span>
+            </div>
+        </div>
+
+        @if (isLoading)
+        {
+            <div class="loading-container">
+                <div class="spinner-border text-primary" role="status">
+                    <span class="visually-hidden">Loading...</span>
+                </div>
+            </div>
+        }
+        else if (currentStep == 1)
+        {
+            <!-- Step 1: Quote Details -->
+            <div class="quote-form-container">
+                <div class="form-header">
+                    <h1>Send Your Quote</h1>
+                    <p>Provide a competitive quote for this job</p>
+                </div>
+
+                <!-- Job Summary Card -->
+                <div class="job-summary-card">
+                    <h3>@job.Title</h3>
+                    <div class="job-meta">
+                        <span class="meta-item">
+                            <i class="icon-location"></i> @job.Location
+                        </span>
+                        <span class="meta-item">
+                            <i class="icon-budget"></i> Budget: $@job.BudgetMin - $@job.BudgetMax
+                        </span>
+                        <span class="meta-item">
+                            <i class="icon-time"></i> @job.Timeframe
+                        </span>
+                    </div>
+                    <p class="job-description">@job.Description</p>
+                </div>
+
+                <!-- Quote Form -->
+                <div class="quote-form">
+                    <!-- Pricing Section -->
+                    <div class="form-section">
+                        <h2 class="section-title">
+                            <span class="section-number">1</span>
+                            Quote Amount
+                        </h2>
+
+                        <div class="pricing-options">
+                            <label class="pricing-option @(pricingType == "fixed" ? "selected" : "")">
+                                <input type="radio" name="pricingType" value="fixed"
+                                       @onchange='() => pricingType = "fixed"' checked="@(pricingType == "fixed")" />
+                                <div class="option-content">
+                                    <span class="option-title">Fixed Price</span>
+                                    <span class="option-desc">One total price for the entire job</span>
+                                </div>
+                            </label>
+
+                            <label class="pricing-option @(pricingType == "hourly" ? "selected" : "")">
+                                <input type="radio" name="pricingType" value="hourly"
+                                       @onchange='() => pricingType = "hourly"' checked="@(pricingType == "hourly")" />
+                                <div class="option-content">
+                                    <span class="option-title">Hourly Rate</span>
+                                    <span class="option-desc">Charge by the hour</span>
+                                </div>
+                            </label>
+                        </div>
+
+                        @if (pricingType == "fixed")
+                        {
+                            <div class="price-input-group">
+                                <label for="fixedPrice">Total Quote Amount</label>
+                                <div class="price-input-wrapper">
+                                    <span class="currency-symbol">$</span>
+                                    <input type="number" id="fixedPrice" class="price-input"
+                                           @bind="fixedPrice" placeholder="0.00" min="0" step="10" />
+                                </div>
+                                <span class="helper-text">Customer's budget: $@job.BudgetMin - $@job.BudgetMax</span>
+                            </div>
+                        }
+                        else
+                        {
+                            <div class="hourly-inputs">
+                                <div class="price-input-group">
+                                    <label for="hourlyRate">Hourly Rate</label>
+                                    <div class="price-input-wrapper">
+                                        <span class="currency-symbol">$</span>
+                                        <input type="number" id="hourlyRate" class="price-input"
+                                               @bind="hourlyRate" placeholder="0.00" min="0" step="5" />
+                                        <span class="currency-suffix">per hour</span>
+                                    </div>
+                                </div>
+
+                                <div class="price-input-group">
+                                    <label for="estimatedHours">Estimated Hours</label>
+                                    <input type="number" id="estimatedHours" class="hours-input"
+                                           @bind="estimatedHours" placeholder="0" min="0" step="0.5" />
+                                    <span class="helper-text">Total estimate: $@(hourlyRate * estimatedHours)</span>
+                                </div>
+                            </div>
+                        }
+                    </div>
+
+                    <!-- Message Section -->
+                    <div class="form-section">
+                        <h2 class="section-title">
+                            <span class="section-number">2</span>
+                            Your Message
+                        </h2>
+
+                        <div class="message-tips">
+                            <h4>Tips for a winning quote:</h4>
+                            <ul>
+                                <li>Introduce yourself and your experience</li>
+                                <li>Explain your approach to the job</li>
+                                <li>Highlight relevant qualifications</li>
+                                <li>Be clear about what's included</li>
+                                <li>Mention your availability</li>
+                            </ul>
+                        </div>
+
+                        <textarea class="message-textarea" @bind="quoteMessage"
+                                  placeholder="Hi [Customer Name],&#10;&#10;I'd be happy to help with your [job type]. I have [X years] of experience in [relevant field]...&#10;&#10;My quote includes:&#10;- [Service 1]&#10;- [Service 2]&#10;&#10;I can start [availability].&#10;&#10;Best regards,&#10;[Your Name]"
+                                  rows="12"></textarea>
+                        <div class="character-count">@quoteMessage.Length / 2000 characters</div>
+                    </div>
+
+                    <!-- Availability Section -->
+                    <div class="form-section">
+                        <h2 class="section-title">
+                            <span class="section-number">3</span>
+                            Availability
+                        </h2>
+
+                        <div class="availability-options">
+                            <label class="availability-option">
+                                <input type="radio" name="availability" value="immediately"
+                                       @onchange='() => availability = "immediately"' checked="@(availability == "immediately")" />
+                                <span>Available immediately</span>
+                            </label>
+                            <label class="availability-option">
+                                <input type="radio" name="availability" value="week"
+                                       @onchange='() => availability = "week"' checked="@(availability == "week")" />
+                                <span>Within a week</span>
+                            </label>
+                            <label class="availability-option">
+                                <input type="radio" name="availability" value="custom"
+                                       @onchange='() => availability = "custom"' checked="@(availability == "custom")" />
+                                <span>Specific date</span>
+                            </label>
+                        </div>
+
+                        @if (availability == "custom")
+                        {
+                            <input type="date" class="date-input" @bind="customAvailabilityDate" min="@DateTime.Now.ToString("yyyy-MM-dd")" />
+                        }
+                    </div>
+
+                    <!-- Additional Options -->
+                    <div class="form-section">
+                        <h2 class="section-title">
+                            <span class="section-number">4</span>
+                            Additional Information
+                        </h2>
+
+                        <div class="checkbox-group">
+                            <label class="checkbox-option">
+                                <input type="checkbox" @bind="includesCallout" />
+                                <span>Includes callout fee</span>
+                            </label>
+                            <label class="checkbox-option">
+                                <input type="checkbox" @bind="includesMaterials" />
+                                <span>Materials included in quote</span>
+                            </label>
+                            <label class="checkbox-option">
+                                <input type="checkbox" @bind="hasWarranty" />
+                                <span>Work comes with warranty</span>
+                            </label>
+                        </div>
+
+                        @if (hasWarranty)
+                        {
+                            <div class="warranty-input">
+                                <label>Warranty Period</label>
+                                <select class="form-select" @bind="warrantyPeriod">
+                                    <option value="">Select warranty period</option>
+                                    <option value="3months">3 months</option>
+                                    <option value="6months">6 months</option>
+                                    <option value="12months">12 months</option>
+                                    <option value="24months">24 months</option>
+                                </select>
+                            </div>
+                        }
+                    </div>
+
+                    <!-- Attachments Section -->
+                    <div class="form-section">
+                        <h2 class="section-title">
+                            <span class="section-number">5</span>
+                            Attachments (Optional)
+                        </h2>
+
+                        <div class="upload-area">
+                            <div class="upload-icon">📎</div>
+                            <p>Drag and drop files here or click to browse</p>
+                            <span class="upload-hint">You can attach photos of previous work, certifications, or detailed quotes</span>
+                            <button class="btn btn-outline">Choose Files</button>
+                        </div>
+                    </div>
+
+                    <!-- Form Actions -->
+                    <div class="form-actions">
+                        <button class="btn btn-outline btn-lg" @onclick="Cancel">Cancel</button>
+                        <button class="btn btn-primary btn-lg" @onclick="ProceedToReview" disabled="@(!IsFormValid())">
+                            Review Quote <i class="icon-arrow-right"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        }
+        else if (currentStep == 2)
+        {
+            <!-- Step 2: Review -->
+            <div class="review-container">
+                <div class="form-header">
+                    <h1>Review Your Quote</h1>
+                    <p>Please review your quote details before submitting</p>
+                </div>
+
+                <div class="review-card">
+                    <h3 class="review-section-title">Quote Summary</h3>
+
+                    <div class="review-item">
+                        <span class="review-label">Job:</span>
+                        <span class="review-value">@job.Title</span>
+                    </div>
+
+                    <div class="review-item">
+                        <span class="review-label">Quote Amount:</span>
+                        <span class="review-value highlight">
+                            @if (pricingType == "fixed")
+                            {
+                                <text>$@fixedPrice (Fixed Price)</text>
+                            }
+                            else
+                            {
+                                <text>$@hourlyRate/hour × @estimatedHours hours = $@(hourlyRate * estimatedHours)</text>
+                            }
+                        </span>
+                    </div>
+
+                    <div class="review-item">
+                        <span class="review-label">Availability:</span>
+                        <span class="review-value">@GetAvailabilityText()</span>
+                    </div>
+
+                    <div class="review-item">
+                        <span class="review-label">Includes:</span>
+                        <span class="review-value">
+                            @GetIncludedItems()
+                        </span>
+                    </div>
+
+                    @if (hasWarranty)
+                    {
+                        <div class="review-item">
+                            <span class="review-label">Warranty:</span>
+                            <span class="review-value">@warrantyPeriod</span>
+                        </div>
+                    }
+
+                    <div class="review-message">
+                        <h4>Your Message:</h4>
+                        <div class="message-preview">@quoteMessage</div>
+                    </div>
+                </div>
+
+                <div class="terms-section">
+                    <label class="checkbox-option">
+                        <input type="checkbox" @bind="acceptedTerms" />
+                        <span>I agree to the <a href="/terms" target="_blank">Terms of Service</a> and understand that my quote is binding if accepted</span>
+                    </label>
+                </div>
+
+                <div class="form-actions">
+                    <button class="btn btn-outline btn-lg" @onclick="BackToEdit">
+                        <i class="icon-arrow-left"></i> Back to Edit
+                    </button>
+                    <button class="btn btn-primary btn-lg" @onclick="SubmitQuote" disabled="@(!acceptedTerms || isSubmitting)">
+                        @if (isSubmitting)
+                        {
+                            <span class="spinner-border spinner-border-sm me-2"></span>
+                            <text>Submitting...</text>
+                        }
+                        else
+                        {
+                            <text>Submit Quote</text>
+                        }
+                    </button>
+                </div>
+            </div>
+        }
+        else if (currentStep == 3)
+        {
+            <!-- Step 3: Success -->
+            <div class="success-container">
+                <div class="success-icon">✅</div>
+                <h1>Quote Submitted Successfully!</h1>
+                <p>Your quote has been sent to the customer. They will review it and get back to you soon.</p>
+
+                <div class="success-details">
+                    <div class="detail-item">
+                        <span class="detail-label">Quote Reference:</span>
+                        <span class="detail-value">#QT@(Guid.NewGuid().ToString().Substring(0, 8).ToUpper())</span>
+                    </div>
+                    <div class="detail-item">
+                        <span class="detail-label">Submitted:</span>
+                        <span class="detail-value">@DateTime.Now.ToString("dd MMM yyyy, h:mm tt")</span>
+                    </div>
+                </div>
+
+                <div class="next-steps">
+                    <h3>What happens next?</h3>
+                    <ul>
+                        <li>The customer will review your quote along with others</li>
+                        <li>You'll receive a notification if they have questions</li>
+                        <li>If accepted, you'll be notified immediately</li>
+                        <li>You can track this quote in your dashboard</li>
+                    </ul>
+                </div>
+
+                <div class="success-actions">
+                    <a href="/my-quotes" class="btn btn-outline btn-lg">View My Quotes</a>
+                    <a href="/browse-jobs" class="btn btn-primary btn-lg">Browse More Jobs</a>
+                </div>
+            </div>
+        }
+    </div>
+</div>
+
+@code {
+    [Parameter] public Guid JobId { get; set; }
+
+    private JobSummaryDto job = new();
+    private int currentStep = 1;
+    private bool isLoading = true;
+    private bool isSubmitting = false;
+
+    // Form fields
+    private string pricingType = "fixed";
+    private decimal fixedPrice = 0;
+    private decimal hourlyRate = 0;
+    private decimal estimatedHours = 0;
+    private string quoteMessage = "";
+    private string availability = "immediately";
+    private DateTime customAvailabilityDate = DateTime.Now.AddDays(7);
+    private bool includesCallout = false;
+    private bool includesMaterials = false;
+    private bool hasWarranty = false;
+    private string warrantyPeriod = "";
+    private bool acceptedTerms = false;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadJobDetails();
+    }
+
+    private async Task LoadJobDetails()
+    {
+        isLoading = true;
+        try
+        {
+            // Mock data for demonstration
+            job = new JobSummaryDto
+                {
+                    Id = JobId,
+                    Title = "Fix Leaking Bathroom Tap",
+                    Location = "Surry Hills, Sydney",
+                    BudgetMin = 200,
+                    BudgetMax = 400,
+                    Timeframe = "ASAP",
+                    Description = "Bathroom tap has been leaking for a week. Need urgent repair."
+                };
+        }
+        finally
+        {
+            isLoading = false;
+        }
+    }
+
+    private bool IsFormValid()
+    {
+        if (pricingType == "fixed" && fixedPrice <= 0) return false;
+        if (pricingType == "hourly" && (hourlyRate <= 0 || estimatedHours <= 0)) return false;
+        if (string.IsNullOrWhiteSpace(quoteMessage)) return false;
+        return true;
+    }
+
+    private void ProceedToReview()
+    {
+        if (IsFormValid())
+        {
+            currentStep = 2;
+        }
+    }
+
+    private void BackToEdit()
+    {
+        currentStep = 1;
+    }
+
+    private async Task SubmitQuote()
+    {
+        isSubmitting = true;
+        try
+        {
+            // Simulate API call
+            await Task.Delay(2000);
+            currentStep = 3;
+        }
+        finally
+        {
+            isSubmitting = false;
+        }
+    }
+
+    private void Cancel()
+    {
+        Navigation.NavigateTo($"/jobs/{JobId}");
+    }
+
+    private string GetAvailabilityText()
+    {
+        return availability switch
+        {
+            "immediately" => "Available immediately",
+            "week" => "Within a week",
+            "custom" => $"Available from {customAvailabilityDate:dd MMM yyyy}",
+            _ => "Not specified"
+        };
+    }
+
+    private string GetIncludedItems()
+    {
+        var items = new List<string>();
+        if (includesCallout) items.Add("Callout fee");
+        if (includesMaterials) items.Add("Materials");
+        if (hasWarranty) items.Add($"Warranty ({warrantyPeriod})");
+        return items.Any() ? string.Join(", ", items) : "Labor only";
+    }
+
+    // DTOs
+    private class JobSummaryDto
+    {
+        public Guid Id { get; set; }
+        public string Title { get; set; } = "";
+        public string Location { get; set; } = "";
+        public decimal BudgetMin { get; set; }
+        public decimal BudgetMax { get; set; }
+        public string Timeframe { get; set; } = "";
+        public string Description { get; set; } = "";
+    }
+}

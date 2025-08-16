@@ -1,4 +1,5 @@
 @using Microsoft.AspNetCore.Components.Authorization
+@inject AuthenticationStateProvider AuthStateProvider
 
 <header class="main-header">
     <nav class="navbar">
@@ -16,10 +17,32 @@
 
             <div class="nav-menu @(collapseNavMenu ? string.Empty : "mobile-open")">
                 <NavLink href="/" class="nav-link" Match="NavLinkMatch.All">Home</NavLink>
-                <NavLink href="/find-tradies" class="nav-link">Find Tradies</NavLink>
-                <NavLink href="/browse-jobs" class="nav-link">Browse Jobs</NavLink>
-                <NavLink href="/how-it-works" class="nav-link">How It Works</NavLink>
-                <NavLink href="/post-job" class="nav-link">Post a Job</NavLink>
+
+                <AuthorizeView>
+                    <Authorized>
+                        @if (IsCustomer)
+                        {
+                            <!-- Customer-specific navigation items -->
+                            <NavLink href="/find-tradies" class="nav-link">Find Tradies</NavLink>
+                            <NavLink href="/post-job" class="nav-link">Post a Job</NavLink>
+                            <NavLink href="/my-jobs" class="nav-link">My Jobs</NavLink>
+                        }
+                        else if (IsTradie)
+                        {
+                            <!-- Tradie-specific navigation items -->
+                            <NavLink href="/browse-jobs" class="nav-link">Browse Jobs</NavLink>
+                            <NavLink href="/my-quotes" class="nav-link">My Quotes</NavLink>
+                            <NavLink href="/my-profile" class="nav-link">My Profile</NavLink>
+                        }
+                    </Authorized>
+                    <NotAuthorized>
+                        <!-- Public navigation items for non-authenticated users -->
+                        <NavLink href="/find-tradies" class="nav-link">Find Tradies</NavLink>
+                        <NavLink href="/how-it-works" class="nav-link">How It Works</NavLink>
+                    </NotAuthorized>
+                </AuthorizeView>
+
+                <!-- Common navigation items for all users -->
                 <NavLink href="/help" class="nav-link">Help Center</NavLink>
                 <NavLink href="/faq" class="nav-link">FAQ</NavLink>
             </div>
@@ -50,10 +73,26 @@
 
 @code {
     private bool collapseNavMenu = true;
+    private bool IsCustomer = false;
+    private bool IsTradie = false;
+
+    protected override async Task OnInitializedAsync()
+    {
+        var authState = await AuthStateProvider.GetAuthenticationStateAsync();
+
+        if (authState.User.Identity?.IsAuthenticated == true)
+        {
+            // Get user type from claims
+            var userType = authState.User.FindFirst("UserType")?.Value;
+
+            // Handle different possible values for user type
+            IsCustomer = userType == "Customer" || userType == "1";
+            IsTradie = userType == "Tradie" || userType == "ServiceProvider" || userType == "2";
+        }
+    }
 
     private void ToggleNavMenu()
     {
         collapseNavMenu = !collapseNavMenu;
     }
 }
-
