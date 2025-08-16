@@ -2,6 +2,7 @@
 using FindTradie.Shared.Contracts.Common;
 using FindTradie.Shared.Contracts.DTOs;
 using Microsoft.AspNetCore.Mvc;
+using FindTradie.Services.UserManagement.Services;
 
 namespace FindTradie.Services.UserManagement.Controllers;
 
@@ -9,10 +10,12 @@ namespace FindTradie.Services.UserManagement.Controllers;
 [Route("api/[controller]")]
 public class UsersController : ControllerBase
 {
+    private readonly IUserService _userService;
     private readonly ILogger<UsersController> _logger;
 
-    public UsersController(ILogger<UsersController> logger)
+    public UsersController(IUserService userService, ILogger<UsersController> logger)
     {
+        _userService = userService;
         _logger = logger;
     }
 
@@ -22,20 +25,13 @@ public class UsersController : ControllerBase
     {
         try
         {
-            // TODO: Implement user registration logic
-            var userDto = new UserProfileDto(
-                Guid.NewGuid(),
-                request.Email,
-                request.FirstName,
-                request.LastName,
-                request.PhoneNumber,
-                request.UserType,
-                DateTime.UtcNow,
-                false
-            );
+            var result = await _userService.CreateUserAsync(request);
+            if (!result.Success)
+            {
+                return BadRequest(result);
+            }
 
-            return Ok(ApiResponse<UserProfileDto>.SuccessResult(
-                userDto, "User registered successfully"));
+            return Ok(result);
         }
         catch (Exception ex)
         {
@@ -50,9 +46,13 @@ public class UsersController : ControllerBase
     {
         try
         {
-            // TODO: Implement get user logic
-            return Ok(ApiResponse<UserProfileDto>.SuccessResult(
-                null!, "User retrieved successfully"));
+            var result = await _userService.GetUserAsync(id);
+            if (!result.Success)
+            {
+                return NotFound(result);
+            }
+
+            return Ok(result);
         }
         catch (Exception ex)
         {
