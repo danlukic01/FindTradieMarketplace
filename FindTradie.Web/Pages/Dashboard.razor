@@ -21,7 +21,7 @@
         <section class="quick-actions">
             <div class="container">
                 <div class="action-cards">
-                    <div class="action-card" @onclick="() => Navigation.NavigateTo('/post-job')">
+                    <div class="action-card" @onclick="NavigateToPostJob">
                         <div class="action-icon">
                             <svg width="48" height="48"></svg>
                         </div>
@@ -30,7 +30,7 @@
                         <span class="action-arrow">→</span>
                     </div>
 
-                    <div class="action-card" @onclick="() => Navigation.NavigateTo('/find-tradies')">
+                    <div class="action-card" @onclick="NavigateToFindTradies">
                         <div class="action-icon">
                             <svg width="48" height="48"></svg>
                         </div>
@@ -39,7 +39,7 @@
                         <span class="action-arrow">→</span>
                     </div>
 
-                    <div class="action-card" @onclick="() => Navigation.NavigateTo('/my-jobs')">
+                    <div class="action-card" @onclick="NavigateToMyJobs">
                         <div class="action-icon">
                             <svg width="48" height="48"></svg>
                         </div>
@@ -63,7 +63,7 @@
                         </div>
                         <h3>No jobs yet</h3>
                         <p>Post your first job to get started with FindTradie</p>
-                        <button class="btn btn-primary" @onclick="() => Navigation.NavigateTo('/post-job')">
+                        <button class="btn btn-primary" @onclick="NavigateToPostJob">
                             Post Your First Job
                         </button>
                     </div>
@@ -240,6 +240,10 @@
         // This would call your actual API services
         await Task.CompletedTask;
     }
+
+    private void NavigateToPostJob() => Navigation.NavigateTo("/post-job");
+    private void NavigateToFindTradies() => Navigation.NavigateTo("/find-tradies");
+    private void NavigateToMyJobs() => Navigation.NavigateTo("/my-jobs");
 
     private void ViewJob(int id) { }
     private void ViewQuote(int id) { }
