@@ -1,0 +1,21 @@
+@using Microsoft.AspNetCore.Components
+@using System.Linq
+@inject NavigationManager Navigation
+
+@code {
+    [Parameter] public Type Component { get; set; } = default!;
+
+    protected override void OnInitialized()
+    {
+        if (Component != null)
+        {
+            var routeAttr = Component.GetCustomAttributes(typeof(RouteAttribute), true)
+                                      .Cast<RouteAttribute>()
+                                      .FirstOrDefault();
+            if (routeAttr != null)
+            {
+                Navigation.NavigateTo(routeAttr.Template, true);
+            }
+        }
+    }
+}

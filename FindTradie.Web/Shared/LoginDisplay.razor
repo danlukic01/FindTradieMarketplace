@@ -6,9 +6,16 @@
 
 <AuthorizeView>
     <Authorized>
+        @{
+            var userName = context.User?.Identity?.Name ??
+                          context.User?.FindFirst("FirstName")?.Value ??
+                          context.User?.FindFirst("name")?.Value ??
+                          context.User?.FindFirst("email")?.Value?.Split('@')[0] ??
+                          "User";
+        }
         <div class="user-info">
-            <span class="user-name">Hello, @context.User.Identity?.Name!</span>
-            <button class="nav-link btn btn-link" @onclick="LogoutAsync">Log out</button>
+            <span class="user-greeting">Hello, @userName</span>
+            <button class="btn-logout nav-link btn btn-link" @onclick="LogoutAsync">Log out</button>
         </div>
     </Authorized>
     <NotAuthorized>
