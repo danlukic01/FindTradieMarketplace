@@ -8,14 +8,15 @@
         <div class="container">
             <h1>How FindTradie Works</h1>
             <p>Connect with trusted tradies in 3 simple steps</p>
-            
+
             <div class="user-type-toggle">
-                <button class="toggle-btn @(userType == "customer" ? "active" : "")" 
-                        @onclick="() => userType = 'customer'">
+                <button class="toggle-btn @(userType == "customer" ? "active" : "")"
+                        @onclick='() => userType = "customer"'>
                     I'm a Customer
                 </button>
-                <button class="toggle-btn @(userType == "tradie" ? "active" : "")" 
-                        @onclick="() => userType = 'tradie'">
+
+                <button class="toggle-btn @(userType == "tradie" ? "active" : "")"
+                        @onclick='() => userType = "tradie"'>
                     I'm a Tradie
                 </button>
             </div>
