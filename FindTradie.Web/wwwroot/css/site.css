@@ -1709,3 +1709,217 @@ h1, h2, h3, h4, h5, h6, p, span, div, label {
     }
 }
 
+.dashboard-container {
+    min-height: calc(100vh - 70px);
+    background: #f8fafc;
+}
+
+.welcome-section {
+    background: linear-gradient(135deg, #667eea, #764ba2);
+    color: white;
+    padding: 60px 0;
+    text-align: center;
+}
+
+.welcome-section h1 {
+    font-size: 36px;
+    margin-bottom: 8px;
+}
+
+.welcome-section p {
+    font-size: 18px;
+    opacity: 0.95;
+}
+
+/* Quick Actions */
+.quick-actions {
+    margin-top: -40px;
+    padding: 0 0 60px;
+}
+
+.action-cards {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 24px;
+}
+
+.action-card {
+    background: white;
+    padding: 32px;
+    border-radius: 12px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+    cursor: pointer;
+    transition: all 0.3s;
+    position: relative;
+}
+
+.action-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 8px 24px rgba(0,0,0,0.12);
+}
+
+.action-icon {
+    width: 64px;
+    height: 64px;
+    background: linear-gradient(135deg, #eff6ff, #dbeafe);
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 20px;
+}
+
+.action-card h3 {
+    font-size: 20px;
+    color: #1a202c;
+    margin-bottom: 8px;
+}
+
+.action-card p {
+    color: #718096;
+    font-size: 14px;
+}
+
+.action-arrow {
+    position: absolute;
+    top: 32px;
+    right: 32px;
+    font-size: 20px;
+    color: #667eea;
+    opacity: 0;
+    transition: all 0.3s;
+}
+
+.action-card:hover .action-arrow {
+    opacity: 1;
+    transform: translateX(4px);
+}
+
+/* Empty State */
+.empty-dashboard {
+    background: white;
+    padding: 80px 40px;
+    border-radius: 12px;
+    text-align: center;
+    margin: 40px auto;
+    max-width: 500px;
+}
+
+.empty-icon {
+    margin-bottom: 24px;
+    opacity: 0.5;
+}
+
+.empty-dashboard h3 {
+    font-size: 24px;
+    color: #1a202c;
+    margin-bottom: 12px;
+}
+
+.empty-dashboard p {
+    color: #718096;
+    margin-bottom: 32px;
+}
+
+/* Activity Grid */
+.activity-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 32px;
+    margin-top: 32px;
+}
+
+.activity-section {
+    background: white;
+    padding: 24px;
+    border-radius: 12px;
+}
+
+.job-item,
+.quote-item {
+    padding: 16px 0;
+    border-bottom: 1px solid #e5e7eb;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.job-item:last-child,
+.quote-item:last-child {
+    border-bottom: none;
+}
+
+/* Tradie Stats */
+.tradie-stats {
+    padding: 40px 0;
+}
+
+.stats-row {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 24px;
+}
+
+.stat-card {
+    background: white;
+    padding: 24px;
+    border-radius: 12px;
+    text-align: center;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+}
+
+.stat-value {
+    display: block;
+    font-size: 32px;
+    font-weight: 700;
+    color: #1a202c;
+    margin-bottom: 8px;
+}
+
+.stat-label {
+    color: #718096;
+    font-size: 14px;
+}
+
+/* Jobs Grid */
+.jobs-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+    gap: 24px;
+    margin-top: 32px;
+}
+
+.job-card {
+    background: white;
+    padding: 24px;
+    border-radius: 12px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+}
+
+.job-header {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 16px;
+}
+
+.category {
+    background: #eff6ff;
+    color: #667eea;
+    padding: 4px 12px;
+    border-radius: 6px;
+    font-size: 12px;
+    font-weight: 600;
+}
+
+.distance {
+    color: #718096;
+    font-size: 14px;
+}
+
+@media (max-width: 768px) {
+    .action-cards,
+    .activity-grid,
+    .stats-row {
+        grid-template-columns: 1fr;
+    }
+}
