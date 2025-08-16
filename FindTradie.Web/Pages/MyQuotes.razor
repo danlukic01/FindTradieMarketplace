@@ -1,0 +1,594 @@
+﻿@page "/my-quotes"
+@using FindTradie.Web.Services
+@using Microsoft.AspNetCore.Components.Authorization
+@inject IQuoteApiService QuoteService
+@inject NavigationManager Navigation
+@inject AuthenticationStateProvider AuthStateProvider
+@attribute [Authorize(Roles = "Tradie,ServiceProvider")]
+
+<PageTitle>My Quotes - FindTradie</PageTitle>
+
+<link rel="stylesheet" href="css/my-quotes.css" />
+
+<div class="my-quotes-page">
+    <!-- Page Header -->
+    <div class="page-header">
+        <div class="container">
+            <div class="header-content">
+                <div class="header-text">
+                    <h1>My Quotes</h1>
+                    <p>Manage and track all your submitted quotes</p>
+                </div>
+                <div class="header-actions">
+                    <button class="btn btn-primary" @onclick="NavigateToBrowseJobs">
+                        <i class="icon-search"></i> Browse New Jobs
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Stats Overview -->
+    <div class="container">
+        <div class="stats-overview">
+            <div class="stat-card">
+                <div class="stat-icon pending">
+                    <i class="icon-clock"></i>
+                </div>
+                <div class="stat-content">
+                    <span class="stat-value">@stats.PendingCount</span>
+                    <span class="stat-label">Pending</span>
+                </div>
+            </div>
+
+            <div class="stat-card">
+                <div class="stat-icon accepted">
+                    <i class="icon-check"></i>
+                </div>
+                <div class="stat-content">
+                    <span class="stat-value">@stats.AcceptedCount</span>
+                    <span class="stat-label">Accepted</span>
+                </div>
+            </div>
+
+            <div class="stat-card">
+                <div class="stat-icon declined">
+                    <i class="icon-x"></i>
+                </div>
+                <div class="stat-content">
+                    <span class="stat-value">@stats.DeclinedCount</span>
+                    <span class="stat-label">Declined</span>
+                </div>
+            </div>
+
+            <div class="stat-card">
+                <div class="stat-icon total">
+                    <i class="icon-dollar"></i>
+                </div>
+                <div class="stat-content">
+                    <span class="stat-value">$@stats.TotalValue.ToString("N0")</span>
+                    <span class="stat-label">Total Quoted</span>
+                </div>
+            </div>
+
+            <div class="stat-card">
+                <div class="stat-icon rate">
+                    <i class="icon-percent"></i>
+                </div>
+                <div class="stat-content">
+                    <span class="stat-value">@stats.SuccessRate%</span>
+                    <span class="stat-label">Success Rate</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Filters and Search -->
+        <div class="filters-section">
+            <div class="search-box">
+                <i class="icon-search"></i>
+                <input type="text" placeholder="Search by job title or customer..."
+                       @bind="searchTerm" @oninput="@((e) => OnSearchChanged(e.Value?.ToString()))" />
+            </div>
+
+            <div class="filter-tabs">
+                <button class="filter-tab @(activeFilter == "all" ? "active" : "")"
+                        @onclick='() => SetFilter("all")'>
+                    All Quotes
+                    <span class="tab-count">@GetFilterCount("all")</span>
+                </button>
+                <button class="filter-tab @(activeFilter == "pending" ? "active" : "")"
+                        @onclick='() => SetFilter("pending")'>
+                    Pending
+                    <span class="tab-count">@GetFilterCount("pending")</span>
+                </button>
+                <button class="filter-tab @(activeFilter == "accepted" ? "active" : "")"
+                        @onclick='() => SetFilter("accepted")'>
+                    Accepted
+                    <span class="tab-count">@GetFilterCount("accepted")</span>
+                </button>
+                <button class="filter-tab @(activeFilter == "declined" ? "active" : "")"
+                        @onclick='() => SetFilter("declined")'>
+                    Declined
+                    <span class="tab-count">@GetFilterCount("declined")</span>
+                </button>
+                <button class="filter-tab @(activeFilter == "expired" ? "active" : "")"
+                        @onclick='() => SetFilter("expired")'>
+                    Expired
+                    <span class="tab-count">@GetFilterCount("expired")</span>
+                </button>
+            </div>
+
+            <div class="filter-controls">
+                <select class="sort-select" @bind="sortBy">
+                    <option value="newest">Newest First</option>
+                    <option value="oldest">Oldest First</option>
+                    <option value="highest">Highest Amount</option>
+                    <option value="lowest">Lowest Amount</option>
+                </select>
+
+                <select class="date-filter" @bind="dateRange">
+                    <option value="all">All Time</option>
+                    <option value="today">Today</option>
+                    <option value="week">This Week</option>
+                    <option value="month">This Month</option>
+                    <option value="quarter">Last 3 Months</option>
+                </select>
+            </div>
+        </div>
+
+        <!-- Quotes List -->
+        @if (isLoading)
+        {
+            <div class="loading-state">
+                <div class="spinner"></div>
+                <p>Loading your quotes...</p>
+            </div>
+        }
+        else if (!filteredQuotes.Any())
+        {
+            <div class="empty-state">
+                <div class="empty-icon">📋</div>
+                <h3>No quotes found</h3>
+                <p>@GetEmptyMessage()</p>
+                @if (activeFilter != "all")
+                {
+                    <button class="btn btn-outline" @onclick='() => SetFilter("all")'>
+                        View All Quotes
+                    </button>
+                }
+                else
+                {
+                    <button class="btn btn-primary" @onclick="NavigateToBrowseJobs">
+                        Browse Available Jobs
+                    </button>
+                }
+            </div>
+        }
+        else
+        {
+            <div class="quotes-list">
+                @foreach (var quote in filteredQuotes)
+                {
+                    <div class="quote-card @quote.Status.ToLower()">
+                        <div class="quote-header">
+                            <div class="quote-title-section">
+                                <h3 class="job-title">@quote.JobTitle</h3>
+                                <div class="quote-meta">
+                                    <span class="quote-id">#@quote.QuoteNumber</span>
+                                    <span class="quote-date">@quote.SubmittedDate</span>
+                                </div>
+                            </div>
+                            <div class="quote-status-badge @quote.Status.ToLower()">
+                                @quote.Status
+                            </div>
+                        </div>
+
+                        <div class="quote-body">
+                            <div class="quote-details">
+                                <div class="customer-info">
+                                    <div class="customer-avatar">@quote.CustomerInitials</div>
+                                    <div class="customer-details">
+                                        <span class="customer-name">@quote.CustomerName</span>
+                                        <span class="customer-location">@quote.Location</span>
+                                    </div>
+                                </div>
+
+                                <div class="quote-specs">
+                                    <div class="spec-item">
+                                        <span class="spec-label">Service</span>
+                                        <span class="spec-value">@quote.ServiceType</span>
+                                    </div>
+                                    <div class="spec-item">
+                                        <span class="spec-label">Quoted</span>
+                                        <span class="spec-value quote-amount">$@quote.Amount.ToString("N0")</span>
+                                    </div>
+                                    <div class="spec-item">
+                                        <span class="spec-label">Customer Budget</span>
+                                        <span class="spec-value">$@quote.BudgetMin - $@quote.BudgetMax</span>
+                                    </div>
+                                    @if (quote.Status == "Pending")
+                                    {
+                                        <div class="spec-item">
+                                            <span class="spec-label">Expires</span>
+                                            <span class="spec-value @(IsExpiringSoon(quote.ExpiryDate) ? "expiring-soon" : "")">
+                                                @GetExpiryText(quote.ExpiryDate)
+                                            </span>
+                                        </div>
+                                    }
+                                </div>
+                            </div>
+
+                            @if (!string.IsNullOrEmpty(quote.Message))
+                            {
+                                <div class="quote-message">
+                                    <p>@((MarkupString)GetTruncatedMessage(quote.Message, quote.Id))</p>
+                                    @if (quote.Message.Length > 150 && !expandedMessages.Contains(quote.Id))
+                                    {
+                                        <button class="read-more-btn" @onclick="() => ToggleMessage(quote.Id)">
+                                            Read more
+                                        </button>
+                                    }
+                                </div>
+                            }
+
+                            @if (quote.CompetingQuotes > 0)
+                            {
+                                <div class="competition-info">
+                                    <i class="icon-users"></i>
+                                    <span>@quote.CompetingQuotes other tradies have quoted</span>
+                                </div>
+                            }
+                        </div>
+
+                        <div class="quote-actions">
+                            <button class="btn btn-outline btn-sm" @onclick="() => ViewJobDetails(quote.JobId)">
+                                <i class="icon-eye"></i> View Job
+                            </button>
+
+                            @if (quote.Status == "Pending")
+                            {
+                                <button class="btn btn-outline btn-sm" @onclick="() => EditQuote(quote.Id)">
+                                    <i class="icon-edit"></i> Edit Quote
+                                </button>
+                                <button class="btn btn-outline btn-sm text-danger" @onclick="() => WithdrawQuote(quote.Id)">
+                                    <i class="icon-x"></i> Withdraw
+                                </button>
+                            }
+                            else if (quote.Status == "Accepted")
+                            {
+                                <button class="btn btn-primary btn-sm" @onclick="() => ContactCustomer(quote.Id)">
+                                    <i class="icon-message"></i> Contact Customer
+                                </button>
+                                @if (!quote.JobCompleted)
+                                {
+                                    <button class="btn btn-success btn-sm" @onclick="() => MarkAsComplete(quote.Id)">
+                                        <i class="icon-check"></i> Mark Complete
+                                    </button>
+                                }
+                            }
+                            else if (quote.Status == "Expired")
+                            {
+                                <button class="btn btn-outline btn-sm" @onclick="() => ResendQuote(quote.Id)">
+                                    <i class="icon-refresh"></i> Send Similar Quote
+                                </button>
+                            }
+
+                            <button class="btn btn-outline btn-sm" @onclick="() => DownloadQuote(quote.Id)">
+                                <i class="icon-download"></i> Download
+                            </button>
+                        </div>
+                    </div>
+                }
+            </div>
+
+            <!-- Pagination -->
+            @if (totalPages > 1)
+            {
+                <div class="pagination">
+                    <button class="page-btn" disabled="@(currentPage == 1)" @onclick="PreviousPage">
+                        Previous
+                    </button>
+
+                    <div class="page-numbers">
+                        @for (int i = 1; i <= Math.Min(totalPages, 5); i++)
+                        {
+                            var pageNum = i;
+                            <button class="page-number @(currentPage == pageNum ? "active" : "")"
+                                    @onclick="() => GoToPage(pageNum)">
+                                @pageNum
+                            </button>
+                        }
+                        @if (totalPages > 5)
+                        {
+                            <span class="page-dots">...</span>
+                            <button class="page-number @(currentPage == totalPages ? "active" : "")"
+                                    @onclick="() => GoToPage(totalPages)">
+                                @totalPages
+                            </button>
+                        }
+                    </div>
+
+                    <button class="page-btn" disabled="@(currentPage == totalPages)" @onclick="NextPage">
+                        Next
+                    </button>
+                </div>
+            }
+        }
+    </div>
+</div>
+
+@code {
+    private List<QuoteDto> allQuotes = new();
+    private List<QuoteDto> filteredQuotes = new();
+    private HashSet<Guid> expandedMessages = new();
+    private QuoteStats stats = new();
+
+    private bool isLoading = true;
+    private string searchTerm = "";
+    private string activeFilter = "all";
+    private string sortBy = "newest";
+    private string dateRange = "all";
+
+    private int currentPage = 1;
+    private int pageSize = 10;
+    private int totalPages = 1;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadQuotes();
+        await LoadStats();
+    }
+
+    private async Task LoadQuotes()
+    {
+        isLoading = true;
+        try
+        {
+            // Mock data for demonstration
+            allQuotes = GenerateMockQuotes();
+            ApplyFilters();
+        }
+        finally
+        {
+            isLoading = false;
+        }
+    }
+
+    private async Task LoadStats()
+    {
+        stats = new QuoteStats
+            {
+                PendingCount = allQuotes.Count(q => q.Status == "Pending"),
+                AcceptedCount = allQuotes.Count(q => q.Status == "Accepted"),
+                DeclinedCount = allQuotes.Count(q => q.Status == "Declined"),
+                TotalValue = allQuotes.Sum(q => q.Amount),
+                SuccessRate = allQuotes.Any() ?
+                    (int)((double)allQuotes.Count(q => q.Status == "Accepted") / allQuotes.Count * 100) : 0
+            };
+        await Task.CompletedTask;
+    }
+
+    private void ApplyFilters()
+    {
+        var filtered = allQuotes.AsEnumerable();
+
+        // Apply status filter
+        if (activeFilter != "all")
+        {
+            filtered = filtered.Where(q => q.Status.ToLower() == activeFilter);
+        }
+
+        // Apply search
+        if (!string.IsNullOrWhiteSpace(searchTerm))
+        {
+            filtered = filtered.Where(q =>
+                q.JobTitle.Contains(searchTerm, StringComparison.OrdinalIgnoreCase) ||
+                q.CustomerName.Contains(searchTerm, StringComparison.OrdinalIgnoreCase));
+        }
+
+        // Apply date range filter
+        var cutoffDate = dateRange switch
+        {
+            "today" => DateTime.Today,
+            "week" => DateTime.Today.AddDays(-7),
+            "month" => DateTime.Today.AddMonths(-1),
+            "quarter" => DateTime.Today.AddMonths(-3),
+            _ => DateTime.MinValue
+        };
+
+        if (cutoffDate != DateTime.MinValue)
+        {
+            filtered = filtered.Where(q => q.SubmittedDateTime >= cutoffDate);
+        }
+
+        // Apply sorting
+        filtered = sortBy switch
+        {
+            "oldest" => filtered.OrderBy(q => q.SubmittedDateTime),
+            "highest" => filtered.OrderByDescending(q => q.Amount),
+            "lowest" => filtered.OrderBy(q => q.Amount),
+            _ => filtered.OrderByDescending(q => q.SubmittedDateTime)
+        };
+
+        var allFiltered = filtered.ToList();
+        totalPages = (int)Math.Ceiling(allFiltered.Count / (double)pageSize);
+
+        // Apply pagination
+        filteredQuotes = allFiltered
+            .Skip((currentPage - 1) * pageSize)
+            .Take(pageSize)
+            .ToList();
+    }
+
+    private void SetFilter(string filter)
+    {
+        activeFilter = filter;
+        currentPage = 1;
+        ApplyFilters();
+    }
+
+    private void OnSearchChanged(string value)
+    {
+        searchTerm = value ?? "";
+        currentPage = 1;
+        ApplyFilters();
+    }
+
+    private int GetFilterCount(string filter)
+    {
+        if (filter == "all") return allQuotes.Count;
+        return allQuotes.Count(q => q.Status.ToLower() == filter);
+    }
+
+    private string GetEmptyMessage()
+    {
+        return activeFilter switch
+        {
+            "pending" => "No pending quotes at the moment",
+            "accepted" => "No accepted quotes yet",
+            "declined" => "No declined quotes",
+            "expired" => "No expired quotes",
+            _ => "You haven't submitted any quotes yet"
+        };
+    }
+
+    private void ToggleMessage(Guid quoteId)
+    {
+        if (expandedMessages.Contains(quoteId))
+            expandedMessages.Remove(quoteId);
+        else
+            expandedMessages.Add(quoteId);
+    }
+
+    private string GetTruncatedMessage(string message, Guid quoteId)
+    {
+        if (expandedMessages.Contains(quoteId) || message.Length <= 150)
+            return message;
+        return message.Substring(0, 150) + "...";
+    }
+
+    private bool IsExpiringSoon(DateTime expiryDate)
+    {
+        return (expiryDate - DateTime.Now).TotalDays <= 2;
+    }
+
+    private string GetExpiryText(DateTime expiryDate)
+    {
+        var timeLeft = expiryDate - DateTime.Now;
+        if (timeLeft.TotalDays > 1)
+            return $"{(int)timeLeft.TotalDays} days";
+        else if (timeLeft.TotalHours > 1)
+            return $"{(int)timeLeft.TotalHours} hours";
+        else
+            return "Soon";
+    }
+
+    private void ViewJobDetails(Guid jobId) => Navigation.NavigateTo($"/jobs/{jobId}");
+    private void EditQuote(Guid quoteId) => Navigation.NavigateTo($"/edit-quote/{quoteId}");
+    private async Task WithdrawQuote(Guid quoteId) { /* Implement withdrawal */ }
+    private void ContactCustomer(Guid quoteId) => Navigation.NavigateTo($"/messages/{quoteId}");
+    private async Task MarkAsComplete(Guid quoteId) { /* Implement completion */ }
+    private void ResendQuote(Guid quoteId) => Navigation.NavigateTo($"/send-quote/{quoteId}");
+    private async Task DownloadQuote(Guid quoteId) { /* Implement download */ }
+    private void NavigateToBrowseJobs() => Navigation.NavigateTo("/browse-jobs");
+
+    private void GoToPage(int page)
+    {
+        currentPage = page;
+        ApplyFilters();
+    }
+
+    private void NextPage()
+    {
+        if (currentPage < totalPages)
+        {
+            currentPage++;
+            ApplyFilters();
+        }
+    }
+
+    private void PreviousPage()
+    {
+        if (currentPage > 1)
+        {
+            currentPage--;
+            ApplyFilters();
+        }
+    }
+
+    // Mock data generator
+    private List<QuoteDto> GenerateMockQuotes()
+    {
+        var quotes = new List<QuoteDto>();
+        var statuses = new[] { "Pending", "Accepted", "Declined", "Expired" };
+        var services = new[] { "Plumbing", "Electrical", "Carpentry", "Painting" };
+        var customers = new[] {
+            ("John Smith", "JS"),
+            ("Sarah Wilson", "SW"),
+            ("Mike Brown", "MB"),
+            ("Emma Davis", "ED")
+        };
+
+        for (int i = 1; i <= 25; i++)
+        {
+            var customer = customers[i % customers.Length];
+            var status = statuses[i % statuses.Length];
+
+            quotes.Add(new QuoteDto
+                {
+                    Id = Guid.NewGuid(),
+                    JobId = Guid.NewGuid(),
+                    QuoteNumber = $"QT{2024000 + i}",
+                    JobTitle = $"Fix {services[i % services.Length]} Issue #{i}",
+                    CustomerName = customer.Item1,
+                    CustomerInitials = customer.Item2,
+                    Location = "Sydney, NSW",
+                    ServiceType = services[i % services.Length],
+                    Amount = 200 + (i * 50),
+                    BudgetMin = 150 + (i * 30),
+                    BudgetMax = 400 + (i * 60),
+                    Status = status,
+                    SubmittedDateTime = DateTime.Now.AddDays(-i),
+                    SubmittedDate = DateTime.Now.AddDays(-i).ToString("dd MMM yyyy"),
+                    ExpiryDate = DateTime.Now.AddDays(7 - i),
+                    Message = "I can complete this job professionally with high-quality materials. I have over 10 years of experience in this field and guarantee satisfaction.",
+                    CompetingQuotes = i % 5,
+                    JobCompleted = status == "Accepted" && i % 3 == 0
+                });
+        }
+
+        return quotes;
+    }
+
+    // DTOs
+    private class QuoteDto
+    {
+        public Guid Id { get; set; }
+        public Guid JobId { get; set; }
+        public string QuoteNumber { get; set; } = "";
+        public string JobTitle { get; set; } = "";
+        public string CustomerName { get; set; } = "";
+        public string CustomerInitials { get; set; } = "";
+        public string Location { get; set; } = "";
+        public string ServiceType { get; set; } = "";
+        public decimal Amount { get; set; }
+        public decimal BudgetMin { get; set; }
+        public decimal BudgetMax { get; set; }
+        public string Status { get; set; } = "";
+        public DateTime SubmittedDateTime { get; set; }
+        public string SubmittedDate { get; set; } = "";
+        public DateTime ExpiryDate { get; set; }
+        public string Message { get; set; } = "";
+        public int CompetingQuotes { get; set; }
+        public bool JobCompleted { get; set; }
+    }
+
+    private class QuoteStats
+    {
+        public int PendingCount { get; set; }
+        public int AcceptedCount { get; set; }
+        public int DeclinedCount { get; set; }
+        public decimal TotalValue { get; set; }
+        public int SuccessRate { get; set; }
+    }
+}
