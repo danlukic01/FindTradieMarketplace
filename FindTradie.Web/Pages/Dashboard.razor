@@ -1,0 +1,389 @@
+@page "/dashboard"
+@using FindTradie.Shared.Contracts.DTOs
+@using FindTradie.Shared.Domain.Enums
+@inject AuthenticationStateProvider AuthStateProvider
+@inject NavigationManager Navigation
+@inject FindTradie.Web.Services.IJobApiService JobService
+@inject FindTradie.Web.Services.ITradieApiService TradieService
+
+<AuthorizeView>
+    <Authorized>
+        @if (UserType == "Customer")
+        {
+            <div class="dashboard-container">
+                <section class="dashboard-header">
+                    <div class="container">
+                        <div class="welcome-section">
+                            <h1>Welcome back, @FirstName! 👋</h1>
+                            <p>Manage your jobs and find trusted tradies for your home</p>
+                        </div>
+                        <div class="quick-actions">
+                            <button class="btn btn-primary" @onclick="NavigateToPostJob">
+                                <span class="btn-icon">➕</span>
+                                Post New Job
+                            </button>
+                            <button class="btn btn-outline" @onclick="NavigateToFindTradies">
+                                <span class="btn-icon">🔍</span>
+                                Find Tradies
+                            </button>
+                        </div>
+                    </div>
+                </section>
+                <section class="dashboard-stats">
+                    <div class="container">
+                        <div class="stats-grid">
+                            <div class="stat-card">
+                                <div class="stat-icon">📋</div>
+                                <div class="stat-content">
+                                    <h3>@ActiveJobs</h3>
+                                    <p>Active Jobs</p>
+                                </div>
+                            </div>
+                            <div class="stat-card">
+                                <div class="stat-icon">⏳</div>
+                                <div class="stat-content">
+                                    <h3>@PendingQuotes</h3>
+                                    <p>Pending Quotes</p>
+                                </div>
+                            </div>
+                            <div class="stat-card">
+                                <div class="stat-icon">✅</div>
+                                <div class="stat-content">
+                                    <h3>@CompletedJobs</h3>
+                                    <p>Completed</p>
+                                </div>
+                            </div>
+                            <div class="stat-card">
+                                <div class="stat-icon">💰</div>
+                                <div class="stat-content">
+                                    <h3>$@TotalSaved</h3>
+                                    <p>Total Saved</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+                <section class="active-jobs-section">
+                    <div class="container">
+                        <div class="section-header">
+                            <h2>Your Active Jobs</h2>
+                            <a href="/jobs" class="view-all-link">View All →</a>
+                        </div>
+                        @if (ActiveJobsList?.Any() == true)
+                        {
+                            <div class="jobs-grid">
+                                @foreach (var job in ActiveJobsList.Take(3))
+                                {
+                                    <div class="job-card">
+                                        <div class="job-header">
+                                            <span class="job-category-icon">@GetCategoryIcon(job.Category)</span>
+                                            <span class="job-status @job.Status.ToString().ToLower()">@job.Status</span>
+                                        </div>
+                                        <h4>@job.Title</h4>
+                                        <p class="job-description">@job.Description</p>
+                                        <div class="job-meta">
+                                            <span class="meta-item">📍 @job.Location</span>
+                                            <span class="meta-item">📅 @job.CreatedAt.ToString("MMM dd")</span>
+                                        </div>
+                                        <div class="job-actions">
+                                            <button class="btn-text" @onclick="() => ViewJobDetails(job.Id)">View Details</button>
+                                            <button class="btn-text" @onclick="() => EditJob(job.Id)">Edit</button>
+                                        </div>
+                                    </div>
+                                }
+                            </div>
+                        }
+                        else
+                        {
+                            <div class="empty-state">
+                                <h3>No active jobs</h3>
+                                <button class="btn btn-primary" @onclick="NavigateToPostJob">Post Your First Job</button>
+                            </div>
+                        }
+                    </div>
+                </section>
+                <section class="recent-quotes-section">
+                    <div class="container">
+                        <div class="section-header">
+                            <h2>Recent Quotes</h2>
+                            <a href="/quotes" class="view-all-link">View All →</a>
+                        </div>
+                        @if (RecentQuotes?.Any() == true)
+                        {
+                            <div class="quotes-list">
+                                @foreach (var quote in RecentQuotes.Take(5))
+                                {
+                                    <div class="quote-item">
+                                        <div class="tradie-info">
+                                            <div class="tradie-avatar">@quote.TradieInitials</div>
+                                            <div class="tradie-details">
+                                                <h4>@quote.TradieName</h4>
+                                                <p>@quote.JobTitle</p>
+                                            </div>
+                                        </div>
+                                        <div class="quote-amount">
+                                            <span class="amount">$@quote.Amount</span>
+                                            <button class="btn btn-sm btn-primary" @onclick="() => ViewQuoteDetails(quote.Id)">View Quote</button>
+                                        </div>
+                                    </div>
+                                }
+                            </div>
+                        }
+                        else
+                        {
+                            <p class="no-data">No quotes received yet</p>
+                        }
+                    </div>
+                </section>
+                <section class="recommended-tradies">
+                    <div class="container">
+                        <h2>Recommended Tradies Near You</h2>
+                        <div class="tradies-carousel">
+                            @foreach (var tradie in RecommendedTradies)
+                            {
+                                <div class="tradie-card-small">
+                                    <div class="tradie-avatar-lg">@tradie.Initials</div>
+                                    <h4>@tradie.BusinessName</h4>
+                                    <p class="tradie-category">@tradie.MainCategory</p>
+                                    <button class="btn btn-outline btn-sm" @onclick="() => ViewTradieProfile(tradie.Id)">View Profile</button>
+                                </div>
+                            }
+                        </div>
+                    </div>
+                </section>
+            </div>
+        }
+        else if (UserType == "Tradie")
+        {
+            <div class="dashboard-container tradie-dashboard">
+                <section class="dashboard-header">
+                    <div class="container">
+                        <div class="welcome-section">
+                            <h1>Welcome back, @BusinessName! 👋</h1>
+                            <p>Manage your jobs and grow your business</p>
+                        </div>
+                        <div class="quick-actions">
+                            <button class="btn btn-primary" @onclick="NavigateToBrowseJobs">
+                                <span class="btn-icon">🔍</span>
+                                Browse Jobs
+                            </button>
+                            <button class="btn btn-outline" @onclick="NavigateToMyProfile">
+                                <span class="btn-icon">👤</span>
+                                Edit Profile
+                            </button>
+                        </div>
+                    </div>
+                </section>
+                <section class="dashboard-stats">
+                    <div class="container">
+                        <div class="stats-grid">
+                            <div class="stat-card">
+                                <div class="stat-icon">📝</div>
+                                <div class="stat-content">
+                                    <h3>@QuotesSent</h3>
+                                    <p>Quotes Sent</p>
+                                </div>
+                            </div>
+                            <div class="stat-card">
+                                <div class="stat-icon">🔨</div>
+                                <div class="stat-content">
+                                    <h3>@JobsWon</h3>
+                                    <p>Jobs Won</p>
+                                </div>
+                            </div>
+                            <div class="stat-card">
+                                <div class="stat-icon">💵</div>
+                                <div class="stat-content">
+                                    <h3>$@MonthlyEarnings</h3>
+                                    <p>This Month</p>
+                                </div>
+                            </div>
+                            <div class="stat-card">
+                                <div class="stat-icon">⭐</div>
+                                <div class="stat-content">
+                                    <h3>@AverageRating</h3>
+                                    <p>Avg Rating</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+                <section class="job-leads-section">
+                    <div class="container">
+                        <div class="section-header">
+                            <h2>New Job Leads</h2>
+                            <a href="/jobs/browse" class="view-all-link">Browse All →</a>
+                        </div>
+                        @if (JobLeads?.Any() == true)
+                        {
+                            <div class="leads-grid">
+                                @foreach (var lead in JobLeads.Take(4))
+                                {
+                                    <div class="lead-card">
+                                        <div class="lead-header">
+                                            <span class="category-badge">@lead.Category</span>
+                                            <span class="urgency">@lead.Urgency</span>
+                                        </div>
+                                        <h4>@lead.Title</h4>
+                                        <p>@lead.Description</p>
+                                        <div class="lead-meta">
+                                            <span>📍 @lead.Location (@lead.Distance km away)</span>
+                                            <span>💰 @lead.Budget</span>
+                                        </div>
+                                        <div class="lead-footer">
+                                            <span class="time-posted">Posted @lead.TimeAgo</span>
+                                            <button class="btn btn-primary btn-sm" @onclick="() => SendQuote(lead.Id)">Send Quote</button>
+                                        </div>
+                                    </div>
+                                }
+                            </div>
+                        }
+                        else
+                        {
+                            <div class="empty-state">
+                                <p>No new job leads at the moment. Check back soon!</p>
+                            </div>
+                        }
+                    </div>
+                </section>
+                <section class="my-jobs-section">
+                    <div class="container">
+                        <h2>My Active Jobs</h2>
+                        <div class="jobs-table">
+                            <table>
+                                <thead>
+                                    <tr>
+                                        <th>Job</th>
+                                        <th>Customer</th>
+                                        <th>Status</th>
+                                        <th>Amount</th>
+                                        <th>Due Date</th>
+                                        <th>Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @foreach (var job in MyActiveJobs)
+                                    {
+                                        <tr>
+                                            <td>@job.Title</td>
+                                            <td>@job.CustomerName</td>
+                                            <td>@job.Status</td>
+                                            <td>$@job.Amount</td>
+                                            <td>@job.DueDate.ToString("MMM dd")</td>
+                                            <td>
+                                                <button class="btn-action" @onclick="() => ViewJob(job.Id)">View</button>
+                                                <button class="btn-action" @onclick="() => MessageCustomer(job.CustomerId)">Message</button>
+                                            </td>
+                                        </tr>
+                                    }
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </section>
+                <section class="performance-section">
+                    <div class="container">
+                        <h2>Your Performance</h2>
+                        <div class="performance-grid">
+                            <div class="metric-card">
+                                <h4>Response Time</h4>
+                                <div class="metric-value">
+                                    <span class="big-number">2.5</span>
+                                    <span class="unit">hours avg</span>
+                                </div>
+                            </div>
+                            <div class="metric-card">
+                                <h4>Quote Win Rate</h4>
+                                <div class="metric-value">
+                                    <span class="big-number">32</span>
+                                    <span class="unit">%</span>
+                                </div>
+                            </div>
+                            <div class="metric-card">
+                                <h4>Customer Satisfaction</h4>
+                                <div class="metric-value">
+                                    <span class="big-number">4.8</span>
+                                    <span class="unit">★</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+            </div>
+        }
+    </Authorized>
+    <NotAuthorized>
+        <div class="unauthorized-message">
+            <h2>Please log in to view your dashboard</h2>
+            <a href="/login" class="btn btn-primary">Log In</a>
+        </div>
+    </NotAuthorized>
+</AuthorizeView>
+
+@code {
+    private string UserType = string.Empty;
+    private string FirstName = string.Empty;
+    private string BusinessName = string.Empty;
+
+    private int ActiveJobs = 0;
+    private int PendingQuotes = 0;
+    private int CompletedJobs = 0;
+    private decimal TotalSaved = 0;
+
+    private int QuotesSent = 0;
+    private int JobsWon = 0;
+    private decimal MonthlyEarnings = 0;
+    private decimal AverageRating = 0;
+
+    private List<JobDto> ActiveJobsList = new();
+    private List<QuoteDto> RecentQuotes = new();
+    private List<TradieDto> RecommendedTradies = new();
+    private List<JobLeadDto> JobLeads = new();
+    private List<ActiveJobDto> MyActiveJobs = new();
+
+    protected override async Task OnInitializedAsync()
+    {
+        var authState = await AuthStateProvider.GetAuthenticationStateAsync();
+        if (authState.User.Identity?.IsAuthenticated == true)
+        {
+            UserType = authState.User.FindFirst("UserType")?.Value ?? string.Empty;
+            FirstName = authState.User.FindFirst("FirstName")?.Value ?? "User";
+            BusinessName = authState.User.FindFirst("BusinessName")?.Value ?? "Business";
+            await LoadDashboardData();
+        }
+    }
+
+    private async Task LoadDashboardData()
+    {
+        if (UserType == "Customer")
+        {
+            // Load customer dashboard data
+        }
+        else if (UserType == "Tradie")
+        {
+            // Load tradie dashboard data
+        }
+    }
+
+    private string GetCategoryIcon(ServiceCategory category) => "🔧";
+
+    private void NavigateToPostJob() => Navigation.NavigateTo("/post-job");
+    private void NavigateToFindTradies() => Navigation.NavigateTo("/find-tradies");
+    private void NavigateToBrowseJobs() => Navigation.NavigateTo("/jobs/browse");
+    private void NavigateToMyProfile() => Navigation.NavigateTo("/profile");
+    private void ViewQuotes(Guid jobId) => Navigation.NavigateTo($"/jobs/{jobId}/quotes");
+    private void ViewJobDetails(Guid jobId) => Navigation.NavigateTo($"/jobs/{jobId}");
+    private void EditJob(Guid jobId) => Navigation.NavigateTo($"/jobs/edit/{jobId}");
+    private void ViewQuoteDetails(Guid quoteId) => Navigation.NavigateTo($"/quotes/{quoteId}");
+    private void ViewTradieProfile(Guid tradieId) => Navigation.NavigateTo($"/tradie/{tradieId}");
+    private void SendQuote(Guid leadId) => Navigation.NavigateTo($"/quotes/send/{leadId}");
+    private void ViewJob(Guid jobId) => Navigation.NavigateTo($"/jobs/{jobId}");
+    private void MessageCustomer(Guid customerId) => Navigation.NavigateTo($"/messages/{customerId}");
+}
+
+<style>
+.dashboard-container { background: #f8fafc; }
+.dashboard-header { background: linear-gradient(135deg,#667eea,#764ba2); color: #fff; padding: 40px 0; }
+.stats-grid { display: grid; grid-template-columns: repeat(auto-fit,minmax(200px,1fr)); gap: 20px; }
+.stat-card { background: #fff; padding: 25px; border-radius: 12px; }
+</style>
