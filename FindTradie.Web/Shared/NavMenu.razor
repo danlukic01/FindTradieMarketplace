@@ -1,13 +1,19 @@
 @using Microsoft.AspNetCore.Components.Authorization
-@inject AuthenticationStateProvider AuthStateProvider
 
-<nav class="navbar main-header">
-    <div class="navbar-container header-container">
-        <a href="/" class="navbar-brand brand">
+<nav class="main-header">
+    <div class="header-container">
+        <a href="/" class="navbar-brand">
             <span class="brand-icon">🔨</span>
             <span class="brand-name">FindTradie</span>
         </a>
-        <div class="nav-menu desktop-nav">
+
+        <button class="mobile-menu-btn" @onclick="ToggleNavMenu">
+            <svg width="24" height="24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M4 6h16M4 12h16M4 18h16" />
+            </svg>
+        </button>
+
+        <div class="nav-menu @(collapseNavMenu ? string.Empty : "mobile-open")">
             <NavLink href="/" class="nav-link" Match="NavLinkMatch.All">Home</NavLink>
             <NavLink href="/find-tradies" class="nav-link">Find Tradies</NavLink>
             <NavLink href="/how-it-works" class="nav-link">How It Works</NavLink>
@@ -15,7 +21,17 @@
             <NavLink href="/help" class="nav-link">Help Center</NavLink>
             <NavLink href="/faq" class="nav-link">FAQ</NavLink>
         </div>
-        <div class="nav-auth header-right">
+
+        <div class="user-greeting-section">
+            <div class="nav-notifications">
+                <button class="notification-btn">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
+                    </svg>
+                    <span class="notification-badge">3</span>
+                </button>
+            </div>
+
             <AuthorizeView>
                 <Authorized>
                     <LoginDisplay />
@@ -25,30 +41,8 @@
                     <a href="/login" class="btn btn-primary btn-login">Log in</a>
                 </NotAuthorized>
             </AuthorizeView>
-            <button class="mobile-menu-toggle" @onclick="ToggleNavMenu">
-                <span></span>
-                <span></span>
-                <span></span>
-            </button>
         </div>
     </div>
-    <nav class="mobile-nav @(collapseNavMenu ? string.Empty : "active")">
-        <NavLink href="/" class="nav-link" Match="NavLinkMatch.All" @onclick="ToggleNavMenu">Home</NavLink>
-        <NavLink href="/find-tradies" class="nav-link" @onclick="ToggleNavMenu">Find Tradies</NavLink>
-        <NavLink href="/how-it-works" class="nav-link" @onclick="ToggleNavMenu">How It Works</NavLink>
-        <NavLink href="/post-job" class="nav-link" @onclick="ToggleNavMenu">Post a Job</NavLink>
-        <NavLink href="/help" class="nav-link" @onclick="ToggleNavMenu">Help Center</NavLink>
-        <NavLink href="/faq" class="nav-link" @onclick="ToggleNavMenu">FAQ</NavLink>
-        <AuthorizeView>
-            <Authorized>
-                <LoginDisplay />
-            </Authorized>
-            <NotAuthorized>
-                <a href="/register" class="nav-link" @onclick="ToggleNavMenu">Register</a>
-                <a href="/login" class="nav-link" @onclick="ToggleNavMenu">Log in</a>
-            </NotAuthorized>
-        </AuthorizeView>
-    </nav>
 </nav>
 
 @code {
