@@ -206,7 +206,7 @@
                         
                         <div class="form-group">
                             <label>Add Photos (Optional but recommended)</label>
-                            <div class="photo-upload" @ondragover:preventDefault @ondrop="HandleDrop">
+                            <div class="photo-upload">
                                 <svg width="48" height="48"></svg>
                                 <p>Drag photos here or click to browse</p>
                                 <InputFile multiple accept="image/*" OnChange="HandleFileSelect" />
@@ -406,17 +406,6 @@
         };
     }
     
-    private async Task HandleDrop(DragEventArgs e)
-    {
-        if (e.DataTransfer?.Files != null)
-        {
-            foreach (var file in e.DataTransfer.Files)
-            {
-                await AddPhoto(file);
-            }
-        }
-    }
-
     private async Task HandleFileSelect(InputFileChangeEventArgs e)
     {
         foreach (var file in e.GetMultipleFiles())
