@@ -38,6 +38,262 @@ section {
     padding: 0 1rem;
 }
 
+/* Browse Jobs Page Styles */
+.browse-jobs-page {
+    min-height: calc(100vh - 60px);
+    background: #f8f9fa;
+}
+
+.page-header {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    padding: 40px 0;
+}
+
+.page-header h1 {
+    font-size: 2rem;
+    font-weight: 600;
+    margin-bottom: 0.5rem;
+}
+
+/* Filters Section */
+.filters-section {
+    background: white;
+    padding: 20px 0;
+    border-bottom: 1px solid #dee2e6;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+}
+
+.search-wrapper {
+    position: relative;
+}
+
+.search-icon {
+    position: absolute;
+    left: 12px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: #6c757d;
+}
+
+.search-input {
+    padding-left: 38px;
+}
+
+/* Active Filters */
+.active-filters {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 8px;
+}
+
+.filter-tag {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 4px 12px;
+    background: #e9ecef;
+    border-radius: 20px;
+    font-size: 0.875rem;
+}
+
+.filter-tag i {
+    cursor: pointer;
+    font-size: 1rem;
+}
+
+.filter-tag i:hover {
+    color: #dc3545;
+}
+
+/* Stats Bar */
+.stats-bar {
+    background: white;
+    padding: 15px 0;
+    border-bottom: 1px solid #dee2e6;
+}
+
+/* Jobs Content */
+.jobs-content {
+    padding: 30px 0;
+}
+
+/* Grid View */
+.jobs-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+    gap: 20px;
+}
+
+/* List View */
+.jobs-list {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+}
+
+.jobs-list .job-card {
+    max-width: 100%;
+}
+
+/* Job Card */
+.job-card {
+    background: white;
+    border-radius: 12px;
+    padding: 20px;
+    border: 1px solid #dee2e6;
+    transition: all 0.3s ease;
+    position: relative;
+}
+
+.job-card:hover {
+    box-shadow: 0 6px 20px rgba(0,0,0,0.1);
+    transform: translateY(-2px);
+}
+
+.job-card.urgent {
+    border-left: 4px solid #dc3545;
+}
+
+.urgency-badge {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    background: #dc3545;
+    color: white;
+    padding: 4px 10px;
+    border-radius: 4px;
+    font-size: 0.75rem;
+    font-weight: 600;
+}
+
+.job-card-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: start;
+    margin-bottom: 15px;
+}
+
+.job-title {
+    font-size: 1.25rem;
+    font-weight: 600;
+    color: #2d3748;
+    margin: 0;
+    flex: 1;
+}
+
+.job-category {
+    margin-left: 10px;
+}
+
+.job-description {
+    color: #4a5568;
+    margin-bottom: 15px;
+    line-height: 1.5;
+}
+
+.job-details {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 10px;
+    margin-bottom: 15px;
+}
+
+.detail-item {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    color: #718096;
+    font-size: 0.875rem;
+}
+
+.detail-item i {
+    color: #667eea;
+}
+
+.budget {
+    font-weight: 600;
+    color: #2d3748;
+}
+
+.job-photos {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 8px;
+    background: #f7fafc;
+    border-radius: 6px;
+    margin-bottom: 15px;
+    font-size: 0.875rem;
+    color: #4a5568;
+}
+
+.job-stats {
+    display: flex;
+    gap: 20px;
+    padding: 10px 0;
+    border-top: 1px solid #e2e8f0;
+    border-bottom: 1px solid #e2e8f0;
+    margin-bottom: 15px;
+}
+
+.stat-item {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    color: #718096;
+    font-size: 0.875rem;
+}
+
+.job-card-footer {
+    display: flex;
+    gap: 10px;
+}
+
+.job-card-footer button {
+    flex: 1;
+}
+
+/* No Jobs Found */
+.no-jobs-found {
+    text-align: center;
+    padding: 60px 20px;
+}
+
+.no-jobs-found h3 {
+    color: #4a5568;
+    margin: 20px 0 10px;
+}
+
+.no-jobs-found p {
+    color: #718096;
+    margin-bottom: 20px;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .jobs-grid {
+        grid-template-columns: 1fr;
+    }
+    
+    .job-details {
+        grid-template-columns: 1fr;
+    }
+    
+    .filters-section .row {
+        gap: 10px;
+    }
+    
+    .job-card-footer {
+        flex-direction: column;
+    }
+    
+    .job-card-footer button {
+        width: 100%;
+    }
+}
+
 /* Layout fixes */
 .page {
     min-height: 100vh;
