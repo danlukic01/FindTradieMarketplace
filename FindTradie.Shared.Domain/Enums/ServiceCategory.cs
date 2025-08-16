@@ -12,7 +12,8 @@ public enum ServiceCategory
     Landscaping = 7,
     Cleaning = 8,
     Handyman = 9,
-    Emergency = 10
+    Emergency = 10,
+    Other = 11
 }
 
 public enum JobStatus
