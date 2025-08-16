@@ -313,9 +313,19 @@
         }
     </Authorized>
     <NotAuthorized>
-        <div class="unauthorized-message">
-            <h2>Please log in to view your dashboard</h2>
-            <a href="/login" class="btn btn-primary">Log In</a>
+        <div class="unauthorized-container">
+            <div class="unauthorized-card">
+                <div class="unauthorized-icon">🔒</div>
+                <h2>Authentication Required</h2>
+                <p>Please log in to view your dashboard</p>
+                <a href="/login" class="btn btn-primary btn-lg">
+                    Log In to Continue
+                </a>
+                <p class="help-text">
+                    Don't have an account? 
+                    <a href="/register">Register here</a>
+                </p>
+            </div>
         </div>
     </NotAuthorized>
 </AuthorizeView>
