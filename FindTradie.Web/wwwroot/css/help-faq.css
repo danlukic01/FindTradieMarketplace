@@ -98,7 +98,14 @@
 .option-icon { font-size:24px; display:block; margin-bottom:6px; }
 
 /* ========== FAQ Styles ========== */
-.hero-section-small { background: #f8fafc; padding: 64px 0 56px; text-align: center; }
+.hero-section-small {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  padding: 64px 0 56px;
+  text-align: center;
+  color: white;
+}
+
+.hero-section-small .hero-subtitle { opacity: .95; }
 .faq-section { padding: 48px 0 90px; }
 .faq-tabs { display:flex; gap:10px; flex-wrap:wrap; justify-content:center; margin-bottom:22px; }
 .faq-tab {
