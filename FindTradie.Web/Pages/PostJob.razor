@@ -1,0 +1,492 @@
+@page "/post-job"
+@using FindTradie.Services.JobManagement.DTOs
+@using FindTradie.Shared.Domain.Enums
+@using Microsoft.AspNetCore.Components.Forms
+@using Microsoft.AspNetCore.Components.Web
+@inject FindTradie.Web.Services.IJobApiService JobService
+@inject NavigationManager Navigation
+
+<PageTitle>Post a Job - FindTradie</PageTitle>
+
+<div class="post-job-page">
+    <!-- Progress Bar -->
+    <div class="progress-bar-container">
+        <div class="container">
+            <div class="progress-steps">
+                <div class="step @(currentStep >= 1 ? "active" : "")">
+                    <span class="step-number">1</span>
+                    <span class="step-label">Job Details</span>
+                </div>
+                <div class="step @(currentStep >= 2 ? "active" : "")">
+                    <span class="step-number">2</span>
+                    <span class="step-label">Location & Time</span>
+                </div>
+                <div class="step @(currentStep >= 3 ? "active" : "")">
+                    <span class="step-number">3</span>
+                    <span class="step-label">Budget & Photos</span>
+                </div>
+                <div class="step @(currentStep >= 4 ? "active" : "")">
+                    <span class="step-number">4</span>
+                    <span class="step-label">Review & Post</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="container">
+        <div class="post-job-content">
+            <!-- Step 1: Job Details -->
+            @if (currentStep == 1)
+            {
+                <div class="step-content">
+                    <h2>What do you need done?</h2>
+                    <p class="step-subtitle">Tell us about your job so tradies can provide accurate quotes</p>
+                    
+                    <div class="form-section">
+                        <div class="form-group">
+                            <label>Service Type *</label>
+                            <select @bind="job.ServiceType" class="form-control">
+                                <option value="">Select a service</option>
+                                <option value="Plumbing">Plumbing</option>
+                                <option value="Electrical">Electrical</option>
+                                <option value="Carpentry">Carpentry</option>
+                                <option value="Painting">Painting</option>
+                                <option value="Roofing">Roofing</option>
+                                <option value="HVAC">Heating & Cooling</option>
+                                <option value="Landscaping">Landscaping</option>
+                                <option value="Cleaning">Cleaning</option>
+                                <option value="Handyman">Handyman</option>
+                                <option value="Other">Other</option>
+                            </select>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label>Job Title *</label>
+                            <input type="text" @bind="job.Title" class="form-control" 
+                                   placeholder="e.g., Fix leaking tap in bathroom" maxlength="100" />
+                            <span class="char-count">@job.Title.Length / 100</span>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label>Job Description *</label>
+                            <textarea @bind="job.Description" class="form-control" rows="6"
+                                      placeholder="Describe what needs to be done. Include any specific requirements, materials needed, or problems you're experiencing."
+                                      maxlength="1000"></textarea>
+                            <span class="char-count">@job.Description.Length / 1000</span>
+                        </div>
+
+                        <div class="form-group">
+                            <label>Is this job...</label>
+                            <div class="radio-group">
+                                <label class="radio-label">
+                                    <input type="radio" name="jobSize" value="small" @onchange="() => job.JobSize = 'small'" />
+                                    <span>Small job (Under 2 hours)</span>
+                                </label>
+                                <label class="radio-label">
+                                    <input type="radio" name="jobSize" value="medium" @onchange="() => job.JobSize = 'medium'" />
+                                    <span>Medium job (2-8 hours)</span>
+                                </label>
+                                <label class="radio-label">
+                                    <input type="radio" name="jobSize" value="large" @onchange="() => job.JobSize = 'large'" />
+                                    <span>Large job (Multiple days)</span>
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            }
+
+            <!-- Step 2: Location & Time -->
+            @if (currentStep == 2)
+            {
+                <div class="step-content">
+                    <h2>Where and when?</h2>
+                    <p class="step-subtitle">Help tradies know if they can take on your job</p>
+                    
+                    <div class="form-section">
+                        <div class="form-group">
+                            <label>Street Address *</label>
+                            <input type="text" @bind="job.Address" class="form-control" 
+                                   placeholder="123 Main Street" />
+                        </div>
+                        
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label>Suburb *</label>
+                                <input type="text" @bind="job.Suburb" class="form-control" 
+                                       placeholder="Melbourne" />
+                            </div>
+                            <div class="form-group">
+                                <label>Postcode *</label>
+                                <input type="text" @bind="job.Postcode" class="form-control" 
+                                       placeholder="3000" />
+                            </div>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label>When do you need this done? *</label>
+                            <div class="radio-group">
+                                <label class="radio-label">
+                                    <input type="radio" name="timing" value="asap" />
+                                    <span>As soon as possible</span>
+                                </label>
+                                <label class="radio-label">
+                                    <input type="radio" name="timing" value="days" />
+                                    <span>Within a few days</span>
+                                </label>
+                                <label class="radio-label">
+                                    <input type="radio" name="timing" value="week" />
+                                    <span>Within a week</span>
+                                </label>
+                                <label class="radio-label">
+                                    <input type="radio" name="timing" value="month" />
+                                    <span>Within a month</span>
+                                </label>
+                                <label class="radio-label">
+                                    <input type="radio" name="timing" value="flexible" />
+                                    <span>I'm flexible</span>
+                                </label>
+                            </div>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label>Preferred Contact Time</label>
+                            <select @bind="job.ContactTime" class="form-control">
+                                <option value="">Any time</option>
+                                <option value="morning">Morning (8am - 12pm)</option>
+                                <option value="afternoon">Afternoon (12pm - 5pm)</option>
+                                <option value="evening">Evening (5pm - 8pm)</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+            }
+
+            <!-- Step 3: Budget & Photos -->
+            @if (currentStep == 3)
+            {
+                <div class="step-content">
+                    <h2>Budget and photos</h2>
+                    <p class="step-subtitle">Set expectations and help tradies understand the job</p>
+                    
+                    <div class="form-section">
+                        <div class="form-group">
+                            <label>What's your budget?</label>
+                            <div class="budget-options">
+                                <label class="budget-option">
+                                    <input type="radio" name="budget" value="under500" />
+                                    <span>Under $500</span>
+                                </label>
+                                <label class="budget-option">
+                                    <input type="radio" name="budget" value="500-1000" />
+                                    <span>$500 - $1,000</span>
+                                </label>
+                                <label class="budget-option">
+                                    <input type="radio" name="budget" value="1000-2500" />
+                                    <span>$1,000 - $2,500</span>
+                                </label>
+                                <label class="budget-option">
+                                    <input type="radio" name="budget" value="2500-5000" />
+                                    <span>$2,500 - $5,000</span>
+                                </label>
+                                <label class="budget-option">
+                                    <input type="radio" name="budget" value="5000-10000" />
+                                    <span>$5,000 - $10,000</span>
+                                </label>
+                                <label class="budget-option">
+                                    <input type="radio" name="budget" value="over10000" />
+                                    <span>Over $10,000</span>
+                                </label>
+                                <label class="budget-option">
+                                    <input type="radio" name="budget" value="quote" />
+                                    <span>Get quotes first</span>
+                                </label>
+                            </div>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label>Add Photos (Optional but recommended)</label>
+                            <div class="photo-upload" @ondragover:preventDefault @ondrop="HandleDrop">
+                                <svg width="48" height="48"></svg>
+                                <p>Drag photos here or click to browse</p>
+                                <InputFile multiple accept="image/*" OnChange="HandleFileSelect" />
+                            </div>
+                            
+                            @if (uploadedPhotos.Any())
+                            {
+                                <div class="uploaded-photos">
+                                    @foreach (var photo in uploadedPhotos)
+                                    {
+                                        <div class="photo-thumb">
+                                            <img src="@photo.Url" alt="@photo.Name" />
+                                            <button class="remove-photo" @onclick="() => RemovePhoto(photo)">×</button>
+                                        </div>
+                                    }
+                                </div>
+                            }
+                            <p class="help-text">Photos help tradies provide more accurate quotes</p>
+                        </div>
+                    </div>
+                </div>
+            }
+
+            <!-- Step 4: Review & Post -->
+            @if (currentStep == 4)
+            {
+                <div class="step-content">
+                    <h2>Review your job</h2>
+                    <p class="step-subtitle">Check everything looks good before posting</p>
+                    
+                    <div class="job-preview">
+                        <div class="preview-section">
+                            <h3>Job Details</h3>
+                            <div class="preview-item">
+                                <span class="label">Service:</span>
+                                <span class="value">@job.ServiceType</span>
+                            </div>
+                            <div class="preview-item">
+                                <span class="label">Title:</span>
+                                <span class="value">@job.Title</span>
+                            </div>
+                            <div class="preview-item">
+                                <span class="label">Description:</span>
+                                <span class="value">@job.Description</span>
+                            </div>
+                        </div>
+                        
+                        <div class="preview-section">
+                            <h3>Location & Timing</h3>
+                            <div class="preview-item">
+                                <span class="label">Location:</span>
+                                <span class="value">@job.Suburb, @job.Postcode</span>
+                            </div>
+                            <div class="preview-item">
+                                <span class="label">When:</span>
+                                <span class="value">@job.Timing</span>
+                            </div>
+                        </div>
+                        
+                        <div class="preview-section">
+                            <h3>Budget</h3>
+                            <div class="preview-item">
+                                <span class="label">Budget Range:</span>
+                                <span class="value">@job.BudgetRange</span>
+                            </div>
+                        </div>
+                        
+                        @if (uploadedPhotos.Any())
+                        {
+                            <div class="preview-section">
+                                <h3>Photos</h3>
+                                <div class="preview-photos">
+                                    @foreach (var photo in uploadedPhotos)
+                                    {
+                                        <img src="@photo.Url" alt="Job photo" />
+                                    }
+                                </div>
+                            </div>
+                        }
+                    </div>
+                    
+                    <div class="terms-agreement">
+                        <label class="checkbox-label">
+                            <input type="checkbox" @bind="agreedToTerms" />
+                            <span>I agree to the <a href="/terms" target="_blank">Terms of Service</a> and understand that tradies will contact me about this job</span>
+                        </label>
+                    </div>
+                </div>
+            }
+
+            <!-- Navigation Buttons -->
+            <div class="step-navigation">
+                @if (currentStep > 1)
+                {
+                    <button class="btn btn-outline" @onclick="PreviousStep">
+                        ← Previous
+                    </button>
+                }
+                
+                @if (currentStep < 4)
+                {
+                    <button class="btn btn-primary" @onclick="NextStep" disabled="@(!IsStepValid())">
+                        Next →
+                    </button>
+                }
+                else
+                {
+                    <button class="btn btn-primary btn-lg" @onclick="PostJob" disabled="@(!agreedToTerms)">
+                        Post Job
+                    </button>
+                }
+            </div>
+        </div>
+
+        <!-- Sidebar Tips -->
+        <aside class="tips-sidebar">
+            <div class="tips-card">
+                <h3>💡 Tips for Success</h3>
+                
+                @if (currentStep == 1)
+                {
+                    <ul>
+                        <li>Be specific about what needs to be done</li>
+                        <li>Mention any special requirements</li>
+                        <li>Include brand names if relevant</li>
+                        <li>Describe the problem, not just the solution</li>
+                    </ul>
+                }
+                else if (currentStep == 2)
+                {
+                    <ul>
+                        <li>Accurate location helps tradies plan</li>
+                        <li>Flexible timing gets more quotes</li>
+                        <li>Mention parking availability</li>
+                        <li>Note any access issues</li>
+                    </ul>
+                }
+                else if (currentStep == 3)
+                {
+                    <ul>
+                        <li>Photos get 3x more quotes</li>
+                        <li>Show the problem area clearly</li>
+                        <li>Include wide and close-up shots</li>
+                        <li>Setting a budget helps filter quotes</li>
+                    </ul>
+                }
+                else
+                {
+                    <ul>
+                        <li>Jobs typically get quotes within 2 hours</li>
+                        <li>You'll be notified of new quotes</li>
+                        <li>No obligation to accept any quote</li>
+                        <li>Chat with tradies before deciding</li>
+                    </ul>
+                }
+            </div>
+            
+            <div class="tips-card">
+                <h3>🔒 Your Privacy</h3>
+                <p>Your exact address is only shared with tradies you choose to hire.</p>
+            </div>
+        </aside>
+    </div>
+</div>
+
+@code {
+    private int currentStep = 1;
+    private JobPostModel job = new();
+    private List<PhotoModel> uploadedPhotos = new();
+    private bool agreedToTerms = false;
+    
+    private void NextStep()
+    {
+        if (IsStepValid())
+        {
+            currentStep++;
+        }
+    }
+    
+    private void PreviousStep()
+    {
+        currentStep--;
+    }
+    
+    private bool IsStepValid()
+    {
+        return currentStep switch
+        {
+            1 => !string.IsNullOrEmpty(job.ServiceType) && 
+                 !string.IsNullOrEmpty(job.Title) && 
+                 !string.IsNullOrEmpty(job.Description),
+            2 => !string.IsNullOrEmpty(job.Suburb) && 
+                 !string.IsNullOrEmpty(job.Postcode),
+            3 => true,
+            4 => agreedToTerms,
+            _ => false
+        };
+    }
+    
+    private async Task HandleDrop(DragEventArgs e)
+    {
+        if (e.DataTransfer?.Files != null)
+        {
+            foreach (var file in e.DataTransfer.Files)
+            {
+                await AddPhoto(file);
+            }
+        }
+    }
+
+    private async Task HandleFileSelect(InputFileChangeEventArgs e)
+    {
+        foreach (var file in e.GetMultipleFiles())
+        {
+            await AddPhoto(file);
+        }
+    }
+
+    private async Task AddPhoto(IBrowserFile file)
+    {
+        using var stream = file.OpenReadStream(maxAllowedSize: 10 * 1024 * 1024);
+        var buffer = new byte[file.Size];
+        await stream.ReadAsync(buffer);
+        var url = $"data:{file.ContentType};base64,{Convert.ToBase64String(buffer)}";
+        uploadedPhotos.Add(new PhotoModel { Name = file.Name, Url = url, File = file });
+    }
+
+    private void RemovePhoto(PhotoModel photo) => uploadedPhotos.Remove(photo);
+
+    private async Task PostJob()
+    {
+        var category = Enum.TryParse<ServiceCategory>(job.ServiceType, out var cat) ? cat : ServiceCategory.Other;
+        var request = new CreateJobRequest(
+            Title: job.Title,
+            Description: job.Description,
+            Category: category,
+            SubCategory: job.ServiceType,
+            Urgency: JobUrgency.Normal,
+            BudgetMin: null,
+            BudgetMax: null,
+            PreferredStartDate: null,
+            PreferredEndDate: null,
+            IsFlexibleTiming: true,
+            CustomerId: Guid.Empty,
+            Address: job.Address,
+            Suburb: job.Suburb,
+            State: "",
+            PostCode: job.Postcode,
+            Latitude: 0,
+            Longitude: 0,
+            SpecialRequirements: null,
+            RequiresLicense: false,
+            RequiresInsurance: false,
+            ImageUrls: uploadedPhotos.Select(p => p.Url).ToList()
+        );
+        var result = await JobService.CreateJobAsync(request);
+        if (result.Success && result.Data != null)
+        {
+            Navigation.NavigateTo($"/job-posted/{result.Data.Id}");
+        }
+    }
+
+    private class JobPostModel
+    {
+        public string ServiceType { get; set; } = string.Empty;
+        public string Title { get; set; } = string.Empty;
+        public string Description { get; set; } = string.Empty;
+        public string JobSize { get; set; } = string.Empty;
+        public string Address { get; set; } = string.Empty;
+        public string Suburb { get; set; } = string.Empty;
+        public string Postcode { get; set; } = string.Empty;
+        public string Timing { get; set; } = string.Empty;
+        public string ContactTime { get; set; } = string.Empty;
+        public string BudgetRange { get; set; } = string.Empty;
+    }
+
+    private class PhotoModel
+    {
+        public string Name { get; set; } = string.Empty;
+        public string Url { get; set; } = string.Empty;
+        public IBrowserFile? File { get; set; }
+    }
+}
