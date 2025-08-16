@@ -6,32 +6,24 @@
 
 <PageTitle>FindTradie - Find Trusted Local Tradies</PageTitle>
 
-<div class="emergency-banner">Emergency Services Available</div>
+<section class="hero-section">
+    <div class="container">
+        <div class="hero-content">
+            <h1>Find Trusted Local Tradies</h1>
+            <p>Connect with verified, available professionals in your area.</p>
 
-<div class="hero-section">
-    <div class="hero-content">
-        <div class="hero-left">
-            <h1 class="hero-title">Find Trusted Local Tradies</h1>
-            <p class="hero-subtitle">Connect with verified, available professionals in your area.</p>
-            <div class="search-card mt-4">
+            <div class="search-card">
                 <h3>What service do you need?</h3>
+
                 <form class="search-form">
-                    <!-- Location field -->
                     <div class="form-group">
-                        <label class="form-label">
-                            <span class="label-icon"><i class="fa-solid fa-location-dot"></i></span>
-                            Your location
-                        </label>
-                        <input @bind="SearchLocation" type="text" class="form-control" placeholder="Enter suburb or postcode" />
+                        <label>Your location</label>
+                        <input @bind="SearchLocation" type="text" placeholder="Enter suburb or postcode" class="form-control" />
                     </div>
 
-                    <!-- Service selection -->
                     <div class="form-group">
-                        <label class="form-label">
-                            <span class="label-icon"><i class="fa-solid fa-screwdriver-wrench"></i></span>
-                            Service needed
-                        </label>
-                        <select @bind="SelectedCategory" class="form-select">
+                        <label>Service needed</label>
+                        <select @bind="SelectedCategory" class="form-control">
                             <option value="">Select a service</option>
                             @foreach (var c in ServiceCategories)
                             {
@@ -40,353 +32,114 @@
                         </select>
                     </div>
 
-                    <!-- Urgency selection -->
                     <div class="form-group">
-                        <label class="form-label">
-                            <span class="label-icon"><i class="fa-solid fa-clock"></i></span>
-                            When do you need this?
-                        </label>
-                        <select @bind="SelectedUrgency" class="form-select">
+                        <label>When do you need this?</label>
+                        <select @bind="SelectedUrgency" class="form-control">
                             <option value="week">Within a week</option>
                             <option value="month">Within a month</option>
-                            <option value="urgent">Urgent (Within 24 hours)</option>
+                            <option value="urgent">Urgent (24 hours)</option>
                             <option value="emergency">Emergency (ASAP)</option>
                         </select>
                     </div>
 
-                    <!-- Action buttons -->
-                    <button type="button" class="btn btn-primary btn-lg @(IsSearching ? "btn-loading" : string.Empty)" @onclick="SearchTradies" disabled="@IsSearching">
-                        Find Tradies
-                        <span class="btn-arrow">→</span>
+                    <button type="button" class="btn-primary-large" @onclick="SearchTradies" disabled="@IsSearching">
+                        Find Tradies →
                     </button>
 
-                    <div class="divider">
-                        <span>or</span>
-                    </div>
+                    <div class="divider-or">or</div>
 
-                    <button type="button" class="btn btn-outline btn-lg" @onclick="NavigateToPostJob">Post a Job</button>
+                    <button type="button" class="btn-secondary-large" @onclick="NavigateToPostJob">
+                        Post a Job
+                    </button>
                 </form>
 
-                <div class="trust-badges">
-                    <div class="trust-badge"><i class="fa-solid fa-circle-check trust-badge-icon"></i><span>Verified Tradies</span></div>
-                    <div class="trust-badge"><i class="fa-solid fa-shield-halved trust-badge-icon"></i><span>Insured</span></div>
-                    <div class="trust-badge"><i class="fa-solid fa-comments-dollar trust-badge-icon"></i><span>Free Quotes</span></div>
+                <div class="trust-badges-inline">
+                    <div class="trust-badge-item">
+                        <i class="fa-solid fa-circle-check"></i>
+                        <span>Verified Tradies</span>
+                    </div>
+                    <div class="trust-badge-item">
+                        <i class="fa-solid fa-shield-halved"></i>
+                        <span>Fully Insured</span>
+                    </div>
+                    <div class="trust-badge-item">
+                        <i class="fa-solid fa-comments-dollar"></i>
+                        <span>Free Quotes</span>
+                    </div>
                 </div>
             </div>
-        </div>
-    </div>
-</div>
-
-
-<section class="popular-services">
-    <div class="container">
-        <h2 class="section-title">Popular Services</h2>
-        <p class="section-subtitle">Find trusted professionals for any home service</p>
-
-        <div class="services-grid">
-            <div class="service-card">
-                <div class="service-badge">245 Available</div>
-                <div class="service-icon-wrapper">
-                    <span class="service-icon">🔧</span>
-                </div>
-                <h3 class="service-name">Plumbing</h3>
-                <p class="service-description">Leaks, pipes, drainage</p>
-                <span class="service-arrow">→</span>
-            </div>
-
-            <div class="service-card">
-                <div class="service-badge">189 Available</div>
-                <div class="service-icon-wrapper">
-                    <span class="service-icon">⚡</span>
-                </div>
-                <h3 class="service-name">Electrical</h3>
-                <p class="service-description">Wiring, outlets, lighting</p>
-                <span class="service-arrow">→</span>
-            </div>
-
-            <div class="service-card">
-                <div class="service-badge">154 Available</div>
-                <div class="service-icon-wrapper">
-                    <span class="service-icon">🔨</span>
-                </div>
-                <h3 class="service-name">Carpentry</h3>
-                <p class="service-description">Furniture, framing, repairs</p>
-                <span class="service-arrow">→</span>
-            </div>
-
-            <div class="service-card">
-                <div class="service-badge">132 Available</div>
-                <div class="service-icon-wrapper">
-                    <span class="service-icon">🎨</span>
-                </div>
-                <h3 class="service-name">Painting</h3>
-                <p class="service-description">Interior, exterior, touch-ups</p>
-                <span class="service-arrow">→</span>
-            </div>
-
-            <div class="service-card">
-                <div class="service-badge">98 Available</div>
-                <div class="service-icon-wrapper">
-                    <span class="service-icon">🏠</span>
-                </div>
-                <h3 class="service-name">Roofing</h3>
-                <p class="service-description">Repairs, gutters, installation</p>
-                <span class="service-arrow">→</span>
-            </div>
-
-            <div class="service-card">
-                <div class="service-badge">176 Available</div>
-                <div class="service-icon-wrapper">
-                    <span class="service-icon">❄️</span>
-                </div>
-                <h3 class="service-name">Heating & Cooling</h3>
-                <p class="service-description">HVAC, air con, heating</p>
-                <span class="service-arrow">→</span>
-            </div>
-
-            <div class="service-card">
-                <div class="service-badge">210 Available</div>
-                <div class="service-icon-wrapper">
-                    <span class="service-icon">🌳</span>
-                </div>
-                <h3 class="service-name">Landscaping</h3>
-                <p class="service-description">Gardens, lawns, trees</p>
-                <span class="service-arrow">→</span>
-            </div>
-
-            <div class="service-card">
-                <div class="service-badge">167 Available</div>
-                <div class="service-icon-wrapper">
-                    <span class="service-icon">🧹</span>
-                </div>
-                <h3 class="service-name">Cleaning</h3>
-                <p class="service-description">House, office, end of lease</p>
-                <span class="service-arrow">→</span>
-            </div>
-
-            <div class="service-card">
-                <div class="service-badge">221 Available</div>
-                <div class="service-icon-wrapper">
-                    <span class="service-icon">🛠️</span>
-                </div>
-                <h3 class="service-name">Handyman</h3>
-                <p class="service-description">General repairs & tasks</p>
-                <span class="service-arrow">→</span>
-            </div>
-        </div>
-
-        <div class="services-footer">
-            <a href="services" class="btn-view-all">
-                View All Services
-                <span>→</span>
-            </a>
         </div>
     </div>
 </section>
 
-<div class="stats-section">
+<section class="popular-services">
     <div class="container">
-        <div class="row g-4">
-            <div class="col-6 col-md-3 stat-card">
-                <span class="stat-number" data-count="500">0+</span>
-                <span class="stat-label">Verified Tradies</span>
+        <h2>Popular Services</h2>
+        <p class="section-subtitle">Find trusted professionals for any home service</p>
+
+        <div class="services-grid">
+            <div class="service-card">
+                <span class="availability-badge">245 Available</span>
+                <div class="service-icon-wrapper">
+                    <i class="fa-solid fa-wrench service-icon"></i>
+                </div>
+                <h3>Plumbing</h3>
             </div>
-            <div class="col-6 col-md-3 stat-card">
-                <span class="stat-number">4.8</span>
-                <span class="stat-label">Avg Rating</span>
+
+            <div class="service-card">
+                <span class="availability-badge">189 Available</span>
+                <div class="service-icon-wrapper">
+                    <i class="fa-solid fa-bolt service-icon"></i>
+                </div>
+                <h3>Electrical</h3>
             </div>
-            <div class="col-6 col-md-3 stat-card">
-                <span class="stat-number" data-count="10000">0+</span>
-                <span class="stat-label">Jobs Completed</span>
+
+            <div class="service-card">
+                <span class="availability-badge">154 Available</span>
+                <div class="service-icon-wrapper">
+                    <i class="fa-solid fa-hammer service-icon"></i>
+                </div>
+                <h3>Carpentry</h3>
             </div>
-            <div class="col-6 col-md-3 stat-card">
-                <span class="stat-number">24/7</span>
-                <span class="stat-label">Support</span>
+
+            <div class="service-card">
+                <span class="availability-badge">132 Available</span>
+                <div class="service-icon-wrapper">
+                    <i class="fa-solid fa-paint-roller service-icon"></i>
+                </div>
+                <h3>Painting</h3>
             </div>
         </div>
     </div>
-</div>
+</section>
 
-<div class="how-it-works bg-white">
+<section class="trust-section">
     <div class="container">
-        <h2 class="text-center mb-5">How FindTradie Works</h2>
-        <div class="row justify-content-between">
-            <div class="col-md-4 text-center mb-4">
-                <div class="step-card">
-                    <div class="step-number">1</div>
-                    <div class="step-icon mb-3"><i class="fa-solid fa-clipboard-list fa-2x"></i></div>
-                    <h4>Post Your Job</h4>
-                    <p>Describe what you need done, add photos, and set your budget.</p>
+        <div class="trust-items">
+            <div class="trust-item">
+                <div class="trust-item-icon">
+                    <i class="fa-solid fa-shield-check"></i>
                 </div>
+                <h4>Verified & Insured</h4>
+                <p>All tradies are vetted and carry insurance.</p>
             </div>
-            <div class="col-md-4 text-center mb-4">
-                <div class="step-card">
-                    <div class="step-number">2</div>
-                    <div class="step-icon mb-3"><i class="fa-solid fa-user-group fa-2x"></i></div>
-                    <h4>Get Quotes</h4>
-                    <p>Receive quotes from verified tradies in your area.</p>
+            <div class="trust-item">
+                <div class="trust-item-icon">
+                    <i class="fa-solid fa-clock"></i>
                 </div>
+                <h4>On-Time Service</h4>
+                <p>We guarantee punctual arrivals.</p>
             </div>
-            <div class="col-md-4 text-center mb-4">
-                <div class="step-card">
-                    <div class="step-number">3</div>
-                    <div class="step-icon mb-3"><i class="fa-solid fa-star fa-2x"></i></div>
-                    <h4>Hire & Review</h4>
-                    <p>Choose your tradie, track progress, and leave a review.</p>
+            <div class="trust-item">
+                <div class="trust-item-icon">
+                    <i class="fa-solid fa-headset"></i>
                 </div>
+                <h4>Support</h4>
+                <p>24/7 customer support.</p>
             </div>
         </div>
     </div>
-</div>
-
-<div class="testimonials">
-    <div class="container">
-        <h2 class="text-center mb-4">What Customers Say</h2>
-        <div class="row g-4">
-            <div class="col-md-4">
-                <div class="testimonial-card">
-                    <div class="testimonial-stars">
-                        <i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i>
-                    </div>
-                    <p class="testimonial-text">Great platform to find reliable tradies. Highly recommended!</p>
-                    <div class="testimonial-author">
-                        <div class="author-avatar">SM</div>
-                        <div><strong>Sarah M.</strong></div>
-                    </div>
-                </div>
-            </div>
-            <div class="col-md-4">
-                <div class="testimonial-card">
-                    <div class="testimonial-stars">
-                        <i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i>
-                    </div>
-                    <p class="testimonial-text">Found an electrician within minutes and the job was perfect.</p>
-                    <div class="testimonial-author">
-                        <div class="author-avatar">JR</div>
-                        <div><strong>James R.</strong></div>
-                    </div>
-                </div>
-            </div>
-            <div class="col-md-4">
-                <div class="testimonial-card">
-                    <div class="testimonial-stars">
-                        <i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i>
-                    </div>
-                    <p class="testimonial-text">Easy to use and the tradies are top quality.</p>
-                    <div class="testimonial-author">
-                        <div class="author-avatar">PK</div>
-                        <div><strong>Priya K.</strong></div>
-                    </div>
-                </div>
-            </div>
-</div>
-</div>
-</div>
-
-<div class="featured-tradies">
-    <div class="container">
-        <h2 class="text-center mb-4">Featured Tradies This Week</h2>
-        <div class="row g-4">
-            <div class="col-md-4">
-                <div class="tradie-card text-center">
-                    <span class="availability-badge">Available Now</span>
-                    <div class="tradie-avatar"><i class="fas fa-wrench"></i></div>
-                    <h5>Susan's Plumbing</h5>
-                    <div class="rating-stars">
-                        <i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i>
-                        <span class="rating-value">4.8</span>
-                    </div>
-                    <div class="review-count">127 reviews</div>
-                    <p class="specialties">Plumbing, Gas Fitting</p>
-                    <p class="response-time">Usually responds in 2 hours</p>
-                </div>
-            </div>
-            <div class="col-md-4">
-                <div class="tradie-card text-center">
-                    <span class="availability-badge">Available Now</span>
-                    <div class="tradie-avatar"><i class="fas fa-bolt"></i></div>
-                    <h5>Bright Sparks</h5>
-                    <div class="rating-stars">
-                        <i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i>
-                        <span class="rating-value">4.9</span>
-                    </div>
-                    <div class="review-count">98 reviews</div>
-                    <p class="specialties">Electrical, Lighting</p>
-                    <p class="response-time">Usually responds in 1 hour</p>
-                </div>
-            </div>
-            <div class="col-md-4">
-                <div class="tradie-card text-center">
-                    <span class="availability-badge">Available Now</span>
-                    <div class="tradie-avatar"><i class="fas fa-hammer"></i></div>
-                    <h5>Handy Andy</h5>
-                    <div class="rating-stars">
-                        <i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i>
-                        <span class="rating-value">4.7</span>
-                    </div>
-                    <div class="review-count">143 reviews</div>
-                    <p class="specialties">Carpentry, Repairs</p>
-                    <p class="response-time">Usually responds in 3 hours</p>
-                </div>
-            </div>
-        </div>
-    </div>
-</div>
-
-<div class="recent-jobs bg-white">
-    <div class="container">
-        <h2 class="text-center mb-4">Recent Jobs in Your Area</h2>
-        <div class="job-card">
-            <div>
-                <div class="job-title">Fix leaky tap</div>
-                <div class="job-location">Melbourne CBD</div>
-            </div>
-            <div class="job-budget">$80 - $120</div>
-        </div>
-        <div class="job-card">
-            <div>
-                <div class="job-title">Install power point</div>
-                <div class="job-location">Sydney</div>
-            </div>
-            <div class="job-budget">$150 - $200</div>
-        </div>
-        <div class="job-card">
-            <div>
-                <div class="job-title">Mow front lawn</div>
-                <div class="job-location">Brisbane</div>
-            </div>
-            <div class="job-budget">$40 - $60</div>
-        </div>
-    </div>
-</div>
-
-<div class="trust-security">
-    <div class="container">
-        <div class="row text-center g-4">
-            <div class="col-md-4">
-                <div class="trust-badge">
-                    <div class="icon">🛡️</div>
-                    <h3>Verified & Insured</h3>
-                    <p>All tradies are verified and carry insurance</p>
-                </div>
-            </div>
-            <div class="col-md-4">
-                <div class="trust-badge">
-                    <div class="icon">🕒</div>
-                    <h3>On-Time Service</h3>
-                    <p>We guarantee punctual arrivals</p>
-                </div>
-            </div>
-            <div class="col-md-4">
-                <div class="trust-badge">
-                    <div class="icon">💬</div>
-                    <h3>Support</h3>
-                    <p>24/7 customer support</p>
-                </div>
-            </div>
-        </div>
-    </div>
-</div>
+</section>
 
 @if (SearchResults?.Any() == true)
 {
@@ -400,7 +153,7 @@
                         <div class="tradie-card">
                             <div class="tradie-header">
                                 <div class="tradie-avatar">
-                                    <span class="avatar-icon">👷</span>
+                                    <i class="fa-solid fa-user-hard-hat avatar-icon"></i>
                                 </div>
                                 <div class="tradie-info">
                                     <h5>@tradie.BusinessName</h5>
@@ -421,7 +174,7 @@
                                 }
                             </div>
                             <div class="tradie-footer d-flex justify-content-between">
-                                <div class="distance">📍 @tradie.DistanceKm.ToString("0.0")km away</div>
+                                <div class="distance"><i class="fa-solid fa-location-dot"></i> @tradie.DistanceKm.ToString("0.0")km away</div>
                                 <div class="availability">
                                     @if (tradie.IsAvailable)
                                     {
@@ -446,81 +199,14 @@
 }
 
 <section class="cta-tradies">
-    <div class="container text-center">
-        <h2>Are You a Tradie?</h2>
-        <p>Join 500+ professionals growing their business with FindTradie</p>
-        <button class="btn btn-white btn-lg">Start Earning Today</button>
+    <div class="container">
+        <div class="cta-content">
+            <h2>Are You a Tradie?</h2>
+            <p>Join 500+ professionals growing their business with FindTradie</p>
+            <a href="/register-tradie" class="btn-cta">Start Earning Today</a>
+        </div>
     </div>
 </section>
-
-<footer class="footer">
-    <div class="footer-grid">
-        <div>
-            <div class="footer-brand">FindTradie</div>
-            <p class="footer-description">Connecting you with trusted tradies.</p>
-            <div class="app-badges">
-                <span class="badge bg-secondary">App Store (Coming Soon)</span>
-                <span class="badge bg-secondary">Google Play (Coming Soon)</span>
-            </div>
-        </div>
-        <div>
-            <h5>Company</h5>
-            <ul class="footer-links">
-                <li><a href="/about">About</a></li>
-                <li><a href="/contact">Contact</a></li>
-                <li><a href="/privacy">Privacy</a></li>
-            </ul>
-        </div>
-        <div>
-            <h5>Support</h5>
-            <ul class="footer-links">
-                <li><a href="/help">Help Center</a></li>
-                <li><a href="/faq">FAQ</a></li>
-            </ul>
-        </div>
-      
-        <div>
-            <h5>Follow Us</h5>
-            <div class="social-links">
-                <!-- Facebook -->
-                <a href="https://facebook.com/yourpage" class="social-link" aria-label="Facebook" target="_blank" rel="noopener">
-                    <svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor" aria-hidden="true">
-                        <path d="M22 12a10 10 0 1 0-11.563 9.875v-6.987H7.898V12h2.54V9.797c0-2.506 1.492-3.89 3.776-3.89
-               1.094 0 2.238.195 2.238.195v2.46h-1.26c-1.242 0-1.63.771-1.63 1.563V12h2.773l-.443 2.888h-2.33v6.987A10.002 10.002 0 0 0 22 12z" />
-                    </svg>
-                </a>
-
-                <!-- X / Twitter -->
-                <a href="https://x.com/yourhandle" class="social-link" aria-label="X (Twitter)" target="_blank" rel="noopener">
-                    <svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor" aria-hidden="true">
-                        <path d="M17.21 3H20l-6.53 7.46L21.5 21h-6.09l-4.77-5.62L4.9 21H2l7.06-8.07L2.5 3h6.2l4.3 5.14L17.2 3h.01ZM15.83 19h1.46L8.3 5H6.79l9.04 14Z" />
-                    </svg>
-                </a>
-
-                <!-- Instagram -->
-                <a href="https://instagram.com/yourhandle" class="social-link" aria-label="Instagram" target="_blank" rel="noopener">
-                    <svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor" aria-hidden="true">
-                        <path d="M7 2h10a5 5 0 0 1 5 5v10a5 5 0 0 1-5 5H7a5 5 0 0 1-5-5V7a5 5 0 0 1 5-5Zm0 2a3 3 0 0 0-3 3v10a3 3 0 0 0 3 3h10a3 3 0 0 0 3-3V7a3 3 0 0 0-3-3H7Zm5 3.5a5.5 5.5 0 1 1 0 11 5.5 5.5 0 0 1 0-11Zm0 2a3.5 3.5 0 1 0 0 7 3.5 3.5 0 0 0 0-7Zm5.25-.75a1 1 0 1 1 0-2 1 1 0 0 1 0 2Z" />
-                    </svg>
-                </a>
-
-                <!-- LinkedIn -->
-                <a href="https://linkedin.com/company/yourcompany" class="social-link" aria-label="LinkedIn" target="_blank" rel="noopener">
-                    <svg viewBox="0 0 16 16" width="18" height="18" fill="currentColor" aria-hidden="true">
-                        <path d="M0 1.146C0 .513.526 0 1.175 0h13.65C15.474 0 16 .513 16 1.146v13.708c0 .633-.526 1.146-1.175 1.146H1.175C.526 16 0 15.487 0 14.854V1.146zM4.943 13.5V6H2.542v7.5h2.401zm-1.2-8.538c.837 0 1.358-.554 1.358-1.248-.015-.709-.52-1.248-1.341-1.248-.82 0-1.358.54-1.358 1.248 0 .694.521 1.248 1.327 1.248h.014zm4.908 8.538V9.359c0-.221.016-.442.081-.599.177-.442.581-.9 1.259-.9.888 0 1.243.679 1.243 1.676V13.5h2.401V9.25c0-2.287-1.22-3.352-2.846-3.352-1.312 0-1.89.73-2.218 1.24h.015V6H7.651c.03.679 0 7.5 0 7.5h2.401z" />
-                    </svg>
-                </a>
-                <!-- YouTube -->
-                <a href="https://youtube.com/yourchannel" class="social-link" aria-label="YouTube" target="_blank" rel="noopener">
-                    <svg viewBox="0 0 16 16" width="18" height="18" fill="currentColor" aria-hidden="true">
-                        <path d="M8.051 1.999h.089c.822.003 4.987.03 6.11.335.694.19 1.23.708 1.423 1.377.369 1.309.327 3.993.327 3.993s.042 2.684-.327 3.993a2.3 2.3 0 0 1-1.423 1.377c-1.123.305-5.288.332-6.11.335h-.089c-.822-.003-4.987-.03-6.11-.335a2.3 2.3 0 0 1-1.423-1.377C.01 10.688.051 8.004.051 8.004s-.041-2.684.327-3.993A2.3 2.3 0 0 1 1.801 2.634c1.123-.305 5.288-.332 6.11-.335Zm-.495 3.507v5.003l4.355-2.502L7.556 5.506Z" />
-                    </svg>
-                </a>
-            </div>
-        </div>
-    </div>
-    <div class="text-center mt-4">&copy; 2025 FindTradie. All rights reserved.</div>
-</footer>
 
 <button id="backToTop" class="back-to-top"><i class="fas fa-arrow-up"></i></button>
 
@@ -549,7 +235,6 @@
         { ServiceCategory.Cleaning, "Cleaning" },
         { ServiceCategory.Handyman, "Handyman" }
     };
-
 
     private async Task SearchTradies()
     {
@@ -594,7 +279,6 @@
     {
         return ServiceCategories.TryGetValue(category, out var name) ? name : category.ToString();
     }
-
 
     private void ViewProfile(Guid tradieId)
     {
