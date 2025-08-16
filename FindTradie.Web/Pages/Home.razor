@@ -1,8 +1,10 @@
 @page "/"
 @using FindTradie.Services.TradieManagement.DTOs
 @using FindTradie.Shared.Domain.Enums
+@using Microsoft.AspNetCore.Components.Authorization
 @inject FindTradie.Web.Services.ITradieApiService TradieService
 @inject NavigationManager Navigation
+@inject AuthenticationStateProvider AuthStateProvider
 
 <PageTitle>FindTradie - Find Trusted Local Tradies</PageTitle>
 
@@ -550,6 +552,15 @@
         { ServiceCategory.Handyman, "Handyman" }
     };
 
+    protected override async Task OnInitializedAsync()
+    {
+        var authState = await AuthStateProvider.GetAuthenticationStateAsync();
+
+        if (authState.User.Identity?.IsAuthenticated == true)
+        {
+            Navigation.NavigateTo("/dashboard", true);
+        }
+    }
 
     private async Task SearchTradies()
     {

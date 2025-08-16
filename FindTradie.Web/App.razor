@@ -1,14 +1,7 @@
 <CascadingAuthenticationState>
     <Router AppAssembly="@typeof(App).Assembly">
         <Found Context="routeData">
-            <AuthorizeRouteView RouteData="@routeData" DefaultLayout="@typeof(MainLayout)">
-                <Authorized>
-                    @if (routeData.PageType == typeof(FindTradie.Web.Pages.Home))
-                    {
-                        <RedirectToComponent Component="@typeof(FindTradie.Web.Pages.Dashboard)" />
-                    }
-                </Authorized>
-            </AuthorizeRouteView>
+            <AuthorizeRouteView RouteData="@routeData" DefaultLayout="@typeof(MainLayout)" />
         </Found>
         <NotFound>
             <p>Sorry, nothing here.</p>
