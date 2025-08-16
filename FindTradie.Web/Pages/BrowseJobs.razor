@@ -1,35 +1,11 @@
 @page "/browse-jobs"
-@using Microsoft.AspNetCore.Authorization
-@using Microsoft.AspNetCore.Components.Authorization
 @using FindTradie.Web.Services
-@attribute [Authorize(Roles = "Tradie")]
 @inject IJobApiService JobService
 @inject NavigationManager Navigation
 @inject AuthenticationStateProvider AuthStateProvider
 
 <PageTitle>Browse Jobs - FindTradie</PageTitle>
 
-@if (!isAuthorized)
-{
-    <div class="access-denied-container">
-        <div class="alert alert-warning">
-            <i class="bi bi-exclamation-triangle" style="font-size: 3rem;"></i>
-            <h3>Access Restricted</h3>
-            <p>Only registered tradies can browse available jobs.</p>
-
-            <div class="action-buttons">
-                <a href="/register?type=tradie" class="btn btn-primary">
-                    <i class="bi bi-tools"></i> Register as Tradie
-                </a>
-                <a href="/post-job" class="btn btn-outline-primary">
-                    <i class="bi bi-plus-circle"></i> Post a Job Instead
-                </a>
-            </div>
-        </div>
-    </div>
-}
-else
-{
 <div class="browse-jobs-page">
     <!-- Header Section -->
     <div class="page-header">
@@ -264,14 +240,12 @@ else
         </div>
     </div>
 </div>
-}
 
 @code {
     private List<JobDto> allJobs = new();
     private List<JobDto> filteredJobs = new();
     private bool isLoading = true;
     private string viewMode = "grid";
-    private bool isAuthorized = false;
     
     // Filter properties
     private string searchTerm = "";
@@ -287,25 +261,7 @@ else
 
     protected override async Task OnInitializedAsync()
     {
-        var authState = await AuthStateProvider.GetAuthenticationStateAsync();
-        var user = authState.User;
-
-        if (user.Identity?.IsAuthenticated == true)
-        {
-            if (user.IsInRole("Tradie"))
-            {
-                isAuthorized = true;
-                await LoadJobs();
-            }
-            else if (user.IsInRole("Customer"))
-            {
-                Navigation.NavigateTo("/my-jobs");
-            }
-        }
-        else
-        {
-            Navigation.NavigateTo("/login");
-        }
+        await LoadJobs();
     }
 
     private async Task LoadJobs()

@@ -2,7 +2,6 @@
 using FindTradie.Services.JobManagement.DTOs;
 using FindTradie.Shared.Contracts.Common;
 using FindTradie.Shared.Domain.Enums;
-using FindTradie.Web.DTOs;
 
 namespace FindTradie.Web.Services;
 
@@ -17,5 +16,4 @@ public interface IJobApiService
     Task<ApiResponse<bool>> UpdateJobStatusAsync(Guid id, JobStatus status, string? reason = null);
     Task<ApiResponse<bool>> AssignTradieAsync(Guid jobId, Guid tradieId, Guid quoteId);
     Task<ApiResponse<bool>> CompleteJobAsync(Guid id, string? completionNotes = null);
-    Task<List<CustomerJobDto>> GetMyJobs();
 }
