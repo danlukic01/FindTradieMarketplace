@@ -1,280 +1,85 @@
 @page "/dashboard"
-@page "/home"
-@attribute [Authorize]
 @using Microsoft.AspNetCore.Components.Authorization
+@attribute [Authorize]
 @inject AuthenticationStateProvider AuthStateProvider
-@inject NavigationManager Navigation
 
 <PageTitle>Dashboard - FindTradie</PageTitle>
 
-<div class="dashboard-container">
-    @if (IsCustomer)
-    {
-        <!-- CUSTOMER DASHBOARD -->
-        <section class="welcome-section">
-            <div class="container">
-                <h1>Welcome back, @UserName!</h1>
-                <p>What would you like to do today?</p>
-            </div>
-        </section>
+<AuthorizeView>
+    <Authorized>
+        @if (context.User.IsInRole("Customer"))
+        {
+            <!-- Customer Dashboard -->
+            <div class="customer-dashboard">
+                <div class="welcome-section">
+                    <h1>Welcome back, @context.User.Identity.Name!</h1>
+                    <p>Manage your jobs and find the perfect tradie</p>
+                </div>
 
-        <section class="quick-actions">
-            <div class="container">
-                <div class="action-cards">
-                    <div class="action-card" @onclick="NavigateToPostJob">
-                        <div class="action-icon">
-                            <svg width="48" height="48"></svg>
-                        </div>
-                        <h3>Post a New Job</h3>
-                        <p>Get quotes from verified tradies</p>
-                        <span class="action-arrow">→</span>
-                    </div>
+                <div class="quick-actions">
+                    <a href="/post-job" class="action-card">
+                        <i class="bi bi-plus-circle"></i>
+                        <span>Post New Job</span>
+                    </a>
+                    <a href="/my-jobs" class="action-card">
+                        <i class="bi bi-list-task"></i>
+                        <span>My Jobs</span>
+                    </a>
+                    <a href="/my-quotes" class="action-card">
+                        <i class="bi bi-chat-quote"></i>
+                        <span>View Quotes</span>
+                    </a>
+                    <a href="/find-tradies" class="action-card">
+                        <i class="bi bi-search"></i>
+                        <span>Find Tradies</span>
+                    </a>
+                </div>
 
-                    <div class="action-card" @onclick="NavigateToFindTradies">
-                        <div class="action-icon">
-                            <svg width="48" height="48"></svg>
-                        </div>
-                        <h3>Browse Tradies</h3>
-                        <p>Find professionals in your area</p>
-                        <span class="action-arrow">→</span>
-                    </div>
-
-                    <div class="action-card" @onclick="NavigateToMyJobs">
-                        <div class="action-icon">
-                            <svg width="48" height="48"></svg>
-                        </div>
-                        <h3>My Jobs</h3>
-                        <p>View your active and past jobs</p>
-                        <span class="action-arrow">→</span>
-                    </div>
+                <div class="recent-activity">
+                    <h2>Recent Activity</h2>
+                    <!-- Show recent quotes received, job updates, etc. -->
                 </div>
             </div>
-        </section>
+        }
+        else if (context.User.IsInRole("Tradie"))
+        {
+            <!-- Tradie Dashboard (existing content) -->
+            <div class="tradie-dashboard">
+                <div class="welcome-section">
+                    <h1>Welcome back, @context.User.Identity.Name!</h1>
+                    <p>Here are new job opportunities in your area</p>
+                </div>
 
-        <section class="recent-activity">
-            <div class="container">
-                <h2>Recent Activity</h2>
-                
-                @if (!ActiveJobs.Any() && !PendingQuotes.Any())
-                {
-                    <div class="empty-dashboard">
-                        <div class="empty-icon">
-                            <svg width="64" height="64"></svg>
-                        </div>
-                        <h3>No jobs yet</h3>
-                        <p>Post your first job to get started with FindTradie</p>
-                        <button class="btn btn-primary" @onclick="NavigateToPostJob">
-                            Post Your First Job
-                        </button>
-                    </div>
-                }
-                else
-                {
-                    <div class="activity-grid">
-                        <!-- Active Jobs -->
-                        <div class="activity-section">
-                            <h3>Active Jobs (@ActiveJobs.Count)</h3>
-                            <div class="job-list">
-                                @foreach (var job in ActiveJobs.Take(3))
-                                {
-                                    <div class="job-item">
-                                        <div class="job-info">
-                                            <h4>@job.Title</h4>
-                                            <p>@job.Category • Posted @job.PostedDate</p>
-                                        </div>
-                                        <div class="job-status">
-                                            <span class="quotes-badge">@job.QuotesCount quotes</span>
-                                            <button class="btn-view" @onclick="() => ViewJob(job.Id)">View</button>
-                                        </div>
-                                    </div>
-                                }
-                            </div>
-                        </div>
-
-                        <!-- Recent Quotes -->
-                        <div class="activity-section">
-                            <h3>Recent Quotes (@PendingQuotes.Count pending)</h3>
-                            <div class="quote-list">
-                                @foreach (var quote in PendingQuotes.Take(3))
-                                {
-                                    <div class="quote-item">
-                                        <div class="tradie-info">
-                                            <div class="tradie-avatar">@quote.TradieInitials</div>
-                                            <div>
-                                                <h4>@quote.TradieName</h4>
-                                                <p>@quote.JobTitle</p>
-                                            </div>
-                                        </div>
-                                        <div class="quote-price">
-                                            <span class="price">$@quote.Amount</span>
-                                            <button class="btn-view" @onclick="() => ViewQuote(quote.Id)">Review</button>
-                                        </div>
-                                    </div>
-                                }
-                            </div>
-                        </div>
-                    </div>
-                }
-            </div>
-        </section>
-    }
-    else if (IsTradie)
-    {
-        <!-- TRADIE DASHBOARD -->
-        <section class="welcome-section">
-            <div class="container">
-                <h1>Welcome back, @BusinessName!</h1>
-                <p>Here are new job opportunities in your area</p>
-            </div>
-        </section>
-
-        <section class="tradie-stats">
-            <div class="container">
+                <!-- Statistics cards -->
                 <div class="stats-row">
                     <div class="stat-card">
-                        <span class="stat-value">@ActiveQuotes</span>
+                        <span class="stat-value">0</span>
                         <span class="stat-label">Active Quotes</span>
                     </div>
                     <div class="stat-card">
-                        <span class="stat-value">@JobsCompleted</span>
+                        <span class="stat-value">0</span>
                         <span class="stat-label">Jobs Completed</span>
                     </div>
                     <div class="stat-card">
-                        <span class="stat-value">$@RevenueThisMonth</span>
+                        <span class="stat-value">$0</span>
                         <span class="stat-label">This Month</span>
                     </div>
                     <div class="stat-card">
-                        <span class="stat-value">@Rating ⭐</span>
+                        <span class="stat-value">4.8 ⭐</span>
                         <span class="stat-label">Rating</span>
                     </div>
                 </div>
-            </div>
-        </section>
 
-        <section class="job-opportunities">
-            <div class="container">
-                <div class="section-header">
+                <!-- Job opportunities section -->
+                <div class="job-opportunities">
                     <h2>New Job Opportunities</h2>
-                    <a href="/jobs/browse" class="btn btn-primary">Browse All Jobs</a>
+                    <a href="/browse-jobs" class="btn btn-primary btn-lg">
+                        Browse All Jobs
+                    </a>
+                    <p class="text-muted">No new jobs matching your criteria. Check back soon!</p>
                 </div>
-
-                @if (AvailableJobs.Any())
-                {
-                    <div class="jobs-grid">
-                        @foreach (var job in AvailableJobs.Take(6))
-                        {
-                            <div class="job-card">
-                                <div class="job-header">
-                                    <span class="category">@job.Category</span>
-                                    <span class="distance">@job.Distance km away</span>
-                                </div>
-                                <h3>@job.Title</h3>
-                                <p>@job.Description</p>
-                                <div class="job-footer">
-                                    <span class="budget">$@job.BudgetMin - $@job.BudgetMax</span>
-                                    <button class="btn btn-primary" @onclick="() => SendQuote(job.Id)">
-                                        Send Quote
-                                    </button>
-                                </div>
-                            </div>
-                        }
-                    </div>
-                }
-                else
-                {
-                    <p>No new jobs matching your criteria. Check back soon!</p>
-                }
             </div>
-        </section>
-    }
-</div>
-
-@code {
-    private string UserName = "";
-    private string BusinessName = "";
-    private bool IsCustomer = true;
-    private bool IsTradie = false;
-    
-    // Customer data
-    private List<JobViewModel> ActiveJobs = new();
-    private List<QuoteViewModel> PendingQuotes = new();
-    
-    // Tradie data
-    private int ActiveQuotes = 0;
-    private int JobsCompleted = 0;
-    private decimal RevenueThisMonth = 0;
-    private decimal Rating = 4.8m;
-    private List<JobOpportunity> AvailableJobs = new();
-
-    protected override async Task OnInitializedAsync()
-    {
-        var authState = await AuthStateProvider.GetAuthenticationStateAsync();
-        
-        if (authState.User.Identity?.IsAuthenticated == true)
-        {
-            // Get user details
-            UserName = authState.User.FindFirst("FirstName")?.Value ?? 
-                      authState.User.Identity.Name ?? "User";
-            
-            var userType = authState.User.FindFirst("UserType")?.Value;
-            IsCustomer = userType == "Customer" || userType == "1";
-            IsTradie = userType == "Tradie" || userType == "ServiceProvider" || userType == "2";
-            
-            if (IsTradie)
-            {
-                BusinessName = authState.User.FindFirst("BusinessName")?.Value ?? UserName;
-            }
-            
-            // Load dashboard data
-            await LoadDashboardData();
         }
-        else
-        {
-            Navigation.NavigateTo("/login");
-        }
-    }
+    </Authorized>
+</AuthorizeView>
 
-    private async Task LoadDashboardData()
-    {
-        // Load appropriate data based on user type
-        // This would call your actual API services
-        await Task.CompletedTask;
-    }
-
-    private void NavigateToPostJob() => Navigation.NavigateTo("/post-job");
-    private void NavigateToFindTradies() => Navigation.NavigateTo("/find-tradies");
-    private void NavigateToMyJobs() => Navigation.NavigateTo("/my-jobs");
-
-    private void ViewJob(int id) { }
-    private void ViewQuote(int id) { }
-    private void SendQuote(int id) { }
-
-    private class JobViewModel
-    {
-        public int Id { get; set; }
-        public string Title { get; set; } = string.Empty;
-        public string Category { get; set; } = string.Empty;
-        public string PostedDate { get; set; } = string.Empty;
-        public int QuotesCount { get; set; }
-    }
-
-    private class QuoteViewModel
-    {
-        public int Id { get; set; }
-        public string TradieInitials { get; set; } = string.Empty;
-        public string TradieName { get; set; } = string.Empty;
-        public string JobTitle { get; set; } = string.Empty;
-        public decimal Amount { get; set; }
-    }
-
-    private class JobOpportunity
-    {
-        public int Id { get; set; }
-        public string Category { get; set; } = string.Empty;
-        public double Distance { get; set; }
-        public string Title { get; set; } = string.Empty;
-        public string Description { get; set; } = string.Empty;
-        public decimal BudgetMin { get; set; }
-        public decimal BudgetMax { get; set; }
-    }
-}
