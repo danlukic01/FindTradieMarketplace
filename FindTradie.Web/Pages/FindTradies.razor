@@ -110,12 +110,12 @@
             <div class="results-header">
                 <h2>@tradies.Count Tradies Found</h2>
                 <div class="view-toggle">
-                    <button class="view-btn @(viewMode == "grid" ? "active" : "")" 
-                            @onclick="() => viewMode = 'grid'">
+                    <button class="view-btn @(viewMode == "grid" ? "active" : "")"
+                            @onclick="@(() => viewMode = \"grid\")">
                         <svg></svg>
                     </button>
-                    <button class="view-btn @(viewMode == "list" ? "active" : "")" 
-                            @onclick="() => viewMode = 'list'">
+                    <button class="view-btn @(viewMode == "list" ? "active" : "")"
+                            @onclick="@(() => viewMode = \"list\")">
                         <svg></svg>
                     </button>
                 </div>
