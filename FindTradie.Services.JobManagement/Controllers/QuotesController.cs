@@ -26,7 +26,7 @@ public class QuotesController : ControllerBase
     /// Submit a quote for a job
     /// </summary>
     [HttpPost]
-    [Authorize]
+    [Authorize(Roles = nameof(UserType.Tradie))]
     public async Task<ActionResult<ApiResponse<QuoteDetailDto>>> CreateQuote([FromBody] CreateQuoteRequest request)
     {
         var result = await _quoteService.CreateQuoteAsync(request);
@@ -48,7 +48,7 @@ public class QuotesController : ControllerBase
     /// Get all quotes for a specific job
     /// </summary>
     [HttpGet("job/{jobId}")]
-    [Authorize]
+    [Authorize(Roles = nameof(UserType.Customer))]
     public async Task<ActionResult<ApiResponse<List<QuoteSummaryDto>>>> GetQuotesByJob(Guid jobId)
     {
         var result = await _quoteService.GetQuotesByJobAsync(jobId);
@@ -59,7 +59,7 @@ public class QuotesController : ControllerBase
     /// Get quotes submitted by a specific tradie
     /// </summary>
     [HttpGet("tradie/{tradieId}")]
-    [Authorize]
+    [Authorize(Roles = nameof(UserType.Tradie))]
     public async Task<ActionResult<ApiResponse<List<QuoteSummaryDto>>>> GetQuotesByTradie(
         Guid tradieId,
         [FromQuery] int pageNumber = 1,
@@ -73,7 +73,7 @@ public class QuotesController : ControllerBase
     /// Update quote status (accept/reject)
     /// </summary>
     [HttpPatch("{id}/status")]
-    [Authorize]
+    [Authorize(Roles = nameof(UserType.Customer))]
     public async Task<ActionResult<ApiResponse<bool>>> UpdateQuoteStatus(
         Guid id,
         [FromBody] UpdateQuoteStatusRequest request)
@@ -86,7 +86,7 @@ public class QuotesController : ControllerBase
     /// Withdraw a submitted quote
     /// </summary>
     [HttpPost("{id}/withdraw")]
-    [Authorize]
+    [Authorize(Roles = nameof(UserType.Tradie))]
     public async Task<ActionResult<ApiResponse<bool>>> WithdrawQuote(
         Guid id,
         [FromBody] WithdrawQuoteRequest request)
