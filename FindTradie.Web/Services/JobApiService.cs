@@ -2,7 +2,6 @@
 using FindTradie.Services.JobManagement.DTOs;
 using FindTradie.Shared.Contracts.Common;
 using FindTradie.Shared.Domain.Enums;
-using FindTradie.Web.DTOs;
 using System.Text.Json;
 using System.Text;
 
@@ -272,25 +271,6 @@ public class JobApiService : IJobApiService
                 Message = "An error occurred while completing job",
                 Errors = new List<string> { ex.Message }
             };
-        }
-    }
-
-    public async Task<List<CustomerJobDto>> GetMyJobs()
-    {
-        try
-        {
-            await SetAuthorizationHeaderAsync();
-            var response = await _httpClient.GetAsync("/api/jobs/my-jobs");
-            var content = await response.Content.ReadAsStringAsync();
-            return JsonSerializer.Deserialize<List<CustomerJobDto>>(content, new JsonSerializerOptions
-            {
-                PropertyNameCaseInsensitive = true
-            }) ?? new List<CustomerJobDto>();
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error getting customer jobs");
-            return new List<CustomerJobDto>();
         }
     }
 }
