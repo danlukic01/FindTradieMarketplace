@@ -1,5 +1,4 @@
-﻿/* Send Quote Page Styles - Complete Fix with Unique Classes */
-.send-quote-page {
+﻿.send-quote-page {
     min-height: 100vh;
     background: #f5f7fa;
     padding: 40px 0 60px;
@@ -10,7 +9,6 @@
         margin: 0 auto;
         padding: 0 24px;
     }
-
     /* Progress Indicator - Completely Fixed Layout */
     .send-quote-page .progress-indicator {
         margin-bottom: 48px;
@@ -22,7 +20,6 @@
         flex-direction: column !important;
         align-items: center !important;
     }
-
     /* Container for numbered circles and lines ONLY */
     .send-quote-page .progress-steps-container {
         display: flex !important;
@@ -32,7 +29,6 @@
         margin-bottom: 32px;
         width: 100%;
     }
-
     /* Progress step circle */
     .send-quote-page .progress-step {
         position: relative;
@@ -41,7 +37,6 @@
         flex-direction: row !important;
         align-items: center !important;
     }
-
         /* The numbered circles */
         .send-quote-page .progress-step .step-number {
             width: 50px !important;
@@ -68,7 +63,6 @@
             color: white;
             box-shadow: 0 4px 12px rgba(79, 70, 229, 0.3);
         }
-
     /* Connecting lines between circles */
     .send-quote-page .progress-connector {
         width: 120px;
@@ -77,7 +71,6 @@
         margin: 0 12px;
         display: block !important;
     }
-
     /* Container for text labels - COMPLETELY SEPARATE */
     .send-quote-page .progress-labels {
         display: flex !important;
@@ -88,7 +81,6 @@
         width: 100%;
         max-width: 500px;
     }
-
         /* Individual text labels */
         .send-quote-page .progress-labels .step-label {
             flex: 1;
@@ -108,12 +100,10 @@
                 color: #1a202c;
                 font-weight: 600;
             }
-
     /* Remove any conflicting styles */
     .send-quote-page .progress-line {
         display: none !important;
     }
-
     /* Form Header */
     .send-quote-page .form-header {
         text-align: center;
@@ -132,7 +122,6 @@
             font-size: 16px;
             margin: 0;
         }
-
     /* Job Summary Card */
     .send-quote-page .job-summary-card {
         background: white;
@@ -171,7 +160,6 @@
         margin: 0;
         font-size: 15px;
     }
-
     /* Quote Form */
     .send-quote-page .quote-form {
         background: white;
@@ -179,7 +167,6 @@
         box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
         overflow: hidden;
     }
-
     /* Form Sections */
     .send-quote-page .form-section {
         padding: 32px;
@@ -212,7 +199,6 @@
         font-size: 14px;
         font-weight: 600;
     }
-
     /* Pricing Options */
     .send-quote-page .pricing-options {
         display: grid;
@@ -261,7 +247,6 @@
         font-size: 14px;
         color: #64748b;
     }
-
     /* Price Inputs */
     .send-quote-page .price-input-group {
         margin-bottom: 20px;
@@ -308,7 +293,6 @@
             border-color: #4f46e5;
             box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.1);
         }
-
     /* Message Section */
     .send-quote-page .message-textarea {
         width: 100%;
@@ -329,7 +313,6 @@
             border-color: #4f46e5;
             box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.1);
         }
-
     /* Form Actions */
     .send-quote-page .form-actions {
         padding: 32px;
@@ -339,7 +322,6 @@
         gap: 16px;
         border-top: 1px solid #e2e8f0;
     }
-
     /* Buttons */
     .send-quote-page .btn {
         padding: 14px 28px;
@@ -381,7 +363,6 @@
         padding: 16px 32px;
         font-size: 16px;
     }
-
     /* Success Container */
     .send-quote-page .success-container {
         background: white;
@@ -395,7 +376,6 @@
         font-size: 72px;
         margin-bottom: 24px;
     }
-
 /* Responsive Design */
 @media (max-width: 768px) {
     .send-quote-page .progress-steps-container {
