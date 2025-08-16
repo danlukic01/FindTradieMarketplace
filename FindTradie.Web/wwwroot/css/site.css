@@ -1668,5 +1668,19 @@ h1, h2, h3, h4, h5, h6, p, span, div, label {
     top: 0;
     margin-bottom: 40px;
   }
+    .footer-services {
+        columns: 2;
+        column-gap: 24px;
+    }
+
+    .footer-links li {
+        break-inside: avoid;
+    }
+
+    @media (max-width: 640px) {
+        .footer-services {
+            columns: 1;
+        }
+    }
 }
 
