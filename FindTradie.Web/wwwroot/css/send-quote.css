@@ -14,7 +14,7 @@
 /* Progress Indicator - Clean layout with labels below */
 .progress-indicator {
     display: flex;
-    align-items: center;
+    align-items: flex-start;
     justify-content: center;
     margin-bottom: 48px;
     padding: 40px 20px 50px;
@@ -39,11 +39,20 @@
 
 .progress-step {
     display: flex;
+    justify-content: flex-start;
+    text-align: center;
     flex-direction: column;
     align-items: center;
     position: relative;
     z-index: 2;
-    margin: 0 60px; /* Space between steps */
+    margin: 0 60px;
+}
+.step-label {
+    margin: 0;
+    padding: 0;
+    display: block;
+    width: 100%;
+    line-height: 1.4;
 }
 
 .step-number {
