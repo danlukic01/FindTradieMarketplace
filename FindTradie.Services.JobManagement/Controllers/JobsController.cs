@@ -9,6 +9,7 @@ using FindTradie.Shared.Domain.Enums;
 using System.Threading.Tasks;
 using System.Collections.Generic;
 using System;
+using System.Security.Claims;
 
 namespace FindTradie.Services.JobManagement.Controllers;
 
@@ -62,6 +63,35 @@ public class JobsController : ControllerBase
     public async Task<ActionResult<ApiResponse<List<JobSummaryDto>>>> SearchJobs([FromBody] JobSearchRequest request)
     {
         var result = await _jobService.SearchJobsAsync(request);
+        return Ok(result);
+    }
+
+    [Authorize(Roles = "Customer")]
+    [HttpGet("my-jobs")]
+    public async Task<IActionResult> GetMyJobs()
+    {
+        var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+        if (Guid.TryParse(userId, out var customerId))
+        {
+            var result = await _jobService.GetCustomerJobsAsync(customerId);
+            return Ok(result);
+        }
+        return Unauthorized();
+    }
+
+    [HttpPost("post")]
+    [Authorize(Roles = "Customer")]
+    public async Task<IActionResult> PostJob([FromBody] CreateJobRequest request)
+    {
+        var result = await _jobService.CreateJobAsync(request);
+        return result.Success ? Ok(result) : BadRequest(result);
+    }
+
+    [Authorize(Roles = "Tradie")]
+    [HttpGet("browse")]
+    public async Task<IActionResult> BrowseJobs([FromQuery] JobSearchRequest filters)
+    {
+        var result = await _jobService.SearchJobsAsync(filters);
         return Ok(result);
     }
 

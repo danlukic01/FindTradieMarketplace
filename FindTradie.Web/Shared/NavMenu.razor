@@ -1,59 +1,80 @@
 @using Microsoft.AspNetCore.Components.Authorization
+@inject AuthenticationStateProvider AuthStateProvider
 
-<header class="main-header">
-    <nav class="navbar">
-        <div class="navbar-container">
-            <a href="/" class="navbar-brand">
-                <span class="brand-icon">🔨</span>
-                <span class="brand-name">FindTradie</span>
-            </a>
+<div class="navbar">
+    <ul class="nav-menu">
+        <!-- Common menu items -->
+        <li class="nav-item">
+            <NavLink class="nav-link" href="/" Match="NavLinkMatch.All">
+                <i class="bi bi-house-door"></i> Home
+            </NavLink>
+        </li>
 
-            <button class="mobile-menu-btn" @onclick="ToggleNavMenu">
-                <svg width="24" height="24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                    <path d="M4 6h16M4 12h16M4 18h16" />
-                </svg>
-            </button>
+        <AuthorizeView>
+            <Authorized>
+                @if (context.User.IsInRole("Customer"))
+                {
+                    <!-- Customer-only menu items -->
+                    <li class="nav-item">
+                        <NavLink class="nav-link" href="post-job">
+                            <i class="bi bi-plus-circle"></i> Post a Job
+                        </NavLink>
+                    </li>
+                    <li class="nav-item">
+                        <NavLink class="nav-link" href="my-jobs">
+                            <i class="bi bi-list-task"></i> My Jobs
+                        </NavLink>
+                    </li>
+                    <li class="nav-item">
+                        <NavLink class="nav-link" href="my-quotes">
+                            <i class="bi bi-chat-quote"></i> Quotes Received
+                        </NavLink>
+                    </li>
+                }
+                else if (context.User.IsInRole("Tradie"))
+                {
+                    <!-- Tradie-only menu items -->
+                    <li class="nav-item">
+                        <NavLink class="nav-link" href="browse-jobs">
+                            <i class="bi bi-briefcase"></i> Browse Jobs
+                        </NavLink>
+                    </li>
+                    <li class="nav-item">
+                        <NavLink class="nav-link" href="my-quotes-sent">
+                            <i class="bi bi-send"></i> My Quotes
+                        </NavLink>
+                    </li>
+                    <li class="nav-item">
+                        <NavLink class="nav-link" href="active-jobs">
+                            <i class="bi bi-hammer"></i> Active Jobs
+                        </NavLink>
+                    </li>
+                }
 
-            <div class="nav-menu @(collapseNavMenu ? string.Empty : "mobile-open")">
-                <NavLink href="/" class="nav-link" Match="NavLinkMatch.All">Home</NavLink>
-                <NavLink href="/find-tradies" class="nav-link">Find Tradies</NavLink>
-                <NavLink href="/browse-jobs" class="nav-link">Browse Jobs</NavLink>
-                <NavLink href="/how-it-works" class="nav-link">How It Works</NavLink>
-                <NavLink href="/post-job" class="nav-link">Post a Job</NavLink>
-                <NavLink href="/help" class="nav-link">Help Center</NavLink>
-                <NavLink href="/faq" class="nav-link">FAQ</NavLink>
-            </div>
-
-            <div class="nav-user-section user-greeting-section">
-                <div class="nav-notifications">
-                    <button class="notification-btn">
-                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                            <path d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
-                        </svg>
-                        <span class="notification-badge">3</span>
-                    </button>
-                </div>
-
-                <AuthorizeView>
-                    <Authorized>
-                        <LoginDisplay />
-                    </Authorized>
-                    <NotAuthorized>
-                        <a href="/register" class="btn btn-outline btn-register">Register</a>
-                        <a href="/login" class="btn btn-primary btn-login">Log in</a>
-                    </NotAuthorized>
-                </AuthorizeView>
-            </div>
-        </div>
-    </nav>
-</header>
-
-@code {
-    private bool collapseNavMenu = true;
-
-    private void ToggleNavMenu()
-    {
-        collapseNavMenu = !collapseNavMenu;
-    }
-}
-
+                <!-- Common authenticated items -->
+                <li class="nav-item">
+                    <NavLink class="nav-link" href="dashboard">
+                        <i class="bi bi-speedometer2"></i> Dashboard
+                    </NavLink>
+                </li>
+                <li class="nav-item">
+                    <NavLink class="nav-link" href="messages">
+                        <i class="bi bi-envelope"></i> Messages
+                    </NavLink>
+                </li>
+            </Authorized>
+            <NotAuthorized>
+                <li class="nav-item">
+                    <NavLink class="nav-link" href="login">
+                        <i class="bi bi-box-arrow-in-right"></i> Login
+                    </NavLink>
+                </li>
+                <li class="nav-item">
+                    <NavLink class="nav-link" href="register">
+                        <i class="bi bi-person-plus"></i> Sign Up
+                    </NavLink>
+                </li>
+            </NotAuthorized>
+        </AuthorizeView>
+    </ul>
+</div>

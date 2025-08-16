@@ -33,6 +33,14 @@ public class QuotesController : ControllerBase
         return result.Success ? Ok(result) : BadRequest(result);
     }
 
+    [HttpPost("send")]
+    [Authorize(Roles = "Tradie")]
+    public async Task<IActionResult> SendQuote([FromBody] CreateQuoteRequest request)
+    {
+        var result = await _quoteService.CreateQuoteAsync(request);
+        return result.Success ? Ok(result) : BadRequest(result);
+    }
+
     /// <summary>
     /// Get quote details by ID
     /// </summary>

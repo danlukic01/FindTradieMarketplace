@@ -2,6 +2,7 @@
 using Microsoft.AspNetCore.Components.Authorization;
 using System.Security.Claims;
 using FindTradie.Web.Services;
+using FindTradie.Shared.Contracts.DTOs;
 
 namespace FindTradie.Web.Auth;
 
@@ -20,16 +21,8 @@ public class CustomAuthStateProvider : AuthenticationStateProvider
 
         if (user != null)
         {
-            var claims = new[]
-            {
-                new Claim(ClaimTypes.NameIdentifier, user.Id.ToString()),
-                new Claim(ClaimTypes.Email, user.Email),
-                new Claim(ClaimTypes.Name, $"{user.FirstName} {user.LastName}"),
-                new Claim("UserType", user.UserType.ToString())
-            };
-
-            var identity = new ClaimsIdentity(claims, "jwt");
-            return new AuthenticationState(new ClaimsPrincipal(identity));
+            var principal = await CreateClaimsPrincipal(user);
+            return new AuthenticationState(principal);
         }
 
         return new AuthenticationState(new ClaimsPrincipal(new ClaimsIdentity()));
@@ -54,5 +47,20 @@ public class CustomAuthStateProvider : AuthenticationStateProvider
         var user = new ClaimsPrincipal(identity);
 
         NotifyAuthenticationStateChanged(Task.FromResult(new AuthenticationState(user)));
+    }
+
+    private Task<ClaimsPrincipal> CreateClaimsPrincipal(UserProfileDto user)
+    {
+        var claims = new List<Claim>
+        {
+            new Claim(ClaimTypes.Name, $"{user.FirstName} {user.LastName}"),
+            new Claim(ClaimTypes.Email, user.Email),
+            new Claim(ClaimTypes.NameIdentifier, user.Id.ToString()),
+            new Claim(ClaimTypes.Role, user.UserType.ToString()),
+            new Claim("UserType", user.UserType.ToString())
+        };
+
+        var identity = new ClaimsIdentity(claims, "apiauth");
+        return Task.FromResult(new ClaimsPrincipal(identity));
     }
 }
