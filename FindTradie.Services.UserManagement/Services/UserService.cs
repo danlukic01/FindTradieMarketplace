@@ -5,6 +5,10 @@ using FindTradie.Services.UserManagement.Entities;
 using FindTradie.Services.UserManagement.Repositories;
 using FindTradie.Shared.Contracts.Common;
 using FindTradie.Shared.Contracts.DTOs;
+using System.IdentityModel.Tokens.Jwt;
+using System.Security.Claims;
+using Microsoft.IdentityModel.Tokens;
+using System.Text;
 
 namespace FindTradie.Services.UserManagement.Services;
 
@@ -13,15 +17,18 @@ public class UserService : IUserService
     private readonly IUserRepository _userRepository;
     private readonly IMapper _mapper;
     private readonly ILogger<UserService> _logger;
+    private readonly IConfiguration _configuration;
 
     public UserService(
         IUserRepository userRepository,
         IMapper mapper,
-        ILogger<UserService> logger)
+        ILogger<UserService> logger,
+        IConfiguration configuration)
     {
         _userRepository = userRepository;
         _mapper = mapper;
         _logger = logger;
+        _configuration = configuration;
     }
 
     public async Task<ApiResponse<UserProfileDto>> CreateUserAsync(CreateUserRequest request)
@@ -101,6 +108,52 @@ public class UserService : IUserService
         {
             _logger.LogError(ex, "Error retrieving user with email {Email}", email);
             return ApiResponse<UserProfileDto>.ErrorResult("Failed to retrieve user");
+        }
+    }
+
+    public async Task<ApiResponse<string>> LoginAsync(string email, string password)
+    {
+        try
+        {
+            var user = await _userRepository.GetByEmailAsync(email);
+            if (user == null || !BCrypt.Net.BCrypt.Verify(password, user.PasswordHash))
+            {
+                return ApiResponse<string>.ErrorResult("Invalid email or password");
+            }
+
+            var key = _configuration["JWT:Secret"];
+            if (string.IsNullOrEmpty(key))
+            {
+                _logger.LogError("JWT secret not configured");
+                return ApiResponse<string>.ErrorResult("Authentication configuration error");
+            }
+
+            var tokenHandler = new JwtSecurityTokenHandler();
+            var tokenDescriptor = new SecurityTokenDescriptor
+            {
+                Subject = new ClaimsIdentity(new[]
+                {
+                    new Claim(ClaimTypes.NameIdentifier, user.Id.ToString()),
+                    new Claim(ClaimTypes.Email, user.Email),
+                    new Claim(ClaimTypes.Role, user.UserType.ToString())
+                }),
+                Expires = DateTime.UtcNow.AddMinutes(int.TryParse(_configuration["JWT:ExpirationInMinutes"], out var exp) ? exp : 60),
+                Issuer = _configuration["JWT:Issuer"],
+                Audience = _configuration["JWT:Audience"],
+                SigningCredentials = new SigningCredentials(new SymmetricSecurityKey(Encoding.UTF8.GetBytes(key)), SecurityAlgorithms.HmacSha256Signature)
+            };
+
+            var token = tokenHandler.CreateToken(tokenDescriptor);
+
+            user.LastLoginAt = DateTime.UtcNow;
+            await _userRepository.UpdateAsync(user);
+
+            return ApiResponse<string>.SuccessResult(tokenHandler.WriteToken(token), "Login successful");
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error logging in user {Email}", email);
+            return ApiResponse<string>.ErrorResult("Login failed");
         }
     }
 

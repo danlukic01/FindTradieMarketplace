@@ -11,6 +11,11 @@ public record CreateUserRequest(
     UserType UserType
 );
 
+public record LoginRequest(
+    string Email,
+    string Password
+);
+
 public record UserProfileDto
 {
     public Guid Id { get; init; }
