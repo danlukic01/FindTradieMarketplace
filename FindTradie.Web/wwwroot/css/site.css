@@ -95,12 +95,6 @@ main {
     align-items: center;
 }
 
-.header-left {
-    display: flex;
-    align-items: center;
-    gap: 40px;
-}
-
 .brand {
     display: flex;
     align-items: center;
@@ -121,16 +115,13 @@ main {
 }
 
 .desktop-nav .nav-link {
-    color: #4a5568;
     text-decoration: none;
     font-weight: 500;
     transition: color 0.3s;
     padding: 5px 10px;
 }
 
-.desktop-nav .nav-link:hover {
-    color: #3182ce;
-}
+/* Hover styles handled globally */
 
 .header-right {
     display: flex;
@@ -191,7 +182,6 @@ main {
 }
 
 .mobile-nav .nav-link {
-    color: #4a5568;
     text-decoration: none;
     font-weight: 500;
     padding: 10px 0;
@@ -1136,36 +1126,71 @@ main {
     line-height: 1.6;
 }
 
-/* Navigation */
-.navbar-brand {
-    color: white !important;
-    font-size: 1.5rem;
-    font-weight: 700;
+/* Critical Navigation Fix - Make menu items ALWAYS visible */
+.nav-menu {
     display: flex;
     align-items: center;
-    gap: 0.5rem;
+    gap: 8px;
 }
 
-.brand-logo {
-    font-size: 1.75rem;
+.nav-link,
+.nav-menu a,
+.navbar a:not(.navbar-brand) {
+    color: #2d3748 !important;
+    background: transparent;
+    padding: 8px 16px;
+    border-radius: 6px;
+    text-decoration: none;
+    font-weight: 500;
+    font-size: 15px;
+    transition: all 0.2s ease;
+    display: inline-block;
 }
 
-.nav-link {
-    color: rgba(255, 255, 255, 0.9) !important;
-    padding: 0.75rem 1rem;
-    margin: 0.25rem 0.5rem;
-    border-radius: 8px;
-    transition: all 0.3s;
+/* Hover state - subtle background */
+.nav-link:hover,
+.nav-menu a:hover {
+    background: rgba(102, 126, 234, 0.1) !important;
+    color: #667eea !important;
 }
 
-.nav-link:hover {
-    background: rgba(255, 255, 255, 0.1);
-    color: white !important;
+/* Active/Current page state */
+.nav-link.active,
+.nav-link:active,
+.nav-menu a.active {
+    background: rgba(102, 126, 234, 0.15) !important;
+    color: #667eea !important;
+    font-weight: 600;
 }
 
-.nav-link.active {
-    background: rgba(255, 255, 255, 0.2);
-    color: white !important;
+/* Remove any conflicting styles */
+.nav-link:not(:hover):not(.active) {
+    background: transparent !important;
+    color: #2d3748 !important;
+}
+
+/* Fix for the navbar container */
+.navbar {
+    background: white;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+.navbar-container,
+.nav-container {
+    background: white;
+}
+
+/* Ensure brand/logo doesn't affect menu items */
+.navbar-brand {
+    color: #1a202c !important;
+    font-weight: 700;
+    font-size: 22px;
+}
+
+/* Make sure the highlighted state is visible */
+.nav-link:focus {
+    outline: 2px solid #667eea;
+    outline-offset: 2px;
 }
 
 /* Responsive */

@@ -1,30 +1,28 @@
 @using Microsoft.AspNetCore.Components.Authorization
 @inject AuthenticationStateProvider AuthStateProvider
 
-<header class="main-header">
-    <div class="header-container">
-        <div class="header-left">
-            <a href="/" class="brand">
-                <span class="brand-icon">🔨</span>
-                <span class="brand-name">FindTradie</span>
-            </a>
-            <nav class="desktop-nav">
-                <NavLink href="/" class="nav-link" Match="NavLinkMatch.All">Home</NavLink>
-                <NavLink href="/find-tradies" class="nav-link">Find Tradies</NavLink>
-                <NavLink href="/how-it-works" class="nav-link">How It Works</NavLink>
-                <NavLink href="/post-job" class="nav-link">Post a Job</NavLink>
-                <NavLink href="/help" class="nav-link">Help Center</NavLink>
-                <NavLink href="/faq" class="nav-link">FAQ</NavLink>
-            </nav>
+<nav class="navbar main-header">
+    <div class="navbar-container header-container">
+        <a href="/" class="navbar-brand brand">
+            <span class="brand-icon">🔨</span>
+            <span class="brand-name">FindTradie</span>
+        </a>
+        <div class="nav-menu desktop-nav">
+            <NavLink href="/" class="nav-link" Match="NavLinkMatch.All">Home</NavLink>
+            <NavLink href="/find-tradies" class="nav-link">Find Tradies</NavLink>
+            <NavLink href="/how-it-works" class="nav-link">How It Works</NavLink>
+            <NavLink href="/post-job" class="nav-link">Post a Job</NavLink>
+            <NavLink href="/help" class="nav-link">Help Center</NavLink>
+            <NavLink href="/faq" class="nav-link">FAQ</NavLink>
         </div>
-        <div class="header-right">
+        <div class="nav-auth header-right">
             <AuthorizeView>
                 <Authorized>
                     <LoginDisplay />
                 </Authorized>
                 <NotAuthorized>
-                    <a href="/register" class="btn btn-outline">Register</a>
-                    <a href="/login" class="btn btn-primary">Log in</a>
+                    <a href="/register" class="btn btn-outline btn-register">Register</a>
+                    <a href="/login" class="btn btn-primary btn-login">Log in</a>
                 </NotAuthorized>
             </AuthorizeView>
             <button class="mobile-menu-toggle" @onclick="ToggleNavMenu">
@@ -51,7 +49,7 @@
             </NotAuthorized>
         </AuthorizeView>
     </nav>
-</header>
+</nav>
 
 @code {
     private bool collapseNavMenu = true;
