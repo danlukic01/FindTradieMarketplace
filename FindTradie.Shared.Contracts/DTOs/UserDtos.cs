@@ -11,16 +11,17 @@ public record CreateUserRequest(
     UserType UserType
 );
 
-public record UserProfileDto(
-    Guid Id,
-    string Email,
-    string FirstName,
-    string LastName,
-    string PhoneNumber,
-    UserType UserType,
-    DateTime CreatedAt,
-    bool IsVerified
-);
+public record UserProfileDto
+{
+    public Guid Id { get; init; }
+    public string Email { get; init; } = string.Empty;
+    public string FirstName { get; init; } = string.Empty;
+    public string LastName { get; init; } = string.Empty;
+    public string PhoneNumber { get; init; } = string.Empty;
+    public UserType UserType { get; init; }
+    public DateTime CreatedAt { get; init; }
+    public bool IsVerified { get; init; }
+}
 
 public record TradieProfileDto(
     Guid Id,
