@@ -1,4 +1,4 @@
-﻿/* Send Quote Page Styles - Fixed Layout */
+﻿/* Send Quote Page Styles - Complete Fix with Unique Classes */
 .send-quote-page {
     min-height: 100vh;
     background: #f5f7fa;
@@ -11,649 +11,420 @@
         padding: 0 24px;
     }
 
-/* Progress Indicator - Clean layout with labels below */
-.progress-indicator {
-    display: flex;
-    align-items: flex-start;
-    justify-content: center;
-    margin-bottom: 48px;
-    padding: 40px 20px 50px;
-    background: white;
-    border-radius: 12px;
-    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
-    position: relative;
-}
-
-    /* Create connecting line behind the steps */
-    .progress-indicator::before {
-        content: '';
-        position: absolute;
-        top: 64px; /* Align with center of circles */
-        left: 50%;
-        transform: translateX(-50%);
-        width: 240px; /* Adjust based on spacing */
-        height: 2px;
-        background: #e2e8f0;
-        z-index: 1;
+    /* Progress Indicator - Completely Fixed Layout */
+    .send-quote-page .progress-indicator {
+        margin-bottom: 48px;
+        padding: 32px;
+        background: white;
+        border-radius: 12px;
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+        display: flex !important;
+        flex-direction: column !important;
+        align-items: center !important;
     }
 
-.progress-step {
-    display: flex;
-    justify-content: flex-start;
-    text-align: center;
-    flex-direction: column;
-    align-items: center;
-    position: relative;
-    z-index: 2;
-    margin: 0 60px;
-}
-.step-label {
-    margin: 0;
-    padding: 0;
-    display: block;
-    width: 100%;
-    line-height: 1.4;
-}
-
-.step-number {
-    width: 48px;
-    height: 48px;
-    border-radius: 50%;
-    background: #e2e8f0;
-    color: #94a3b8;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-weight: 600;
-    font-size: 18px;
-    transition: all 0.3s;
-    border: 4px solid white;
-    box-shadow: 0 0 0 2px #e2e8f0;
-    margin-bottom: 16px; /* Space before label */
-}
-
-.progress-step.active .step-number {
-    background: #4f46e5;
-    color: white;
-    border-color: white;
-    box-shadow: 0 0 0 2px #4f46e5;
-}
-
-.step-label {
-    font-size: 14px;
-    color: #94a3b8;
-    font-weight: 500;
-    white-space: nowrap;
-    text-align: center;
-    transition: all 0.3s;
-}
-
-.progress-step.active .step-label {
-    color: #1a202c;
-    font-weight: 600;
-}
-
-/* Remove old progress-line styles since we're using ::before */
-.progress-line {
-    display: none;
-}
-
-/* Responsive adjustments */
-@media (max-width: 768px) {
-    .progress-indicator {
-        padding: 30px 10px 40px;
+    /* Container for numbered circles and lines ONLY */
+    .send-quote-page .progress-steps-container {
+        display: flex !important;
+        flex-direction: row !important;
+        align-items: center;
+        justify-content: center;
+        margin-bottom: 32px;
+        width: 100%;
     }
 
-        .progress-indicator::before {
-            width: 180px;
+    /* Progress step circle */
+    .send-quote-page .progress-step {
+        position: relative;
+        z-index: 2;
+        display: flex !important;
+        flex-direction: row !important;
+        align-items: center !important;
+    }
+
+        /* The numbered circles */
+        .send-quote-page .progress-step .step-number {
+            width: 50px !important;
+            height: 50px !important;
+            border-radius: 50%;
+            background: #e2e8f0;
+            color: #94a3b8;
+            display: flex !important;
+            align-items: center;
+            justify-content: center;
+            font-weight: 600;
+            font-size: 18px;
+            transition: all 0.3s;
+            border: 3px solid white;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+            position: relative !important;
+            top: auto !important;
+            left: auto !important;
+            flex-shrink: 0;
         }
 
-    .progress-step {
-        margin: 0 30px;
+        .send-quote-page .progress-step.active .step-number {
+            background: #4f46e5;
+            color: white;
+            box-shadow: 0 4px 12px rgba(79, 70, 229, 0.3);
+        }
+
+    /* Connecting lines between circles */
+    .send-quote-page .progress-connector {
+        width: 120px;
+        height: 2px;
+        background: #e2e8f0;
+        margin: 0 12px;
+        display: block !important;
     }
 
-    .step-number {
-        width: 40px;
-        height: 40px;
-        font-size: 16px;
+    /* Container for text labels - COMPLETELY SEPARATE */
+    .send-quote-page .progress-labels {
+        display: flex !important;
+        flex-direction: row !important;
+        justify-content: center;
+        align-items: flex-start;
+        gap: 0;
+        width: 100%;
+        max-width: 500px;
     }
 
-    .step-label {
-        font-size: 12px;
+        /* Individual text labels */
+        .send-quote-page .progress-labels .step-label {
+            flex: 1;
+            max-width: 150px;
+            font-size: 14px;
+            color: #94a3b8;
+            font-weight: 500;
+            text-align: center;
+            transition: all 0.3s;
+            padding: 0 8px;
+            position: static !important;
+            display: block !important;
+            white-space: normal !important;
+        }
+
+            .send-quote-page .progress-labels .step-label.active {
+                color: #1a202c;
+                font-weight: 600;
+            }
+
+    /* Remove any conflicting styles */
+    .send-quote-page .progress-line {
+        display: none !important;
     }
-}
 
-/* Form Header */
-.form-header {
-    text-align: center;
-    margin-bottom: 40px;
-}
-
-    .form-header h1 {
-        font-size: 2.25rem;
-        font-weight: 700;
-        color: #1a202c;
-        margin: 0 0 8px 0;
+    /* Form Header */
+    .send-quote-page .form-header {
+        text-align: center;
+        margin-bottom: 40px;
     }
 
-    .form-header p {
+        .send-quote-page .form-header h1 {
+            font-size: 2.25rem;
+            font-weight: 700;
+            color: #1a202c;
+            margin: 0 0 8px 0;
+        }
+
+        .send-quote-page .form-header p {
+            color: #64748b;
+            font-size: 16px;
+            margin: 0;
+        }
+
+    /* Job Summary Card */
+    .send-quote-page .job-summary-card {
+        background: white;
+        border-radius: 12px;
+        padding: 24px;
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+        margin-bottom: 32px;
+        border-left: 4px solid #4f46e5;
+    }
+
+        .send-quote-page .job-summary-card h3 {
+            font-size: 1.25rem;
+            font-weight: 600;
+            color: #1a202c;
+            margin: 0 0 16px 0;
+        }
+
+    .send-quote-page .job-meta {
+        display: flex;
+        gap: 24px;
+        margin-bottom: 16px;
+        flex-wrap: wrap;
+    }
+
+    .send-quote-page .meta-item {
+        display: flex;
+        align-items: center;
+        gap: 6px;
         color: #64748b;
-        font-size: 16px;
-        margin: 0;
+        font-size: 14px;
     }
 
-/* Job Summary Card - Fixed styling */
-.job-summary-card {
-    background: white;
-    border-radius: 12px;
-    padding: 24px;
-    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
-    margin-bottom: 32px;
-    border-left: 4px solid #4f46e5;
-}
+    .send-quote-page .job-description {
+        color: #475569;
+        line-height: 1.6;
+        margin: 0;
+        font-size: 15px;
+    }
 
-    .job-summary-card h3 {
-        font-size: 1.25rem;
+    /* Quote Form */
+    .send-quote-page .quote-form {
+        background: white;
+        border-radius: 12px;
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+        overflow: hidden;
+    }
+
+    /* Form Sections */
+    .send-quote-page .form-section {
+        padding: 32px;
+        border-bottom: 1px solid #e2e8f0;
+    }
+
+        .send-quote-page .form-section:last-of-type {
+            border-bottom: none;
+        }
+
+    .send-quote-page .section-title {
+        font-size: 1.125rem;
         font-weight: 600;
         color: #1a202c;
-        margin: 0 0 16px 0;
+        margin: 0 0 24px 0;
+        display: flex;
+        align-items: center;
+        gap: 12px;
     }
 
-.job-meta {
-    display: flex;
-    gap: 24px;
-    margin-bottom: 16px;
-    flex-wrap: wrap;
-}
-
-.meta-item {
-    display: flex;
-    align-items: center;
-    gap: 6px;
-    color: #64748b;
-    font-size: 14px;
-}
-
-.job-description {
-    color: #475569;
-    line-height: 1.6;
-    margin: 0;
-    font-size: 15px;
-}
-
-/* Quote Form Container */
-.quote-form-container {
-    width: 100%;
-}
-
-.quote-form {
-    background: white;
-    border-radius: 12px;
-    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
-    overflow: hidden;
-}
-
-/* Form Sections */
-.form-section {
-    padding: 32px;
-    border-bottom: 1px solid #e2e8f0;
-}
-
-    .form-section:last-of-type {
-        border-bottom: none;
-    }
-
-.section-title {
-    font-size: 1.125rem;
-    font-weight: 600;
-    color: #1a202c;
-    margin: 0 0 24px 0;
-    display: flex;
-    align-items: center;
-    gap: 12px;
-}
-
-.section-number {
-    width: 32px;
-    height: 32px;
-    background: #e0e7ff;
-    color: #4f46e5;
-    border-radius: 50%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 14px;
-    font-weight: 600;
-}
-
-/* Pricing Options - Fixed layout */
-.pricing-options {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 16px;
-    margin-bottom: 24px;
-}
-
-.pricing-option {
-    display: block;
-    padding: 20px;
-    border: 2px solid #e2e8f0;
-    border-radius: 8px;
-    cursor: pointer;
-    transition: all 0.2s;
-    background: white;
-}
-
-    .pricing-option:hover {
-        border-color: #cbd5e0;
-        background: #f8fafc;
-    }
-
-    .pricing-option.selected {
-        border-color: #4f46e5;
-        background: #f0f4ff;
-    }
-
-    .pricing-option input[type="radio"] {
-        display: none;
-    }
-
-.option-content {
-    display: flex;
-    flex-direction: column;
-    gap: 4px;
-}
-
-.option-title {
-    font-weight: 600;
-    color: #1a202c;
-    font-size: 16px;
-}
-
-.option-desc {
-    font-size: 14px;
-    color: #64748b;
-}
-
-/* Price Input - Fixed styling */
-.price-input-group {
-    margin-bottom: 20px;
-}
-
-    .price-input-group label {
-        display: block;
-        font-size: 14px;
-        font-weight: 600;
-        color: #475569;
-        margin-bottom: 8px;
-    }
-
-.price-input-wrapper {
-    display: flex;
-    align-items: center;
-    position: relative;
-}
-
-.currency-symbol {
-    position: absolute;
-    left: 16px;
-    font-size: 20px;
-    color: #64748b;
-    font-weight: 500;
-}
-
-.price-input,
-.hours-input {
-    width: 100%;
-    padding: 14px 16px 14px 40px;
-    border: 2px solid #e2e8f0;
-    border-radius: 8px;
-    font-size: 20px;
-    font-weight: 600;
-    color: #1a202c;
-    transition: all 0.2s;
-    background: white;
-}
-
-    .price-input:focus,
-    .hours-input:focus {
-        outline: none;
-        border-color: #4f46e5;
-        box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.1);
-    }
-
-.hours-input {
-    padding-left: 16px;
-}
-
-.currency-suffix {
-    margin-left: 12px;
-    color: #64748b;
-    font-size: 14px;
-    white-space: nowrap;
-}
-
-.helper-text {
-    display: block;
-    margin-top: 8px;
-    font-size: 13px;
-    color: #64748b;
-}
-
-.hourly-inputs {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 20px;
-}
-
-/* Message Section */
-.message-tips {
-    background: #f0f4ff;
-    border-radius: 8px;
-    padding: 20px;
-    margin-bottom: 20px;
-    border: 1px solid #e0e7ff;
-}
-
-    .message-tips h4 {
-        font-size: 14px;
-        font-weight: 600;
-        color: #1a202c;
-        margin: 0 0 12px 0;
-    }
-
-    .message-tips ul {
-        margin: 0;
-        padding-left: 20px;
-    }
-
-    .message-tips li {
-        color: #475569;
-        font-size: 13px;
-        line-height: 1.8;
-    }
-
-.message-textarea {
-    width: 100%;
-    padding: 16px;
-    border: 2px solid #e2e8f0;
-    border-radius: 8px;
-    font-size: 14px;
-    line-height: 1.6;
-    color: #1a202c;
-    resize: vertical;
-    min-height: 200px;
-    transition: all 0.2s;
-    font-family: inherit;
-}
-
-    .message-textarea:focus {
-        outline: none;
-        border-color: #4f46e5;
-        box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.1);
-    }
-
-.character-count {
-    text-align: right;
-    font-size: 12px;
-    color: #64748b;
-    margin-top: 8px;
-}
-
-/* Availability Options */
-.availability-options {
-    display: flex;
-    flex-direction: column;
-    gap: 12px;
-    margin-bottom: 20px;
-}
-
-.availability-option {
-    display: flex;
-    align-items: center;
-    gap: 12px;
-    cursor: pointer;
-    padding: 8px 0;
-}
-
-    .availability-option input[type="radio"] {
-        width: 20px;
-        height: 20px;
-        cursor: pointer;
-        accent-color: #4f46e5;
-    }
-
-    .availability-option span {
-        font-size: 15px;
-        color: #475569;
-    }
-
-.date-input {
-    padding: 12px 16px;
-    border: 2px solid #e2e8f0;
-    border-radius: 8px;
-    font-size: 14px;
-    color: #1a202c;
-    max-width: 200px;
-}
-
-/* Checkbox Group */
-.checkbox-group {
-    display: flex;
-    flex-direction: column;
-    gap: 16px;
-}
-
-.checkbox-option {
-    display: flex;
-    align-items: center;
-    gap: 12px;
-    cursor: pointer;
-}
-
-    .checkbox-option input[type="checkbox"] {
-        width: 20px;
-        height: 20px;
-        cursor: pointer;
-        accent-color: #4f46e5;
-    }
-
-    .checkbox-option span {
-        font-size: 15px;
-        color: #475569;
-    }
-
-/* Upload Area */
-.upload-area {
-    border: 2px dashed #cbd5e0;
-    border-radius: 8px;
-    padding: 40px;
-    text-align: center;
-    background: #f8fafc;
-    transition: all 0.3s;
-    cursor: pointer;
-}
-
-    .upload-area:hover {
-        border-color: #4f46e5;
-        background: #f0f4ff;
-    }
-
-.upload-icon {
-    font-size: 48px;
-    margin-bottom: 12px;
-}
-
-.upload-area p {
-    font-size: 16px;
-    color: #1a202c;
-    margin: 0 0 8px 0;
-}
-
-.upload-hint {
-    display: block;
-    font-size: 13px;
-    color: #64748b;
-    margin-bottom: 20px;
-}
-
-/* Form Actions */
-.form-actions {
-    padding: 32px;
-    background: #f8fafc;
-    display: flex;
-    justify-content: space-between;
-    gap: 16px;
-    border-top: 1px solid #e2e8f0;
-}
-
-/* Review Container */
-.review-container {
-    background: white;
-    border-radius: 12px;
-    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
-    overflow: hidden;
-}
-
-.review-card {
-    padding: 32px;
-}
-
-.review-section-title {
-    font-size: 1.25rem;
-    font-weight: 600;
-    color: #1a202c;
-    margin: 0 0 24px 0;
-    padding-bottom: 16px;
-    border-bottom: 2px solid #e2e8f0;
-}
-
-.review-item {
-    display: flex;
-    justify-content: space-between;
-    align-items: flex-start;
-    padding: 16px 0;
-    border-bottom: 1px solid #f1f5f9;
-}
-
-.review-label {
-    font-size: 14px;
-    color: #64748b;
-    font-weight: 500;
-}
-
-.review-value {
-    font-size: 15px;
-    color: #1a202c;
-    font-weight: 600;
-    text-align: right;
-    max-width: 60%;
-}
-
-    .review-value.highlight {
+    .send-quote-page .section-number {
+        width: 32px;
+        height: 32px;
+        background: #e0e7ff;
         color: #4f46e5;
-        font-size: 18px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 14px;
+        font-weight: 600;
     }
 
-/* Success Container */
-.success-container {
-    background: white;
-    border-radius: 12px;
-    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
-    padding: 48px;
-    text-align: center;
-}
-
-.success-icon {
-    font-size: 72px;
-    margin-bottom: 24px;
-}
-
-.success-container h1 {
-    font-size: 2rem;
-    font-weight: 700;
-    color: #10b981;
-    margin: 0 0 12px 0;
-}
-
-/* Buttons - Consistent styling */
-.btn {
-    padding: 14px 28px;
-    border: none;
-    border-radius: 8px;
-    font-size: 15px;
-    font-weight: 600;
-    cursor: pointer;
-    transition: all 0.2s;
-    text-decoration: none;
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    gap: 8px;
-}
-
-.btn-primary {
-    background: #4f46e5;
-    color: white;
-}
-
-    .btn-primary:hover:not(:disabled) {
-        background: #4338ca;
-        transform: translateY(-1px);
-        box-shadow: 0 10px 20px rgba(79, 70, 229, 0.2);
+    /* Pricing Options */
+    .send-quote-page .pricing-options {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 16px;
+        margin-bottom: 24px;
     }
 
-.btn-outline {
-    background: white;
-    color: #4f46e5;
-    border: 2px solid #4f46e5;
-}
-
-    .btn-outline:hover {
-        background: #f0f4ff;
+    .send-quote-page .pricing-option {
+        display: block;
+        padding: 20px;
+        border: 2px solid #e2e8f0;
+        border-radius: 8px;
+        cursor: pointer;
+        transition: all 0.2s;
+        background: white;
     }
 
-.btn-lg {
-    padding: 16px 32px;
-    font-size: 16px;
-}
+        .send-quote-page .pricing-option:hover {
+            border-color: #cbd5e0;
+            background: #f8fafc;
+        }
 
-.btn:disabled {
-    opacity: 0.5;
-    cursor: not-allowed;
-}
+        .send-quote-page .pricing-option.selected {
+            border-color: #4f46e5;
+            background: #f0f4ff;
+        }
+
+        .send-quote-page .pricing-option input[type="radio"] {
+            display: none;
+        }
+
+    .send-quote-page .option-content {
+        display: flex;
+        flex-direction: column;
+        gap: 4px;
+    }
+
+    .send-quote-page .option-title {
+        font-weight: 600;
+        color: #1a202c;
+        font-size: 16px;
+    }
+
+    .send-quote-page .option-desc {
+        font-size: 14px;
+        color: #64748b;
+    }
+
+    /* Price Inputs */
+    .send-quote-page .price-input-group {
+        margin-bottom: 20px;
+    }
+
+        .send-quote-page .price-input-group label {
+            display: block;
+            font-size: 14px;
+            font-weight: 600;
+            color: #475569;
+            margin-bottom: 8px;
+        }
+
+    .send-quote-page .price-input-wrapper {
+        display: flex;
+        align-items: center;
+        position: relative;
+    }
+
+    .send-quote-page .currency-symbol {
+        position: absolute;
+        left: 16px;
+        font-size: 20px;
+        color: #64748b;
+        font-weight: 500;
+    }
+
+    .send-quote-page .price-input,
+    .send-quote-page .hours-input {
+        width: 100%;
+        padding: 14px 16px 14px 40px;
+        border: 2px solid #e2e8f0;
+        border-radius: 8px;
+        font-size: 20px;
+        font-weight: 600;
+        color: #1a202c;
+        transition: all 0.2s;
+        background: white;
+    }
+
+        .send-quote-page .price-input:focus,
+        .send-quote-page .hours-input:focus {
+            outline: none;
+            border-color: #4f46e5;
+            box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.1);
+        }
+
+    /* Message Section */
+    .send-quote-page .message-textarea {
+        width: 100%;
+        padding: 16px;
+        border: 2px solid #e2e8f0;
+        border-radius: 8px;
+        font-size: 14px;
+        line-height: 1.6;
+        color: #1a202c;
+        resize: vertical;
+        min-height: 200px;
+        transition: all 0.2s;
+        font-family: inherit;
+    }
+
+        .send-quote-page .message-textarea:focus {
+            outline: none;
+            border-color: #4f46e5;
+            box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.1);
+        }
+
+    /* Form Actions */
+    .send-quote-page .form-actions {
+        padding: 32px;
+        background: #f8fafc;
+        display: flex;
+        justify-content: space-between;
+        gap: 16px;
+        border-top: 1px solid #e2e8f0;
+    }
+
+    /* Buttons */
+    .send-quote-page .btn {
+        padding: 14px 28px;
+        border: none;
+        border-radius: 8px;
+        font-size: 15px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.2s;
+        text-decoration: none;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+    }
+
+    .send-quote-page .btn-primary {
+        background: #4f46e5;
+        color: white;
+    }
+
+        .send-quote-page .btn-primary:hover:not(:disabled) {
+            background: #4338ca;
+            transform: translateY(-1px);
+            box-shadow: 0 10px 20px rgba(79, 70, 229, 0.2);
+        }
+
+    .send-quote-page .btn-outline {
+        background: white;
+        color: #4f46e5;
+        border: 2px solid #4f46e5;
+    }
+
+        .send-quote-page .btn-outline:hover {
+            background: #f0f4ff;
+        }
+
+    .send-quote-page .btn-lg {
+        padding: 16px 32px;
+        font-size: 16px;
+    }
+
+    /* Success Container */
+    .send-quote-page .success-container {
+        background: white;
+        border-radius: 12px;
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+        padding: 48px;
+        text-align: center;
+    }
+
+    .send-quote-page .success-icon {
+        font-size: 72px;
+        margin-bottom: 24px;
+    }
 
 /* Responsive Design */
 @media (max-width: 768px) {
-    .send-quote-page .container {
-        padding: 0 16px;
+    .send-quote-page .progress-steps-container {
+        transform: scale(0.85);
     }
 
-    .progress-indicator {
-        padding: 20px;
+    .send-quote-page .progress-connector {
+        width: 80px;
     }
 
-    .progress-line {
-        max-width: 60px;
+    .send-quote-page .progress-labels {
+        flex-direction: column;
+        align-items: center;
+        gap: 12px;
     }
 
-    .step-label {
-        font-size: 12px;
-    }
+        .send-quote-page .progress-labels .step-label {
+            max-width: none;
+        }
 
-    .pricing-options {
+    .send-quote-page .pricing-options {
         grid-template-columns: 1fr;
     }
 
-    .hourly-inputs {
-        grid-template-columns: 1fr;
-    }
-
-    .form-actions {
+    .send-quote-page .form-actions {
         flex-direction: column;
     }
 
-    .btn {
+    .send-quote-page .btn {
         width: 100%;
     }
 }

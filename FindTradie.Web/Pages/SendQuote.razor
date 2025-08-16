@@ -4,31 +4,31 @@
 @inject IJobApiService JobService
 @inject NavigationManager Navigation
 @inject AuthenticationStateProvider AuthStateProvider
-
 <PageTitle>Send Quote - FindTradie</PageTitle>
-
 <link rel="stylesheet" href="css/send-quote.css" />
-
 <div class="send-quote-page">
     <div class="container">
         <!-- Progress Indicator -->
         <div class="progress-indicator">
-            <div class="progress-step active">
-                <span class="step-number">1</span>
-                <span class="progress-line"></span>
-                <span class="step-label">Quote Details</span>
+            <div class="progress-steps-container">
+                <div class="progress-step active">
+                    <span class="step-number">1</span>
+                </div>
+                <span class="progress-connector"></span>
+                <div class="progress-step @(currentStep >= 2 ? "active" : "")">
+                    <span class="step-number">2</span>
+                </div>
+                <span class="progress-connector"></span>
+                <div class="progress-step @(currentStep >= 3 ? "active" : "")">
+                    <span class="step-number">3</span>
+                </div>
             </div>
-            <div class="progress-step @(currentStep >= 2 ? "active" : "")">
-                <span class="step-number">2</span>
-                <span class="step-label">Review</span>
-            </div>
-            <div class="progress-step @(currentStep >= 3 ? "active" : "")">
-                <span class="progress-line"></span>
-                <span class="step-number">3</span>
-                <span class="step-label">Submit</span>
+            <div class="progress-labels">
+                <span class="step-label active">Quote Details</span>
+                <span class="step-label @(currentStep >= 2 ? "active" : "")">Review</span>
+                <span class="step-label @(currentStep >= 3 ? "active" : "")">Submit</span>
             </div>
         </div>
-
         @if (isLoading)
         {
             <div class="loading-container">
@@ -45,7 +45,6 @@
                     <h1>Send Your Quote</h1>
                     <p>Provide a competitive quote for this job</p>
                 </div>
-
                 <!-- Job Summary Card -->
                 <div class="job-summary-card">
                     <h3>@job.Title</h3>
@@ -62,7 +61,6 @@
                     </div>
                     <p class="job-description">@job.Description</p>
                 </div>
-
                 <!-- Quote Form -->
                 <div class="quote-form">
                     <!-- Pricing Section -->
@@ -71,7 +69,6 @@
                             <span class="section-number">1</span>
                             Quote Amount
                         </h2>
-
                         <div class="pricing-options">
                             <label class="pricing-option @(pricingType == "fixed" ? "selected" : "")">
                                 <input type="radio" name="pricingType" value="fixed"
@@ -81,7 +78,6 @@
                                     <span class="option-desc">One total price for the entire job</span>
                                 </div>
                             </label>
-
                             <label class="pricing-option @(pricingType == "hourly" ? "selected" : "")">
                                 <input type="radio" name="pricingType" value="hourly"
                                        @onchange='() => pricingType = "hourly"' checked="@(pricingType == "hourly")" />
@@ -91,7 +87,6 @@
                                 </div>
                             </label>
                         </div>
-
                         @if (pricingType == "fixed")
                         {
                             <div class="price-input-group">
@@ -116,7 +111,6 @@
                                         <span class="currency-suffix">per hour</span>
                                     </div>
                                 </div>
-
                                 <div class="price-input-group">
                                     <label for="estimatedHours">Estimated Hours</label>
                                     <input type="number" id="estimatedHours" class="hours-input"
@@ -126,14 +120,12 @@
                             </div>
                         }
                     </div>
-
                     <!-- Message Section -->
                     <div class="form-section">
                         <h2 class="section-title">
                             <span class="section-number">2</span>
                             Your Message
                         </h2>
-
                         <div class="message-tips">
                             <h4>Tips for a winning quote:</h4>
                             <ul>
@@ -144,20 +136,17 @@
                                 <li>Mention your availability</li>
                             </ul>
                         </div>
-
                         <textarea class="message-textarea" @bind="quoteMessage"
                                   placeholder="Hi [Customer Name],&#10;&#10;I'd be happy to help with your [job type]. I have [X years] of experience in [relevant field]...&#10;&#10;My quote includes:&#10;- [Service 1]&#10;- [Service 2]&#10;&#10;I can start [availability].&#10;&#10;Best regards,&#10;[Your Name]"
                                   rows="12"></textarea>
                         <div class="character-count">@quoteMessage.Length / 2000 characters</div>
                     </div>
-
                     <!-- Availability Section -->
                     <div class="form-section">
                         <h2 class="section-title">
                             <span class="section-number">3</span>
                             Availability
                         </h2>
-
                         <div class="availability-options">
                             <label class="availability-option">
                                 <input type="radio" name="availability" value="immediately"
@@ -175,20 +164,17 @@
                                 <span>Specific date</span>
                             </label>
                         </div>
-
                         @if (availability == "custom")
                         {
                             <input type="date" class="date-input" @bind="customAvailabilityDate" min="@DateTime.Now.ToString("yyyy-MM-dd")" />
                         }
                     </div>
-
                     <!-- Additional Options -->
                     <div class="form-section">
                         <h2 class="section-title">
                             <span class="section-number">4</span>
                             Additional Information
                         </h2>
-
                         <div class="checkbox-group">
                             <label class="checkbox-option">
                                 <input type="checkbox" @bind="includesCallout" />
@@ -203,7 +189,6 @@
                                 <span>Work comes with warranty</span>
                             </label>
                         </div>
-
                         @if (hasWarranty)
                         {
                             <div class="warranty-input">
@@ -218,14 +203,12 @@
                             </div>
                         }
                     </div>
-
                     <!-- Attachments Section -->
                     <div class="form-section">
                         <h2 class="section-title">
                             <span class="section-number">5</span>
                             Attachments (Optional)
                         </h2>
-
                         <div class="upload-area">
                             <div class="upload-icon">📎</div>
                             <p>Drag and drop files here or click to browse</p>
@@ -233,7 +216,6 @@
                             <button class="btn btn-outline">Choose Files</button>
                         </div>
                     </div>
-
                     <!-- Form Actions -->
                     <div class="form-actions">
                         <button class="btn btn-outline btn-lg" @onclick="Cancel">Cancel</button>
@@ -252,15 +234,12 @@
                     <h1>Review Your Quote</h1>
                     <p>Please review your quote details before submitting</p>
                 </div>
-
                 <div class="review-card">
                     <h3 class="review-section-title">Quote Summary</h3>
-
                     <div class="review-item">
                         <span class="review-label">Job:</span>
                         <span class="review-value">@job.Title</span>
                     </div>
-
                     <div class="review-item">
                         <span class="review-label">Quote Amount:</span>
                         <span class="review-value highlight">
@@ -274,19 +253,16 @@
                             }
                         </span>
                     </div>
-
                     <div class="review-item">
                         <span class="review-label">Availability:</span>
                         <span class="review-value">@GetAvailabilityText()</span>
                     </div>
-
                     <div class="review-item">
                         <span class="review-label">Includes:</span>
                         <span class="review-value">
                             @GetIncludedItems()
                         </span>
                     </div>
-
                     @if (hasWarranty)
                     {
                         <div class="review-item">
@@ -294,20 +270,17 @@
                             <span class="review-value">@warrantyPeriod</span>
                         </div>
                     }
-
                     <div class="review-message">
                         <h4>Your Message:</h4>
                         <div class="message-preview">@quoteMessage</div>
                     </div>
                 </div>
-
                 <div class="terms-section">
                     <label class="checkbox-option">
                         <input type="checkbox" @bind="acceptedTerms" />
                         <span>I agree to the <a href="/terms" target="_blank">Terms of Service</a> and understand that my quote is binding if accepted</span>
                     </label>
                 </div>
-
                 <div class="form-actions">
                     <button class="btn btn-outline btn-lg" @onclick="BackToEdit">
                         <i class="icon-arrow-left"></i> Back to Edit
@@ -333,7 +306,6 @@
                 <div class="success-icon">✅</div>
                 <h1>Quote Submitted Successfully!</h1>
                 <p>Your quote has been sent to the customer. They will review it and get back to you soon.</p>
-
                 <div class="success-details">
                     <div class="detail-item">
                         <span class="detail-label">Quote Reference:</span>
@@ -344,7 +316,6 @@
                         <span class="detail-value">@DateTime.Now.ToString("dd MMM yyyy, h:mm tt")</span>
                     </div>
                 </div>
-
                 <div class="next-steps">
                     <h3>What happens next?</h3>
                     <ul>
@@ -354,7 +325,6 @@
                         <li>You can track this quote in your dashboard</li>
                     </ul>
                 </div>
-
                 <div class="success-actions">
                     <a href="/my-quotes" class="btn btn-outline btn-lg">View My Quotes</a>
                     <a href="/browse-jobs" class="btn btn-primary btn-lg">Browse More Jobs</a>
@@ -363,15 +333,12 @@
         }
     </div>
 </div>
-
 @code {
     [Parameter] public Guid JobId { get; set; }
-
     private JobSummaryDto job = new();
     private int currentStep = 1;
     private bool isLoading = true;
     private bool isSubmitting = false;
-
     // Form fields
     private string pricingType = "fixed";
     private decimal fixedPrice = 0;
@@ -385,12 +352,10 @@
     private bool hasWarranty = false;
     private string warrantyPeriod = "";
     private bool acceptedTerms = false;
-
     protected override async Task OnInitializedAsync()
     {
         await LoadJobDetails();
     }
-
     private async Task LoadJobDetails()
     {
         isLoading = true;
@@ -413,7 +378,6 @@
             isLoading = false;
         }
     }
-
     private bool IsFormValid()
     {
         if (pricingType == "fixed" && fixedPrice <= 0) return false;
@@ -421,7 +385,6 @@
         if (string.IsNullOrWhiteSpace(quoteMessage)) return false;
         return true;
     }
-
     private void ProceedToReview()
     {
         if (IsFormValid())
@@ -429,12 +392,10 @@
             currentStep = 2;
         }
     }
-
     private void BackToEdit()
     {
         currentStep = 1;
     }
-
     private async Task SubmitQuote()
     {
         isSubmitting = true;
@@ -449,12 +410,10 @@
             isSubmitting = false;
         }
     }
-
     private void Cancel()
     {
         Navigation.NavigateTo($"/jobs/{JobId}");
     }
-
     private string GetAvailabilityText()
     {
         return availability switch
@@ -465,7 +424,6 @@
             _ => "Not specified"
         };
     }
-
     private string GetIncludedItems()
     {
         var items = new List<string>();
@@ -474,7 +432,6 @@
         if (hasWarranty) items.Add($"Warranty ({warrantyPeriod})");
         return items.Any() ? string.Join(", ", items) : "Labor only";
     }
-
     // DTOs
     private class JobSummaryDto
     {
