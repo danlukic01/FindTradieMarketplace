@@ -1,0 +1,355 @@
+@page "/find-tradies"
+@using FindTradie.Shared.Domain.Enums
+@using FindTradie.Services.TradieManagement.DTOs
+@inject FindTradie.Web.Services.ITradieApiService TradieService
+@inject NavigationManager Navigation
+
+<PageTitle>Find Trusted Local Tradies - FindTradie</PageTitle>
+
+<div class="find-tradies-page">
+    <!-- Hero Search Section -->
+    <section class="search-hero">
+        <div class="container">
+            <h1>Find Trusted Local Tradies</h1>
+            <p>Browse verified professionals in your area</p>
+            
+            <div class="search-filters-card">
+                <div class="filters-row">
+                    <div class="filter-group">
+                        <label>Service Type</label>
+                        <select @bind="selectedCategory" class="form-control">
+                            <option value="">All Services</option>
+                            <option value="Plumbing">Plumbing</option>
+                            <option value="Electrical">Electrical</option>
+                            <option value="Carpentry">Carpentry</option>
+                            <option value="Painting">Painting</option>
+                            <option value="Roofing">Roofing</option>
+                            <option value="HVAC">Heating & Cooling</option>
+                            <option value="Landscaping">Landscaping</option>
+                            <option value="Cleaning">Cleaning</option>
+                            <option value="Handyman">Handyman</option>
+                        </select>
+                    </div>
+                    
+                    <div class="filter-group">
+                        <label>Location</label>
+                        <input type="text" @bind="location" class="form-control" 
+                               placeholder="Enter suburb or postcode" />
+                    </div>
+                    
+                    <div class="filter-group">
+                        <label>Availability</label>
+                        <select @bind="availability" class="form-control">
+                            <option value="">Any Time</option>
+                            <option value="now">Available Now</option>
+                            <option value="today">Today</option>
+                            <option value="week">This Week</option>
+                            <option value="month">This Month</option>
+                        </select>
+                    </div>
+                    
+                    <div class="filter-group">
+                        <label>Sort By</label>
+                        <select @bind="sortBy" class="form-control">
+                            <option value="rating">Highest Rated</option>
+                            <option value="reviews">Most Reviews</option>
+                            <option value="distance">Nearest</option>
+                            <option value="price">Price (Low to High)</option>
+                        </select>
+                    </div>
+                    
+                    <div class="filter-group filter-action">
+                        <label>&nbsp;</label>
+                        <button class="btn btn-primary" @onclick="SearchTradies">
+                            <svg width="20" height="20"></svg>
+                            Search
+                        </button>
+                    </div>
+                </div>
+                
+                <!-- Advanced Filters -->
+                <div class="advanced-filters">
+                    <button class="btn-text" @onclick="ToggleAdvanced">
+                        @(showAdvanced ? "Hide" : "Show") Advanced Filters
+                        <span class="chevron @(showAdvanced ? "up" : "down")">▼</span>
+                    </button>
+                    
+                    @if (showAdvanced)
+                    {
+                        <div class="advanced-options">
+                            <label class="checkbox-label">
+                                <input type="checkbox" @bind="verifiedOnly" />
+                                <span>Verified Only</span>
+                            </label>
+                            <label class="checkbox-label">
+                                <input type="checkbox" @bind="insuredOnly" />
+                                <span>Insured Only</span>
+                            </label>
+                            <label class="checkbox-label">
+                                <input type="checkbox" @bind="emergencyAvailable" />
+                                <span>Emergency Services</span>
+                            </label>
+                            <div class="price-range">
+                                <label>Hourly Rate</label>
+                                <div class="range-inputs">
+                                    <input type="number" placeholder="Min $" @bind="minRate" />
+                                    <span>to</span>
+                                    <input type="number" placeholder="Max $" @bind="maxRate" />
+                                </div>
+                            </div>
+                        </div>
+                    }
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Results Section -->
+    <section class="search-results">
+        <div class="container">
+            <div class="results-header">
+                <h2>@tradies.Count Tradies Found</h2>
+                <div class="view-toggle">
+                    <button class="view-btn @(viewMode == "grid" ? "active" : "")" 
+                            @onclick="() => viewMode = 'grid'">
+                        <svg></svg>
+                    </button>
+                    <button class="view-btn @(viewMode == "list" ? "active" : "")" 
+                            @onclick="() => viewMode = 'list'">
+                        <svg></svg>
+                    </button>
+                </div>
+            </div>
+
+            @if (isLoading)
+            {
+                <div class="loading-state">
+                    <div class="spinner"></div>
+                    <p>Finding the best tradies for you...</p>
+                </div>
+            }
+            else if (!tradies.Any())
+            {
+                <div class="no-results">
+                    <svg width="64" height="64"></svg>
+                    <h3>No tradies found</h3>
+                    <p>Try adjusting your filters or search in a different area</p>
+                    <button class="btn btn-primary" @onclick="ResetFilters">
+                        Reset Filters
+                    </button>
+                </div>
+            }
+            else
+            {
+                <div class="tradies-grid @viewMode">
+                    @foreach (var tradie in tradies)
+                    {
+                        <div class="tradie-card" @onclick="() => ViewProfile(tradie.Id)">
+                            <div class="tradie-header">
+                                @if (tradie.IsAvailable)
+                                {
+                                    <span class="badge-available">Available Now</span>
+                                }
+                                @if (tradie.IsVerified)
+                                {
+                                    <span class="badge-verified">✓ Verified</span>
+                                }
+                            </div>
+                            
+                            <div class="tradie-main">
+                                <div class="tradie-avatar">
+                                    @if (!string.IsNullOrEmpty(tradie.ProfileImage))
+                                    {
+                                        <img src="@tradie.ProfileImage" alt="@tradie.BusinessName" />
+                                    }
+                                    else
+                                    {
+                                        <span>@tradie.Initials</span>
+                                    }
+                                </div>
+                                
+                                <div class="tradie-info">
+                                    <h3>@tradie.BusinessName</h3>
+                                    <p class="tradie-tagline">@tradie.Tagline</p>
+                                    
+                                    <div class="rating-row">
+                                        <div class="stars">
+                                            @for (int i = 1; i <= 5; i++)
+                                            {
+                                                <span class="star @(i <= tradie.Rating ? "filled" : "")">★</span>
+                                            }
+                                        </div>
+                                        <span class="rating-text">@tradie.Rating.ToString("0.0")</span>
+                                        <span class="reviews">(@tradie.ReviewCount reviews)</span>
+                                    </div>
+                                    
+                                    <div class="services-tags">
+                                        @foreach (var service in tradie.Services.Take(3))
+                                        {
+                                            <span class="service-tag">@service</span>
+                                        }
+                                        @if (tradie.Services.Count > 3)
+                                        {
+                                            <span class="more-tag">+@(tradie.Services.Count - 3) more</span>
+                                        }
+                                    </div>
+                                    
+                                    <div class="tradie-meta">
+                                        <span class="meta-item">
+                                            <svg width="16" height="16"></svg>
+                                            @tradie.Distance km away
+                                        </span>
+                                        <span class="meta-item">
+                                            <svg width="16" height="16"></svg>
+                                            $@tradie.HourlyRate/hr
+                                        </span>
+                                        <span class="meta-item">
+                                            <svg width="16" height="16"></svg>
+                                            @tradie.YearsExperience years exp
+                                        </span>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="tradie-footer">
+                                <button class="btn btn-outline" @onclick:stopPropagation="true" 
+                                        @onclick="() => ViewProfile(tradie.Id)">
+                                    View Profile
+                                </button>
+                                <button class="btn btn-primary" @onclick:stopPropagation="true" 
+                                        @onclick="() => RequestQuote(tradie.Id)">
+                                    Get Quote
+                                </button>
+                            </div>
+                        </div>
+                    }
+                </div>
+                
+                <!-- Pagination -->
+                <div class="pagination">
+                    <button class="page-btn" disabled="@(currentPage == 1)" 
+                            @onclick="() => ChangePage(currentPage - 1)">
+                        Previous
+                    </button>
+                    @for (int i = 1; i <= totalPages; i++)
+                    {
+                        <button class="page-number @(i == currentPage ? "active" : "")" 
+                                @onclick="() => ChangePage(i)">
+                            @i
+                        </button>
+                    }
+                    <button class="page-btn" disabled="@(currentPage == totalPages)" 
+                            @onclick="() => ChangePage(currentPage + 1)">
+                        Next
+                    </button>
+                </div>
+            }
+        </div>
+    </section>
+</div>
+
+@code {
+    private List<TradieViewModel> tradies = new();
+    private string selectedCategory = "";
+    private string location = "";
+    private string availability = "";
+    private string sortBy = "rating";
+    private bool showAdvanced = false;
+    private bool verifiedOnly = false;
+    private bool insuredOnly = false;
+    private bool emergencyAvailable = false;
+    private decimal? minRate;
+    private decimal? maxRate;
+    private string viewMode = "grid";
+    private bool isLoading = false;
+    private int currentPage = 1;
+    private int totalPages = 1;
+    
+    protected override async Task OnInitializedAsync()
+    {
+        await SearchTradies();
+    }
+    
+    private void ToggleAdvanced() => showAdvanced = !showAdvanced;
+
+    private async Task SearchTradies()
+    {
+        isLoading = true;
+        tradies.Clear();
+        try
+        {
+            var request = new SearchTradiesRequest(
+                Latitude: -37.8136,
+                Longitude: 144.9631,
+                RadiusKm: 25,
+                Categories: !string.IsNullOrEmpty(selectedCategory) ?
+                    new List<ServiceCategory> { Enum.Parse<ServiceCategory>(selectedCategory) } : null,
+                AvailableNow: availability == "now" ? true : (bool?)null,
+                EmergencyOnly: emergencyAvailable ? true : (bool?)null,
+                PageNumber: currentPage,
+                PageSize: 20
+            );
+
+            var response = await TradieService.SearchTradiesAsync(request);
+            if (response.Success && response.Data != null)
+            {
+                tradies = response.Data.Select(MapToViewModel).ToList();
+            }
+        }
+        finally
+        {
+            isLoading = false;
+        }
+    }
+
+    private TradieViewModel MapToViewModel(TradieProfileSummaryDto dto) => new()
+    {
+        Id = dto.Id,
+        BusinessName = dto.BusinessName,
+        Tagline = dto.Description,
+        Rating = dto.Rating,
+        ReviewCount = dto.ReviewCount,
+        IsAvailable = dto.IsAvailable,
+        IsVerified = dto.VerificationStatus == VerificationStatus.Verified,
+        Services = dto.ServiceCategories.Select(c => c.ToString()).ToList(),
+        Distance = dto.DistanceKm,
+        HourlyRate = dto.HourlyRate,
+        YearsExperience = 0,
+        Initials = new string(dto.BusinessName.Split(' ', StringSplitOptions.RemoveEmptyEntries).Select(s => s[0]).ToArray()).ToUpper()
+    };
+
+    private void ViewProfile(Guid id) => Navigation.NavigateTo($"/tradie/{id}");
+    private void RequestQuote(Guid id) => Navigation.NavigateTo($"/post-job?tradieId={id}");
+    private async Task ChangePage(int page)
+    {
+        if (page < 1) return;
+        currentPage = page;
+        await SearchTradies();
+    }
+    private void ResetFilters()
+    {
+        selectedCategory = location = availability = "";
+        sortBy = "rating";
+        verifiedOnly = insuredOnly = emergencyAvailable = false;
+        minRate = maxRate = null;
+        currentPage = 1;
+        _ = SearchTradies();
+    }
+
+    private class TradieViewModel
+    {
+        public Guid Id { get; set; }
+        public bool IsAvailable { get; set; }
+        public bool IsVerified { get; set; }
+        public string? ProfileImage { get; set; }
+        public string BusinessName { get; set; } = string.Empty;
+        public string Tagline { get; set; } = string.Empty;
+        public double Rating { get; set; }
+        public int ReviewCount { get; set; }
+        public List<string> Services { get; set; } = new();
+        public double Distance { get; set; }
+        public decimal HourlyRate { get; set; }
+        public int YearsExperience { get; set; }
+        public string Initials { get; set; } = string.Empty;
+    }
+}

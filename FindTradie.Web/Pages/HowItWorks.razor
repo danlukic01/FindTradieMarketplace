@@ -1,0 +1,293 @@
+@page "/how-it-works"
+
+<PageTitle>How It Works - FindTradie</PageTitle>
+
+<div class="how-it-works-page">
+    <!-- Hero Section -->
+    <section class="hiw-hero">
+        <div class="container">
+            <h1>How FindTradie Works</h1>
+            <p>Connect with trusted tradies in 3 simple steps</p>
+            
+            <div class="user-type-toggle">
+                <button class="toggle-btn @(userType == "customer" ? "active" : "")" 
+                        @onclick="() => userType = 'customer'">
+                    I'm a Customer
+                </button>
+                <button class="toggle-btn @(userType == "tradie" ? "active" : "")" 
+                        @onclick="() => userType = 'tradie'">
+                    I'm a Tradie
+                </button>
+            </div>
+        </div>
+    </section>
+
+    @if (userType == "customer")
+    {
+        <!-- Customer Process -->
+        <section class="process-section">
+            <div class="container">
+                <div class="process-timeline">
+                    <!-- Step 1 -->
+                    <div class="process-step">
+                        <div class="step-number">1</div>
+                        <div class="step-content">
+                            <h3>Post Your Job</h3>
+                            <p>Tell us what you need done. Include photos, your budget, and when you need it completed.</p>
+                            <div class="step-features">
+                                <div class="feature">
+                                    <svg width="20" height="20"></svg>
+                                    <span>Free to post</span>
+                                </div>
+                                <div class="feature">
+                                    <svg width="20" height="20"></svg>
+                                    <span>Takes under 2 minutes</span>
+                                </div>
+                                <div class="feature">
+                                    <svg width="20" height="20"></svg>
+                                    <span>No obligations</span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="step-visual">
+                            <img src="/images/post-job-illustration.svg" alt="Post a job" />
+                        </div>
+                    </div>
+
+                    <!-- Step 2 -->
+                    <div class="process-step reverse">
+                        <div class="step-number">2</div>
+                        <div class="step-content">
+                            <h3>Receive Quotes</h3>
+                            <p>Get quotes from interested tradies. Compare prices, reviews, and profiles to find your perfect match.</p>
+                            <div class="step-features">
+                                <div class="feature">
+                                    <svg width="20" height="20"></svg>
+                                    <span>Usually within hours</span>
+                                </div>
+                                <div class="feature">
+                                    <svg width="20" height="20"></svg>
+                                    <span>Detailed breakdowns</span>
+                                </div>
+                                <div class="feature">
+                                    <svg width="20" height="20"></svg>
+                                    <span>Chat with tradies</span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="step-visual">
+                            <img src="/images/receive-quotes-illustration.svg" alt="Receive quotes" />
+                        </div>
+                    </div>
+
+                    <!-- Step 3 -->
+                    <div class="process-step">
+                        <div class="step-number">3</div>
+                        <div class="step-content">
+                            <h3>Hire & Review</h3>
+                            <p>Choose your tradie, agree on terms, and get the job done. Leave a review to help others.</p>
+                            <div class="step-features">
+                                <div class="feature">
+                                    <svg width="20" height="20"></svg>
+                                    <span>Secure payments</span>
+                                </div>
+                                <div class="feature">
+                                    <svg width="20" height="20"></svg>
+                                    <span>Quality guarantee</span>
+                                </div>
+                                <div class="feature">
+                                    <svg width="20" height="20"></svg>
+                                    <span>Dispute resolution</span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="step-visual">
+                            <img src="/images/hire-review-illustration.svg" alt="Hire and review" />
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Benefits Section -->
+        <section class="benefits-section">
+            <div class="container">
+                <h2>Why Choose FindTradie?</h2>
+                <div class="benefits-grid">
+                    <div class="benefit-card">
+                        <div class="benefit-icon">
+                            <svg width="48" height="48"></svg>
+                        </div>
+                        <h4>100% Verified</h4>
+                        <p>All tradies are verified with ID, licenses, and insurance checks</p>
+                    </div>
+                    <div class="benefit-card">
+                        <div class="benefit-icon">
+                            <svg width="48" height="48"></svg>
+                        </div>
+                        <h4>Free to Use</h4>
+                        <p>Post jobs and receive quotes completely free</p>
+                    </div>
+                    <div class="benefit-card">
+                        <div class="benefit-icon">
+                            <svg width="48" height="48"></svg>
+                        </div>
+                        <h4>Fast Response</h4>
+                        <p>Get quotes within hours, not days</p>
+                    </div>
+                    <div class="benefit-card">
+                        <div class="benefit-icon">
+                            <svg width="48" height="48"></svg>
+                        </div>
+                        <h4>Quality Assured</h4>
+                        <p>Read reviews from real customers</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+    }
+    else
+    {
+        <!-- Tradie Process -->
+        <section class="process-section">
+            <div class="container">
+                <div class="process-timeline">
+                    <!-- Tradie Step 1 -->
+                    <div class="process-step">
+                        <div class="step-number">1</div>
+                        <div class="step-content">
+                            <h3>Create Your Profile</h3>
+                            <p>Sign up and get verified. Show off your skills, experience, and past work.</p>
+                            <div class="step-features">
+                                <div class="feature">
+                                    <svg width="20" height="20"></svg>
+                                    <span>Quick verification</span>
+                                </div>
+                                <div class="feature">
+                                    <svg width="20" height="20"></svg>
+                                    <span>Showcase portfolio</span>
+                                </div>
+                                <div class="feature">
+                                    <svg width="20" height="20"></svg>
+                                    <span>Set your rates</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Tradie Step 2 -->
+                    <div class="process-step reverse">
+                        <div class="step-number">2</div>
+                        <div class="step-content">
+                            <h3>Browse & Quote</h3>
+                            <p>See jobs in your area and send competitive quotes to win work.</p>
+                            <div class="step-features">
+                                <div class="feature">
+                                    <svg width="20" height="20"></svg>
+                                    <span>Local jobs only</span>
+                                </div>
+                                <div class="feature">
+                                    <svg width="20" height="20"></svg>
+                                    <span>Instant notifications</span>
+                                </div>
+                                <div class="feature">
+                                    <svg width="20" height="20"></svg>
+                                    <span>Direct chat</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Tradie Step 3 -->
+                    <div class="process-step">
+                        <div class="step-number">3</div>
+                        <div class="step-content">
+                            <h3>Complete & Get Paid</h3>
+                            <p>Do great work, get paid securely, and build your reputation.</p>
+                            <div class="step-features">
+                                <div class="feature">
+                                    <svg width="20" height="20"></svg>
+                                    <span>Secure payments</span>
+                                </div>
+                                <div class="feature">
+                                    <svg width="20" height="20"></svg>
+                                    <span>Build reputation</span>
+                                </div>
+                                <div class="feature">
+                                    <svg width="20" height="20"></svg>
+                                    <span>Grow your business</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Pricing Section -->
+        <section class="pricing-section">
+            <div class="container">
+                <h2>Simple, Transparent Pricing</h2>
+                <div class="pricing-cards">
+                    <div class="pricing-card">
+                        <h3>Starter</h3>
+                        <div class="price">$99<span>/month</span></div>
+                        <ul class="features-list">
+                            <li>Up to 15 quotes/month</li>
+                            <li>Basic profile</li>
+                            <li>Email support</li>
+                        </ul>
+                        <button class="btn btn-outline">Get Started</button>
+                    </div>
+                    <div class="pricing-card featured">
+                        <span class="badge-popular">Most Popular</span>
+                        <h3>Professional</h3>
+                        <div class="price">$199<span>/month</span></div>
+                        <ul class="features-list">
+                            <li>Up to 40 quotes/month</li>
+                            <li>Enhanced profile</li>
+                            <li>Priority support</li>
+                            <li>Featured listings</li>
+                        </ul>
+                        <button class="btn btn-primary">Get Started</button>
+                    </div>
+                    <div class="pricing-card">
+                        <h3>Business</h3>
+                        <div class="price">$399<span>/month</span></div>
+                        <ul class="features-list">
+                            <li>Unlimited quotes</li>
+                            <li>Premium profile</li>
+                            <li>Dedicated support</li>
+                            <li>Multiple team members</li>
+                        </ul>
+                        <button class="btn btn-outline">Get Started</button>
+                    </div>
+                </div>
+            </div>
+        </section>
+    }
+
+    <!-- CTA Section -->
+    <section class="cta-section">
+        <div class="container">
+            <h2>Ready to Get Started?</h2>
+            <p>Join thousands of Australians using FindTradie</p>
+            <div class="cta-buttons">
+                @if (userType == "customer")
+                {
+                    <a href="/post-job" class="btn btn-primary btn-lg">Post a Job Now</a>
+                    <a href="/find-tradies" class="btn btn-outline btn-lg">Browse Tradies</a>
+                }
+                else
+                {
+                    <a href="/register?type=tradie" class="btn btn-primary btn-lg">Join as a Tradie</a>
+                    <a href="/pricing" class="btn btn-outline btn-lg">View Plans</a>
+                }
+            </div>
+        </div>
+    </section>
+</div>
+
+@code {
+    private string userType = "customer";
+}
