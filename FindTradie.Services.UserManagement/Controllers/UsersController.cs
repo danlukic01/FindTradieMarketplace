@@ -41,6 +41,26 @@ public class UsersController : ControllerBase
         }
     }
 
+    [HttpPost("login")]
+    public async Task<ActionResult<ApiResponse<string>>> Login([FromBody] LoginRequest request)
+    {
+        try
+        {
+            var result = await _userService.LoginAsync(request.Email, request.Password);
+            if (!result.Success)
+            {
+                return Unauthorized(result);
+            }
+
+            return Ok(result);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error logging in user {Email}", request.Email);
+            return Unauthorized(ApiResponse<string>.ErrorResult("Login failed"));
+        }
+    }
+
     [HttpGet("{id}")]
     public async Task<ActionResult<ApiResponse<UserProfileDto>>> GetUser(Guid id)
     {

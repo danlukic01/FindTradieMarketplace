@@ -15,4 +15,5 @@ public interface IUserService
     Task<ApiResponse<bool>> DeleteUserAsync(Guid id);
     Task<ApiResponse<bool>> VerifyEmailAsync(Guid id);
     Task<ApiResponse<bool>> VerifyPhoneAsync(Guid id);
+    Task<ApiResponse<string>> LoginAsync(string email, string password);
 }
