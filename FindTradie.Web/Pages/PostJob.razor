@@ -79,15 +79,15 @@
                             <label>Is this job...</label>
                             <div class="radio-group">
                                 <label class="radio-label">
-                                    <input type="radio" name="jobSize" value="small" @onchange="() => job.JobSize = 'small'" />
+                                    <input type="radio" name="jobSize" value="small" @onchange='() => job.JobSize = "small"' />
                                     <span>Small job (Under 2 hours)</span>
                                 </label>
                                 <label class="radio-label">
-                                    <input type="radio" name="jobSize" value="medium" @onchange="() => job.JobSize = 'medium'" />
+                                    <input type="radio" name="jobSize" value="medium" @onchange='() => job.JobSize = "medium"' />
                                     <span>Medium job (2-8 hours)</span>
                                 </label>
                                 <label class="radio-label">
-                                    <input type="radio" name="jobSize" value="large" @onchange="() => job.JobSize = 'large'" />
+                                    <input type="radio" name="jobSize" value="large" @onchange='() => job.JobSize = "large"' />
                                     <span>Large job (Multiple days)</span>
                                 </label>
                             </div>
@@ -314,7 +314,7 @@
                 }
                 else
                 {
-                    <button class="btn btn-primary btn-lg" @onclick="PostJob" disabled="@(!agreedToTerms)">
+                    <button class="btn btn-primary btn-lg" @onclick="PostJobAsync" disabled="@(!agreedToTerms)">
                         Post Job
                     </button>
                 }
@@ -428,7 +428,7 @@
     private async Task AddPhoto(IBrowserFile file)
     {
         using var stream = file.OpenReadStream(maxAllowedSize: 10 * 1024 * 1024);
-        var buffer = new byte[file.Size];
+        var buffer = new byte[(int)file.Size];
         await stream.ReadAsync(buffer);
         var url = $"data:{file.ContentType};base64,{Convert.ToBase64String(buffer)}";
         uploadedPhotos.Add(new PhotoModel { Name = file.Name, Url = url, File = file });
@@ -436,7 +436,7 @@
 
     private void RemovePhoto(PhotoModel photo) => uploadedPhotos.Remove(photo);
 
-    private async Task PostJob()
+    private async Task PostJobAsync()
     {
         var category = Enum.TryParse<ServiceCategory>(job.ServiceType, out var cat) ? cat : ServiceCategory.Other;
         var request = new CreateJobRequest(
