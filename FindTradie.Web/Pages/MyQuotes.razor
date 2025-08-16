@@ -4,7 +4,6 @@
 @inject IQuoteApiService QuoteService
 @inject NavigationManager Navigation
 @inject AuthenticationStateProvider AuthStateProvider
-@attribute [Authorize(Roles = "Tradie,ServiceProvider")]
 
 <PageTitle>My Quotes - FindTradie</PageTitle>
 
@@ -335,6 +334,26 @@
 
     protected override async Task OnInitializedAsync()
     {
+        // Check user authorization
+        var authState = await AuthStateProvider.GetAuthenticationStateAsync();
+
+        if (!authState.User.Identity?.IsAuthenticated ?? true)
+        {
+            Navigation.NavigateTo("/login");
+            return;
+        }
+
+        // Check if user is a tradie
+        var userType = authState.User.FindFirst("UserType")?.Value;
+        var isTradie = userType == "Tradie" || userType == "ServiceProvider" || userType == "2";
+
+        if (!isTradie)
+        {
+            // Redirect customers to their appropriate page
+            Navigation.NavigateTo("/my-jobs");
+            return;
+        }
+
         await LoadQuotes();
         await LoadStats();
     }
