@@ -27,7 +27,7 @@ public class JobsController : ControllerBase
     /// Create a new job posting
     /// </summary>
     [HttpPost]
-    [Authorize]
+    [Authorize(Roles = nameof(UserType.Customer))]
     public async Task<ActionResult<ApiResponse<JobDetailDto>>> CreateJob([FromBody] CreateJobRequest request)
     {
         var result = await _jobService.CreateJobAsync(request);
@@ -48,7 +48,7 @@ public class JobsController : ControllerBase
     /// Update job details
     /// </summary>
     [HttpPut("{id}")]
-    [Authorize]
+    [Authorize(Roles = nameof(UserType.Customer))]
     public async Task<ActionResult<ApiResponse<JobDetailDto>>> UpdateJob(Guid id, [FromBody] UpdateJobRequest request)
     {
         var result = await _jobService.UpdateJobAsync(id, request);
@@ -59,6 +59,7 @@ public class JobsController : ControllerBase
     /// Search for jobs with filters
     /// </summary>
     [HttpPost("search")]
+    [Authorize(Roles = nameof(UserType.Tradie))]
     public async Task<ActionResult<ApiResponse<List<JobSummaryDto>>>> SearchJobs([FromBody] JobSearchRequest request)
     {
         var result = await _jobService.SearchJobsAsync(request);
@@ -69,7 +70,7 @@ public class JobsController : ControllerBase
     /// Get jobs for a specific customer
     /// </summary>
     [HttpGet("customer/{customerId}")]
-    [Authorize]
+    [Authorize(Roles = nameof(UserType.Customer))]
     public async Task<ActionResult<ApiResponse<List<JobSummaryDto>>>> GetCustomerJobs(
         Guid customerId,
         [FromQuery] int pageNumber = 1,
@@ -83,7 +84,7 @@ public class JobsController : ControllerBase
     /// Get jobs for a specific tradie
     /// </summary>
     [HttpGet("tradie/{tradieId}")]
-    [Authorize]
+    [Authorize(Roles = nameof(UserType.Tradie))]
     public async Task<ActionResult<ApiResponse<List<JobSummaryDto>>>> GetTradieJobs(
         Guid tradieId,
         [FromQuery] int pageNumber = 1,
@@ -97,7 +98,7 @@ public class JobsController : ControllerBase
     /// Update job status
     /// </summary>
     [HttpPatch("{id}/status")]
-    [Authorize]
+    [Authorize(Roles = nameof(UserType.Customer))]
     public async Task<ActionResult<ApiResponse<bool>>> UpdateJobStatus(
         Guid id,
         [FromBody] UpdateJobStatusRequest request)
@@ -110,7 +111,7 @@ public class JobsController : ControllerBase
     /// Assign tradie to job (accept quote)
     /// </summary>
     [HttpPost("{id}/assign")]
-    [Authorize]
+    [Authorize(Roles = nameof(UserType.Customer))]
     public async Task<ActionResult<ApiResponse<bool>>> AssignTradie(
         Guid id,
         [FromBody] AssignTradieRequest request)
@@ -123,7 +124,7 @@ public class JobsController : ControllerBase
     /// Mark job as completed
     /// </summary>
     [HttpPost("{id}/complete")]
-    [Authorize]
+    [Authorize(Roles = nameof(UserType.Customer))]
     public async Task<ActionResult<ApiResponse<bool>>> CompleteJob(
         Guid id,
         [FromBody] CompleteJobRequest request)
