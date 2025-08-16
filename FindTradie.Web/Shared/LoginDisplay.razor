@@ -1,5 +1,6 @@
 ﻿@using Microsoft.AspNetCore.Components.Authorization
 @using FindTradie.Web.Auth
+@using System.Linq
 @inject AuthenticationStateProvider AuthStateProvider
 @inject NavigationManager Navigation
 @inject FindTradie.Web.Services.IAuthService AuthService
@@ -7,15 +8,30 @@
 <AuthorizeView>
     <Authorized>
         @{
-            var userName = context.User?.Identity?.Name ??
-                          context.User?.FindFirst("FirstName")?.Value ??
-                          context.User?.FindFirst("name")?.Value ??
-                          context.User?.FindFirst("email")?.Value?.Split('@')[0] ??
-                          "User";
+            UserName = context.User?.Identity?.Name ??
+                        context.User?.FindFirst("FirstName")?.Value ??
+                        context.User?.FindFirst("name")?.Value ??
+                        context.User?.FindFirst("email")?.Value?.Split('@')[0] ??
+                        "User";
         }
-        <div class="user-info">
-            <span class="user-greeting">Hello, @userName</span>
-            <button class="btn-logout nav-link btn btn-link" @onclick="LogoutAsync">Log out</button>
+        <div class="user-section">
+            <button class="user-menu-btn" @onclick="ToggleUserMenu">
+                <div class="user-avatar">@GetInitials()</div>
+                <span class="user-name">Hello, @UserName</span>
+                <svg class="chevron @(showMenu ? "rotate" : string.Empty)" width="12" height="12" viewBox="0 0 12 12">
+                    <path d="M2 4L6 8L10 4" stroke="currentColor" fill="none" />
+                </svg>
+            </button>
+            @if (showMenu)
+            {
+                <div class="user-dropdown">
+                    <a href="/profile" class="dropdown-link"><span>👤</span> My Profile</a>
+                    <a href="/my-jobs" class="dropdown-link"><span>📋</span> My Jobs</a>
+                    <a href="/settings" class="dropdown-link"><span>⚙️</span> Settings</a>
+                    <hr class="dropdown-divider" />
+                    <button @onclick="LogoutAsync" class="dropdown-link logout"><span>🚪</span> Log Out</button>
+                </div>
+            }
         </div>
     </Authorized>
     <NotAuthorized>
@@ -27,6 +43,19 @@
 </AuthorizeView>
 
 @code {
+    private bool showMenu;
+    private string UserName = string.Empty;
+
+    private void ToggleUserMenu() => showMenu = !showMenu;
+
+    private string GetInitials()
+    {
+        if (string.IsNullOrWhiteSpace(UserName))
+            return string.Empty;
+        var parts = UserName.Split(' ', StringSplitOptions.RemoveEmptyEntries);
+        return string.Concat(parts.Take(2).Select(p => char.ToUpperInvariant(p[0])));
+    }
+
     private async Task LogoutAsync()
     {
         await AuthService.LogoutAsync();
