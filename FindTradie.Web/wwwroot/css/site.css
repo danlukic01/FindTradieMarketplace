@@ -165,6 +165,8 @@ main {
     height: 100%;
     margin: 0;
     padding: 0;
+    gap: 16px;
+    margin-left: 32px;
 }
 
 .navbar * {
@@ -1312,6 +1314,7 @@ main {
     display: flex;
     align-items: center;
     gap: 8px;
+    margin-left: 32px;
 }
 
 .nav-link,
