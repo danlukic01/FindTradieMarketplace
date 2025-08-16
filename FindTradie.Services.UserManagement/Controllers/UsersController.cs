@@ -1,7 +1,9 @@
 ﻿// Controllers/UsersController.cs
 using FindTradie.Shared.Contracts.Common;
 using FindTradie.Shared.Contracts.DTOs;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using System.Security.Claims;
 using FindTradie.Services.UserManagement.Services;
 
 namespace FindTradie.Services.UserManagement.Controllers;
@@ -80,5 +82,26 @@ public class UsersController : ControllerBase
             return NotFound(ApiResponse<UserProfileDto>.ErrorResult(
                 "User not found"));
         }
+    }
+
+    [HttpGet("current")]
+    [Authorize]
+    public async Task<ActionResult<ApiResponse<UserProfileDto>>> GetCurrentUser()
+    {
+        var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+
+        if (userIdClaim == null || !Guid.TryParse(userIdClaim, out var userId))
+        {
+            return Unauthorized(ApiResponse<UserProfileDto>.ErrorResult("Invalid user ID"));
+        }
+
+        var result = await _userService.GetUserAsync(userId);
+
+        if (!result.Success)
+        {
+            return NotFound(result);
+        }
+
+        return Ok(result);
     }
 }
