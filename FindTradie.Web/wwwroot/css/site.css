@@ -108,14 +108,14 @@ main {
     height: 100%;
     margin: 0;
     padding: 0;
-    gap: 16px;
+    gap: 48px;
 }
 
 .nav-link {
     display: flex;
     align-items: center;
-    height: 36px;
-    padding: 0 18px;
+    height: 40px;
+    padding: 0 30px;
     margin: 0;
     position: relative;
     color: #4a5568;
