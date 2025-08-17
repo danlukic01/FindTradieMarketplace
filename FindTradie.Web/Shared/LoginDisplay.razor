@@ -25,8 +25,8 @@
             @if (showMenu)
             {
                 <div class="user-dropdown">
-                    <a href="/profile" class="dropdown-link"><span>👤</span> My Profile</a>
-                    <a href="/my-jobs" class="dropdown-link"><span>📋</span> My Jobs</a>
+                    <a href="/my-profile" @onclick="NavigateToProfile" @onclick:preventDefault="true" class="dropdown-link"><span>👤</span> My Profile</a>
+                    <a href="/my-jobs" @onclick="NavigateToMyJobs" @onclick:preventDefault="true" class="dropdown-link"><span>📋</span> My Jobs</a>
                     <a href="/settings" @onclick="NavigateToSettings" @onclick:preventDefault="true" class="dropdown-link"><span>⚙️</span> Settings</a>
                     <hr class="dropdown-divider" />
                     <button @onclick="LogoutAsync" class="dropdown-link logout"><span>🚪</span> Log Out</button>
@@ -54,6 +54,18 @@
             return string.Empty;
         var parts = UserName.Split(' ', StringSplitOptions.RemoveEmptyEntries);
         return string.Concat(parts.Take(2).Select(p => char.ToUpperInvariant(p[0])));
+    }
+
+    private void NavigateToProfile()
+    {
+        showMenu = false;
+        Navigation.NavigateTo("/my-profile");
+    }
+
+    private void NavigateToMyJobs()
+    {
+        showMenu = false;
+        Navigation.NavigateTo("/my-jobs");
     }
 
     private void NavigateToSettings()
