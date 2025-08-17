@@ -1,0 +1,826 @@
+﻿@page "/my-profile"
+@using FindTradie.Web.Services
+@using Microsoft.AspNetCore.Components.Authorization
+@using Microsoft.AspNetCore.Components.Forms
+@inject IUserApiService UserService
+@inject ITradieApiService TradieService
+@inject NavigationManager Navigation
+@inject AuthenticationStateProvider AuthStateProvider
+
+<PageTitle>My Profile - FindTradie</PageTitle>
+
+<link rel="stylesheet" href="css/my-profile.css" />
+
+<div class="my-profile-page">
+    <!-- Page Header -->
+    <div class="page-header">
+        <div class="container">
+            <div class="header-content">
+                <div class="profile-header-info">
+                    <div class="profile-avatar-large">
+                        @if (!string.IsNullOrEmpty(profile.ProfilePhoto))
+                        {
+                            <img src="@profile.ProfilePhoto" alt="Profile" />
+                        }
+                        else
+                        {
+                            <span class="avatar-initials">@profile.Initials</span>
+                        }
+                        <button class="avatar-edit-btn" @onclick="ChangePhoto">
+                            <i class="icon-camera"></i>
+                        </button>
+                    </div>
+                    <div class="profile-header-text">
+                        <h1>@profile.BusinessName</h1>
+                        <p class="profile-tagline">@profile.Tagline</p>
+                        <div class="profile-badges">
+                            @if (profile.IsVerified)
+                            {
+                                <span class="badge badge-verified">
+                                    <i class="icon-check"></i> Verified
+                                </span>
+                            }
+                            @if (profile.IsInsured)
+                            {
+                                <span class="badge badge-insured">
+                                    <i class="icon-shield"></i> Insured
+                                </span>
+                            }
+                            @if (profile.YearsExperience >= 5)
+                            {
+                                <span class="badge badge-experienced">
+                                    <i class="icon-award"></i> @profile.YearsExperience+ Years
+                                </span>
+                            }
+                        </div>
+                    </div>
+                </div>
+                <div class="profile-actions">
+                    <button class="btn btn-outline" @onclick="ViewPublicProfile">
+                        <i class="icon-eye"></i> View Public Profile
+                    </button>
+                    <button class="btn btn-primary" @onclick="SaveProfile" disabled="@(!hasChanges || isSaving)">
+                        @if (isSaving)
+                        {
+                            <span class="spinner-small"></span>
+                            <text>Saving...</text>
+                        }
+                        else
+                        {
+                            <i class="icon-save"></i>
+                            <text>Save Changes</text>
+                        }
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="container">
+        <!-- Profile Stats -->
+        <div class="profile-stats">
+            <div class="stat-box">
+                <span class="stat-number">@profile.Rating.ToString("F1")</span>
+                <div class="stat-stars">
+                    @for (int i = 1; i <= 5; i++)
+                    {
+                        <i class="icon-star @(i <= Math.Round(profile.Rating) ? "filled" : "")"></i>
+                    }
+                </div>
+                <span class="stat-label">Average Rating</span>
+            </div>
+            <div class="stat-box">
+                <span class="stat-number">@profile.CompletedJobs</span>
+                <span class="stat-label">Jobs Completed</span>
+            </div>
+            <div class="stat-box">
+                <span class="stat-number">@profile.ReviewCount</span>
+                <span class="stat-label">Reviews</span>
+            </div>
+            <div class="stat-box">
+                <span class="stat-number">@profile.ResponseRate%</span>
+                <span class="stat-label">Response Rate</span>
+            </div>
+            <div class="stat-box">
+                <span class="stat-number">@profile.ResponseTime</span>
+                <span class="stat-label">Avg Response</span>
+            </div>
+        </div>
+
+        <!-- Profile Tabs -->
+        <div class="profile-tabs">
+            <button class="tab-btn @(activeTab == "details" ? "active" : "")"
+                    @onclick='() => SetActiveTab("details")'>
+                <i class="icon-user"></i> Business Details
+            </button>
+            <button class="tab-btn @(activeTab == "services" ? "active" : "")"
+                    @onclick='() => SetActiveTab("services")'>
+                <i class="icon-tools"></i> Services & Skills
+            </button>
+            <button class="tab-btn @(activeTab == "portfolio" ? "active" : "")"
+                    @onclick='() => SetActiveTab("portfolio")'>
+                <i class="icon-image"></i> Portfolio
+            </button>
+            <button class="tab-btn @(activeTab == "availability" ? "active" : "")"
+                    @onclick='() => SetActiveTab("availability")'>
+                <i class="icon-calendar"></i> Availability
+            </button>
+            <button class="tab-btn @(activeTab == "credentials" ? "active" : "")"
+                    @onclick='() => SetActiveTab("credentials")'>
+                <i class="icon-certificate"></i> Credentials
+            </button>
+            <button class="tab-btn @(activeTab == "settings" ? "active" : "")"
+                    @onclick='() => SetActiveTab("settings")'>
+                <i class="icon-settings"></i> Settings
+            </button>
+        </div>
+
+        <!-- Tab Content -->
+        <div class="tab-content">
+            @if (activeTab == "details")
+            {
+                <!-- Business Details Tab -->
+                <div class="content-section">
+                    <h2 class="section-title">Business Information</h2>
+
+                    <div class="form-grid">
+                        <div class="form-group">
+                            <label>Business Name *</label>
+                            <input type="text" class="form-control" @bind="profile.BusinessName"
+                                   @bind:event="oninput" @bind:after="OnFieldChanged" placeholder="Your Business Name" />
+                        </div>
+
+                        <div class="form-group">
+                            <label>ABN</label>
+                            <input type="text" class="form-control" @bind="profile.ABN"
+                                   @bind:event="oninput" @bind:after="OnFieldChanged" placeholder="12 345 678 901" />
+                        </div>
+
+                        <div class="form-group full-width">
+                            <label>Business Tagline</label>
+                            <input type="text" class="form-control" @bind="profile.Tagline"
+                                   @bind:event="oninput" @bind:after="OnFieldChanged"
+                                   placeholder="e.g., Quality plumbing services you can trust"
+                                   maxlength="100" />
+                            <span class="char-count">@profile.Tagline?.Length ?? 0 / 100</span>
+                        </div>
+
+                        <div class="form-group full-width">
+                            <label>About Your Business</label>
+                            <textarea class="form-control" @bind="profile.Description"
+                                      @bind:event="oninput" @bind:after="OnFieldChanged" rows="6"
+                                      placeholder="Tell customers about your experience, specialties, and what makes your service unique..."></textarea>
+                        </div>
+
+                        <div class="form-group">
+                            <label>Years in Business</label>
+                            <input type="number" class="form-control" @bind="profile.YearsExperience"
+                                   @bind:event="oninput" @bind:after="OnFieldChanged" min="0" max="50" />
+                        </div>
+
+                        <div class="form-group">
+                            <label>Team Size</label>
+                            <select class="form-control" @bind="profile.TeamSize" @bind:after="OnFieldChanged">
+                                <option value="1">Just me</option>
+                                <option value="2-5">2-5 people</option>
+                                <option value="6-10">6-10 people</option>
+                                <option value="11+">11+ people</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <h3 class="subsection-title">Contact Information</h3>
+                    <div class="form-grid">
+                        <div class="form-group">
+                            <label>Business Phone</label>
+                            <input type="tel" class="form-control" @bind="profile.BusinessPhone"
+                                   @bind:event="oninput" @bind:after="OnFieldChanged" placeholder="0400 000 000" />
+                        </div>
+
+                        <div class="form-group">
+                            <label>Business Email</label>
+                            <input type="email" class="form-control" @bind="profile.BusinessEmail"
+                                   @bind:event="oninput" @bind:after="OnFieldChanged" placeholder="info@yourbusiness.com.au" />
+                        </div>
+
+                        <div class="form-group">
+                            <label>Website</label>
+                            <input type="url" class="form-control" @bind="profile.Website"
+                                   @bind:event="oninput" @bind:after="OnFieldChanged" placeholder="https://www.yourbusiness.com.au" />
+                        </div>
+                    </div>
+                </div>
+            }
+            else if (activeTab == "services")
+            {
+                <!-- Services & Skills Tab -->
+                <div class="content-section">
+                    <h2 class="section-title">Services Offered</h2>
+
+                    <div class="services-selector">
+                        <p class="helper-text">Select all services you provide:</p>
+                        <div class="service-chips">
+                            @foreach (var service in availableServices)
+                            {
+                                <label class="service-chip @(profile.Services.Contains(service) ? "selected" : "")">
+                                    <input type="checkbox"
+                                           checked="@profile.Services.Contains(service)"
+                                           @onchange="() => ToggleService(service)" />
+                                    <span>@service</span>
+                                </label>
+                            }
+                        </div>
+                    </div>
+
+                    <h3 class="subsection-title">Specializations</h3>
+                    <div class="specializations-input">
+                        <div class="tag-input">
+                            <div class="tags-container">
+                                @foreach (var spec in profile.Specializations)
+                                {
+                                    <span class="tag">
+                                        @spec
+                                        <button class="tag-remove" @onclick="() => RemoveSpecialization(spec)">×</button>
+                                    </span>
+                                }
+                                <input type="text" placeholder="Add specialization..."
+                                       @bind="newSpecialization"
+                                       @onkeydown="@(async (e) => await OnSpecializationKeyDown(e))" />
+                            </div>
+                        </div>
+                        <p class="helper-text">Press Enter to add specializations (e.g., "Emergency repairs", "Kitchen renovations")</p>
+                    </div>
+
+                    <h3 class="subsection-title">Service Areas</h3>
+                    <div class="service-areas">
+                        <div class="form-group">
+                            <label>Service Radius</label>
+                            <div class="radius-selector">
+                                <input type="range" min="5" max="100" step="5"
+                                       @bind="profile.ServiceRadius" @bind:event="oninput" @bind:after="OnFieldChanged" />
+                                <span class="radius-value">@profile.ServiceRadius km</span>
+                            </div>
+                        </div>
+
+                        <div class="suburbs-input">
+                            <label>Specific Suburbs/Areas</label>
+                            <div class="tag-input">
+                                <div class="tags-container">
+                                    @foreach (var suburb in profile.ServiceAreas)
+                                    {
+                                        <span class="tag">
+                                            @suburb
+                                            <button class="tag-remove" @onclick="() => RemoveSuburb(suburb)">×</button>
+                                        </span>
+                                    }
+                                    <input type="text" placeholder="Add suburb..."
+                                           @bind="newSuburb"
+                                           @onkeydown="@(async (e) => await OnSuburbKeyDown(e))" />
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            }
+            else if (activeTab == "portfolio")
+            {
+                <!-- Portfolio Tab -->
+                <div class="content-section">
+                    <h2 class="section-title">Portfolio</h2>
+                    <p class="section-description">Showcase your best work to attract more customers</p>
+
+                    <div class="portfolio-upload">
+                        <InputFile OnChange="HandlePortfolioUpload" multiple accept="image/*" id="portfolio-upload" hidden />
+                        <label for="portfolio-upload" class="upload-box">
+                            <i class="icon-upload"></i>
+                            <h4>Upload Portfolio Images</h4>
+                            <p>Drag and drop or click to browse</p>
+                            <span class="upload-hint">JPG, PNG up to 5MB each</span>
+                        </label>
+                    </div>
+
+                    @if (profile.PortfolioItems.Any())
+                    {
+                        <div class="portfolio-grid">
+                            @foreach (var item in profile.PortfolioItems)
+                            {
+                                <div class="portfolio-item">
+                                    <img src="@item.ImageUrl" alt="@item.Title" />
+                                    <div class="portfolio-overlay">
+                                        <input type="text" class="portfolio-title" @bind="item.Title"
+                                               placeholder="Project title..." />
+                                        <textarea class="portfolio-description" @bind="item.Description"
+                                                  placeholder="Describe this project..."></textarea>
+                                        <button class="btn-remove" @onclick="() => RemovePortfolioItem(item.Id)">
+                                            <i class="icon-trash"></i>
+                                        </button>
+                                    </div>
+                                </div>
+                            }
+                        </div>
+                    }
+                    else
+                    {
+                        <div class="empty-portfolio">
+                            <i class="icon-image"></i>
+                            <p>No portfolio items yet. Upload images of your completed work to showcase your skills.</p>
+                        </div>
+                    }
+                </div>
+            }
+            else if (activeTab == "availability")
+            {
+                <!-- Availability Tab -->
+                <div class="content-section">
+                    <h2 class="section-title">Availability & Schedule</h2>
+
+                    <div class="availability-settings">
+                        <div class="form-group">
+                            <label class="switch-label">
+                                <input type="checkbox" @bind="profile.AcceptingJobs" @bind:after="OnFieldChanged" />
+                                <span class="switch"></span>
+                                <span class="switch-text">Currently accepting new jobs</span>
+                            </label>
+                        </div>
+
+                        <h3 class="subsection-title">Working Hours</h3>
+                        <div class="working-hours">
+                            @foreach (var day in daysOfWeek)
+                            {
+                                <div class="day-schedule">
+                                    <label class="day-checkbox">
+                                        <input type="checkbox"
+                                               checked="@profile.WorkingDays.Contains(day)"
+                                               @onchange="() => ToggleWorkingDay(day)" />
+                                        <span>@day</span>
+                                    </label>
+                                    @if (profile.WorkingDays.Contains(day))
+                                    {
+                                        <div class="time-inputs">
+                                            <input type="time" class="time-input" value="09:00" />
+                                            <span>to</span>
+                                            <input type="time" class="time-input" value="17:00" />
+                                        </div>
+                                    }
+                                </div>
+                            }
+                        </div>
+
+                        <h3 class="subsection-title">Availability Preferences</h3>
+                        <div class="availability-options">
+                            <label class="checkbox-label">
+                                <input type="checkbox" @bind="profile.EmergencyCallouts" />
+                                <span>Available for emergency callouts</span>
+                            </label>
+                            <label class="checkbox-label">
+                                <input type="checkbox" @bind="profile.WeekendWork" />
+                                <span>Available on weekends</span>
+                            </label>
+                            <label class="checkbox-label">
+                                <input type="checkbox" @bind="profile.AfterHours" />
+                                <span>Available after hours (additional rates may apply)</span>
+                            </label>
+                        </div>
+
+                        <h3 class="subsection-title">Holiday/Leave Schedule</h3>
+                        <div class="leave-schedule">
+                            <button class="btn btn-outline" @onclick="AddLeaveDate">
+                                <i class="icon-plus"></i> Add Leave Date
+                            </button>
+                            @if (profile.LeaveDates.Any())
+                            {
+                                <div class="leave-dates">
+                                    @foreach (var leave in profile.LeaveDates)
+                                    {
+                                        <div class="leave-date-item">
+                                            <span>@leave.StartDate.ToString("dd MMM") - @leave.EndDate.ToString("dd MMM yyyy")</span>
+                                            <button class="btn-remove-small" @onclick="() => RemoveLeaveDate(leave.Id)">×</button>
+                                        </div>
+                                    }
+                                </div>
+                            }
+                        </div>
+                    </div>
+                </div>
+            }
+            else if (activeTab == "credentials")
+            {
+                <!-- Credentials Tab -->
+                <div class="content-section">
+                    <h2 class="section-title">Licenses & Credentials</h2>
+
+                    <div class="credentials-grid">
+                        <div class="credential-card">
+                            <div class="credential-icon">
+                                <i class="icon-license"></i>
+                            </div>
+                            <h3>Trade License</h3>
+                            <p>@(profile.LicenseNumber ?? "Not provided")</p>
+                            <button class="btn btn-outline btn-sm" @onclick="UpdateLicense">
+                                @(string.IsNullOrEmpty(profile.LicenseNumber) ? "Add License" : "Update")
+                            </button>
+                        </div>
+
+                        <div class="credential-card">
+                            <div class="credential-icon">
+                                <i class="icon-shield"></i>
+                            </div>
+                            <h3>Insurance</h3>
+                            <p>@(profile.InsuranceProvider ?? "Not provided")</p>
+                            <button class="btn btn-outline btn-sm" @onclick="UpdateInsurance">
+                                @(string.IsNullOrEmpty(profile.InsuranceProvider) ? "Add Insurance" : "Update")
+                            </button>
+                        </div>
+
+                        <div class="credential-card">
+                            <div class="credential-icon">
+                                <i class="icon-certificate"></i>
+                            </div>
+                            <h3>Certifications</h3>
+                            <p>@profile.Certifications.Count certification(s)</p>
+                            <button class="btn btn-outline btn-sm" @onclick="ManageCertifications">
+                                Manage
+                            </button>
+                        </div>
+                    </div>
+
+                    @if (profile.Certifications.Any())
+                    {
+                        <h3 class="subsection-title">Your Certifications</h3>
+                        <div class="certifications-list">
+                            @foreach (var cert in profile.Certifications)
+                            {
+                                <div class="certification-item">
+                                    <div class="cert-info">
+                                        <h4>@cert.Name</h4>
+                                        <p>@cert.Issuer • Expires: @cert.ExpiryDate.ToString("MMM yyyy")</p>
+                                    </div>
+                                    <div class="cert-actions">
+                                        <button class="btn-icon" @onclick="() => ViewCertificate(cert.Id)">
+                                            <i class="icon-eye"></i>
+                                        </button>
+                                        <button class="btn-icon" @onclick="() => RemoveCertificate(cert.Id)">
+                                            <i class="icon-trash"></i>
+                                        </button>
+                                    </div>
+                                </div>
+                            }
+                        </div>
+                    }
+
+                    <div class="verification-status">
+                        <h3 class="subsection-title">Verification Status</h3>
+                        <div class="verification-items">
+                            <div class="verification-item @(profile.EmailVerified ? "verified" : "")">
+                                <i class="icon-check-circle"></i>
+                                <span>Email Verified</span>
+                            </div>
+                            <div class="verification-item @(profile.PhoneVerified ? "verified" : "")">
+                                <i class="icon-check-circle"></i>
+                                <span>Phone Verified</span>
+                            </div>
+                            <div class="verification-item @(profile.IdentityVerified ? "verified" : "")">
+                                <i class="icon-check-circle"></i>
+                                <span>Identity Verified</span>
+                            </div>
+                            <div class="verification-item @(profile.BackgroundChecked ? "verified" : "")">
+                                <i class="icon-check-circle"></i>
+                                <span>Background Check</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            }
+            else if (activeTab == "settings")
+            {
+                <!-- Settings Tab -->
+                <div class="content-section">
+                    <h2 class="section-title">Profile Settings</h2>
+
+                    <div class="settings-sections">
+                        <div class="settings-group">
+                            <h3 class="subsection-title">Notification Preferences</h3>
+                            <div class="notification-settings">
+                                <label class="switch-label">
+                                    <input type="checkbox" @bind="profile.EmailNotifications" />
+                                    <span class="switch"></span>
+                                    <span class="switch-text">Email notifications for new jobs</span>
+                                </label>
+                                <label class="switch-label">
+                                    <input type="checkbox" @bind="profile.SmsNotifications" />
+                                    <span class="switch"></span>
+                                    <span class="switch-text">SMS alerts for urgent jobs</span>
+                                </label>
+                                <label class="switch-label">
+                                    <input type="checkbox" @bind="profile.PushNotifications" />
+                                    <span class="switch"></span>
+                                    <span class="switch-text">Push notifications</span>
+                                </label>
+                            </div>
+                        </div>
+
+                        <div class="settings-group">
+                            <h3 class="subsection-title">Privacy Settings</h3>
+                            <div class="privacy-settings">
+                                <label class="switch-label">
+                                    <input type="checkbox" @bind="profile.ShowPhoneNumber" />
+                                    <span class="switch"></span>
+                                    <span class="switch-text">Show phone number on public profile</span>
+                                </label>
+                                <label class="switch-label">
+                                    <input type="checkbox" @bind="profile.ShowEmail" />
+                                    <span class="switch"></span>
+                                    <span class="switch-text">Show email on public profile</span>
+                                </label>
+                                <label class="switch-label">
+                                    <input type="checkbox" @bind="profile.ShowExactLocation" />
+                                    <span class="switch"></span>
+                                    <span class="switch-text">Show exact business location</span>
+                                </label>
+                            </div>
+                        </div>
+
+                        <div class="settings-group">
+                            <h3 class="subsection-title">Account Settings</h3>
+                            <div class="account-actions">
+                                <button class="btn btn-outline" @onclick="ChangePassword">
+                                    <i class="icon-lock"></i> Change Password
+                                </button>
+                                <button class="btn btn-outline" @onclick="DownloadData">
+                                    <i class="icon-download"></i> Download My Data
+                                </button>
+                                <button class="btn btn-outline text-danger" @onclick="DeactivateAccount">
+                                    <i class="icon-alert"></i> Deactivate Account
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            }
+        </div>
+    </div>
+</div>
+
+@code {
+    private TradieProfile profile = new();
+    private string activeTab = "details";
+    private bool hasChanges = false;
+    private bool isSaving = false;
+
+    // Form inputs
+    private string newSpecialization = "";
+    private string newSuburb = "";
+
+    // Reference data
+    private List<string> availableServices = new()
+    {
+        "Plumbing", "Electrical", "Carpentry", "Painting", "Roofing",
+        "Landscaping", "Tiling", "Plastering", "HVAC", "Flooring",
+        "Fencing", "Demolition", "Handyman", "Cleaning", "Pest Control"
+    };
+
+    private List<string> daysOfWeek = new()
+    {
+        "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"
+    };
+
+    protected override async Task OnInitializedAsync()
+    {
+        // Check authorization
+        var authState = await AuthStateProvider.GetAuthenticationStateAsync();
+
+        if (!authState.User.Identity?.IsAuthenticated ?? true)
+        {
+            Navigation.NavigateTo("/login");
+            return;
+        }
+
+        var userType = authState.User.FindFirst("UserType")?.Value;
+        var isTradie = userType == "Tradie" || userType == "ServiceProvider" || userType == "2";
+
+        if (!isTradie)
+        {
+            Navigation.NavigateTo("/dashboard");
+            return;
+        }
+
+        await LoadProfile();
+    }
+
+    private async Task LoadProfile()
+    {
+        // Mock data for demonstration
+        profile = new TradieProfile
+            {
+                BusinessName = "John's Premium Plumbing",
+                Initials = "JP",
+                ABN = "12 345 678 901",
+                Tagline = "Quality plumbing services you can trust",
+                Description = "With over 15 years of experience, we provide reliable and affordable plumbing services across Sydney.",
+                YearsExperience = 15,
+                TeamSize = "2-5",
+                BusinessPhone = "0400 123 456",
+                BusinessEmail = "john@premiumplumbing.com.au",
+                Website = "https://www.premiumplumbing.com.au",
+                Services = new List<string> { "Plumbing", "Handyman" },
+                Specializations = new List<string> { "Emergency repairs", "Bathroom renovations", "Hot water systems" },
+                ServiceRadius = 25,
+                ServiceAreas = new List<string> { "Sydney CBD", "North Shore", "Eastern Suburbs" },
+                Rating = 4.8,
+                CompletedJobs = 247,
+                ReviewCount = 189,
+                ResponseRate = 95,
+                ResponseTime = "< 1 hour",
+                IsVerified = true,
+                IsInsured = true,
+                AcceptingJobs = true,
+                WorkingDays = new List<string> { "Monday", "Tuesday", "Wednesday", "Thursday", "Friday" },
+                EmergencyCallouts = true,
+                WeekendWork = false,
+                AfterHours = true,
+                EmailVerified = true,
+                PhoneVerified = true,
+                IdentityVerified = true,
+                BackgroundChecked = false,
+                EmailNotifications = true,
+                SmsNotifications = true,
+                PushNotifications = false,
+                ShowPhoneNumber = true,
+                ShowEmail = false,
+                ShowExactLocation = false,
+                PortfolioItems = new List<PortfolioItem>(),
+                Certifications = new List<Certification>
+            {
+                new() { Id = Guid.NewGuid(), Name = "Master Plumber License", Issuer = "NSW Fair Trading", ExpiryDate = DateTime.Now.AddYears(2) }
+            },
+                LeaveDates = new List<LeaveDate>()
+            };
+
+        await Task.CompletedTask;
+    }
+
+    private void SetActiveTab(string tab)
+    {
+        activeTab = tab;
+    }
+
+    private void OnFieldChanged()
+    {
+        hasChanges = true;
+    }
+
+    private async Task SaveProfile()
+    {
+        isSaving = true;
+        await Task.Delay(1500); // Simulate API call
+        hasChanges = false;
+        isSaving = false;
+    }
+
+    private void ToggleService(string service)
+    {
+        if (profile.Services.Contains(service))
+            profile.Services.Remove(service);
+        else
+            profile.Services.Add(service);
+        hasChanges = true;
+    }
+
+    private async Task OnSpecializationKeyDown(KeyboardEventArgs e)
+    {
+        if (e.Key == "Enter" && !string.IsNullOrWhiteSpace(newSpecialization))
+        {
+            profile.Specializations.Add(newSpecialization);
+            newSpecialization = "";
+            hasChanges = true;
+        }
+    }
+
+    private void RemoveSpecialization(string spec)
+    {
+        profile.Specializations.Remove(spec);
+        hasChanges = true;
+    }
+
+    private async Task OnSuburbKeyDown(KeyboardEventArgs e)
+    {
+        if (e.Key == "Enter" && !string.IsNullOrWhiteSpace(newSuburb))
+        {
+            profile.ServiceAreas.Add(newSuburb);
+            newSuburb = "";
+            hasChanges = true;
+        }
+    }
+
+    private void RemoveSuburb(string suburb)
+    {
+        profile.ServiceAreas.Remove(suburb);
+        hasChanges = true;
+    }
+
+    private void ToggleWorkingDay(string day)
+    {
+        if (profile.WorkingDays.Contains(day))
+            profile.WorkingDays.Remove(day);
+        else
+            profile.WorkingDays.Add(day);
+        hasChanges = true;
+    }
+
+    private async Task HandlePortfolioUpload(InputFileChangeEventArgs e)
+    {
+        // Handle file upload
+        hasChanges = true;
+    }
+
+    private void RemovePortfolioItem(Guid id)
+    {
+        profile.PortfolioItems.RemoveAll(p => p.Id == id);
+        hasChanges = true;
+    }
+
+    // Action methods
+    private void ViewPublicProfile() => Navigation.NavigateTo($"/tradie/{profile.Id}");
+    private void ChangePhoto() { /* Implement */ }
+    private void UpdateLicense() { /* Implement */ }
+    private void UpdateInsurance() { /* Implement */ }
+    private void ManageCertifications() { /* Implement */ }
+    private void ViewCertificate(Guid id) { /* Implement */ }
+    private void RemoveCertificate(Guid id) { /* Implement */ }
+    private void AddLeaveDate() { /* Implement */ }
+    private void RemoveLeaveDate(Guid id) { /* Implement */ }
+    private void ChangePassword() { /* Implement */ }
+    private void DownloadData() { /* Implement */ }
+    private void DeactivateAccount() { /* Implement */ }
+
+    // Models
+    private class TradieProfile
+    {
+        public Guid Id { get; set; } = Guid.NewGuid();
+        public string BusinessName { get; set; } = "";
+        public string Initials { get; set; } = "";
+        public string? ProfilePhoto { get; set; }
+        public string ABN { get; set; } = "";
+        public string Tagline { get; set; } = "";
+        public string Description { get; set; } = "";
+        public int YearsExperience { get; set; }
+        public string TeamSize { get; set; } = "";
+        public string BusinessPhone { get; set; } = "";
+        public string BusinessEmail { get; set; } = "";
+        public string Website { get; set; } = "";
+        public List<string> Services { get; set; } = new();
+        public List<string> Specializations { get; set; } = new();
+        public int ServiceRadius { get; set; }
+        public List<string> ServiceAreas { get; set; } = new();
+        public double Rating { get; set; }
+        public int CompletedJobs { get; set; }
+        public int ReviewCount { get; set; }
+        public int ResponseRate { get; set; }
+        public string ResponseTime { get; set; } = "";
+        public bool IsVerified { get; set; }
+        public bool IsInsured { get; set; }
+        public string? LicenseNumber { get; set; }
+        public string? InsuranceProvider { get; set; }
+        public bool AcceptingJobs { get; set; }
+        public List<string> WorkingDays { get; set; } = new();
+        public bool EmergencyCallouts { get; set; }
+        public bool WeekendWork { get; set; }
+        public bool AfterHours { get; set; }
+        public bool EmailVerified { get; set; }
+        public bool PhoneVerified { get; set; }
+        public bool IdentityVerified { get; set; }
+        public bool BackgroundChecked { get; set; }
+        public bool EmailNotifications { get; set; }
+        public bool SmsNotifications { get; set; }
+        public bool PushNotifications { get; set; }
+        public bool ShowPhoneNumber { get; set; }
+        public bool ShowEmail { get; set; }
+        public bool ShowExactLocation { get; set; }
+        public List<PortfolioItem> PortfolioItems { get; set; } = new();
+        public List<Certification> Certifications { get; set; } = new();
+        public List<LeaveDate> LeaveDates { get; set; } = new();
+    }
+
+    private class PortfolioItem
+    {
+        public Guid Id { get; set; }
+        public string ImageUrl { get; set; } = "";
+        public string Title { get; set; } = "";
+        public string Description { get; set; } = "";
+    }
+
+    private class Certification
+    {
+        public Guid Id { get; set; }
+        public string Name { get; set; } = "";
+        public string Issuer { get; set; } = "";
+        public DateTime ExpiryDate { get; set; }
+    }
+
+    private class LeaveDate
+    {
+        public Guid Id { get; set; }
+        public DateTime StartDate { get; set; }
+        public DateTime EndDate { get; set; }
+    }
+}
