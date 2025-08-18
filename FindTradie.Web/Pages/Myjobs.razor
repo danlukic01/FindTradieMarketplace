@@ -1,10 +1,14 @@
-﻿@page "/Myjobs"
+﻿@page "/myjobs"
+@page "/my-jobs"
 @attribute [Authorize]
 @using FindTradie.Services.JobManagement.Entities
+@using FindTradie.Services.JobManagement.DTOs
 @using Microsoft.AspNetCore.Components.Authorization
 @using FindTradie.Shared.Domain.Enums
+@using FindTradie.Web.Services
 @inject AuthenticationStateProvider AuthStateProvider
 @inject NavigationManager Navigation
+@inject IJobApiService JobService
 
 <PageTitle>My Jobs - FindTradie</PageTitle>
 
@@ -391,6 +395,7 @@
     private bool IsCustomer = true;
     private bool IsTradie = false;
     private string activeTab = "active";
+    private Guid UserId = Guid.Empty;
 
     // Customer job lists
     private List<CustomerJobViewModel> ActiveJobs = new();
@@ -414,6 +419,13 @@
             IsCustomer = userType == "Customer" || userType == "1";
             IsTradie = userType == "Tradie" || userType == "ServiceProvider" || userType == "2";
 
+            var userIdClaim = authState.User.FindFirst("sub")?.Value ??
+                              authState.User.FindFirst("UserId")?.Value;
+            if (Guid.TryParse(userIdClaim, out var id))
+            {
+                UserId = id;
+            }
+
             if (IsTradie)
             {
                 activeTab = "quotes";
@@ -429,47 +441,59 @@
 
     private async Task LoadJobs()
     {
-        // TODO: Call actual API service to load jobs
-        // This is sample data
+        if (UserId == Guid.Empty)
+        {
+            return;
+        }
+
         if (IsCustomer)
         {
-            ActiveJobs = new List<CustomerJobViewModel>
+            ActiveJobs.Clear();
+            CompletedJobs.Clear();
+            CancelledJobs.Clear();
+
+            var response = await JobService.GetCustomerJobsAsync(UserId);
+            if (response.Success && response.Data != null)
             {
-                new CustomerJobViewModel
-                {
-                    Id = Guid.NewGuid(),
-                    Title = "Fix Leaking Tap in Kitchen",
-                    Category = "Plumbing",
-                    Description = "Kitchen tap has been dripping for a week",
-                    Status = JobStatus.QuoteReceived,
-                    PostedDate = "2 days ago",
-                    Suburb = "Bondi",
-                    State = "NSW",
-                    BudgetMin = 100,
-                    BudgetMax = 300,
-                    Urgency = JobUrgency.Normal,
-                    QuotesCount = 3
-                }
-            };
+                var jobs = response.Data.Select(MapCustomerJob).ToList();
+                ActiveJobs = jobs.Where(j => j.Status != JobStatus.Completed && j.Status != JobStatus.Cancelled).ToList();
+                CompletedJobs = jobs.Where(j => j.Status == JobStatus.Completed).ToList();
+                CancelledJobs = jobs.Where(j => j.Status == JobStatus.Cancelled).ToList();
+            }
         }
         else
         {
-            ActiveQuotes = new List<TradieQuoteViewModel>
+            AssignedJobs.Clear();
+
+            var response = await JobService.GetTradieJobsAsync(UserId);
+            if (response.Success && response.Data != null)
             {
-                new TradieQuoteViewModel
+                AssignedJobs = response.Data.Select(dto => new TradieJobViewModel
                 {
-                    Id = Guid.NewGuid(),
-                    JobTitle = "Bathroom Renovation",
-                    Category = "Plumbing",
-                    Status = QuoteStatus.Submitted,
-                    QuotedDate = "1 day ago",
-                    TotalAmount = 2500,
-                    ProposedStartDate = DateTime.Now.AddDays(7),
-                    DaysUntilExpiry = 6
-                }
-            };
+                    Id = dto.Id,
+                    Title = dto.Title,
+                    Address = $"{dto.Suburb}, {dto.State}",
+                    AcceptedAmount = dto.BudgetMax ?? 0,
+                }).ToList();
+            }
         }
     }
+
+    private CustomerJobViewModel MapCustomerJob(JobSummaryDto dto) => new()
+    {
+        Id = dto.Id,
+        Title = dto.Title,
+        Category = dto.Category.ToString(),
+        Description = dto.Description,
+        Status = dto.Status,
+        PostedDate = dto.CreatedAt.ToString("dd MMM yyyy"),
+        Suburb = dto.Suburb,
+        State = dto.State,
+        BudgetMin = dto.BudgetMin,
+        BudgetMax = dto.BudgetMax,
+        Urgency = dto.Urgency,
+        QuotesCount = dto.QuoteCount
+    };
 
     private void SetActiveTab(string tab)
     {
