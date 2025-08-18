@@ -1,6 +1,9 @@
 // Program.cs
 using Ocelot.DependencyInjection;
 using Ocelot.Middleware;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.IdentityModel.Tokens;
+using System.Text;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -17,6 +20,27 @@ builder.Services.AddCors(options =>
               .AllowAnyHeader());
 });
 
+// Add JWT Authentication
+var jwtSecret = builder.Configuration["JWT:Secret"];
+if (!string.IsNullOrEmpty(jwtSecret))
+{
+    builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
+        .AddJwtBearer(options =>
+        {
+            options.TokenValidationParameters = new TokenValidationParameters
+            {
+                ValidateIssuerSigningKey = true,
+                IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtSecret)),
+                ValidateIssuer = true,
+                ValidIssuer = builder.Configuration["JWT:Issuer"],
+                ValidateAudience = true,
+                ValidAudience = builder.Configuration["JWT:Audience"],
+                ValidateLifetime = true,
+                ClockSkew = TimeSpan.Zero
+            };
+        });
+}
+
 // Add Health Checks
 builder.Services.AddHealthChecks();
 
@@ -31,6 +55,12 @@ if (app.Environment.IsDevelopment())
 
 app.UseRouting();
 app.UseCors("AllowAll");
+
+if (!string.IsNullOrEmpty(jwtSecret))
+{
+    app.UseAuthentication();
+    app.UseAuthorization();
+}
 
 // Use Ocelot
 await app.UseOcelot();
