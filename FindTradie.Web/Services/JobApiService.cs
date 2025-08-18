@@ -4,6 +4,7 @@ using FindTradie.Shared.Contracts.Common;
 using FindTradie.Shared.Domain.Enums;
 using System.Text.Json;
 using System.Text;
+using System.Collections.Generic;
 
 namespace FindTradie.Web.Services;
 
@@ -30,6 +31,42 @@ public class JobApiService : IJobApiService
         }
     }
 
+    private async Task<ApiResponse<T>> HandleResponse<T>(HttpResponseMessage response)
+    {
+        var responseContent = await response.Content.ReadAsStringAsync();
+
+        if (!response.IsSuccessStatusCode)
+        {
+            _logger.LogWarning(
+                "Request failed with status {StatusCode}: {Content}",
+                response.StatusCode,
+                responseContent);
+
+            return new ApiResponse<T>
+            {
+                Success = false,
+                Message = $"Request failed with status code {response.StatusCode}",
+                Errors = string.IsNullOrWhiteSpace(responseContent)
+                    ? null
+                    : new List<string> { responseContent }
+            };
+        }
+
+        if (string.IsNullOrWhiteSpace(responseContent))
+        {
+            return new ApiResponse<T>
+            {
+                Success = false,
+                Message = "Response was empty"
+            };
+        }
+
+        return JsonSerializer.Deserialize<ApiResponse<T>>(responseContent, new JsonSerializerOptions
+        {
+            PropertyNameCaseInsensitive = true
+        }) ?? new ApiResponse<T> { Success = false, Message = "Failed to deserialize response" };
+    }
+
     public async Task<ApiResponse<JobDetailDto>> CreateJobAsync(CreateJobRequest request)
     {
         try
@@ -39,12 +76,8 @@ public class JobApiService : IJobApiService
             var content = new StringContent(json, Encoding.UTF8, "application/json");
 
             var response = await _httpClient.PostAsync("/api/jobs", content);
-            var responseContent = await response.Content.ReadAsStringAsync();
 
-            return JsonSerializer.Deserialize<ApiResponse<JobDetailDto>>(responseContent, new JsonSerializerOptions
-            {
-                PropertyNameCaseInsensitive = true
-            }) ?? new ApiResponse<JobDetailDto> { Success = false, Message = "Failed to deserialize response" };
+            return await HandleResponse<JobDetailDto>(response);
         }
         catch (Exception ex)
         {
@@ -63,12 +96,8 @@ public class JobApiService : IJobApiService
         try
         {
             var response = await _httpClient.GetAsync($"/api/jobs/{id}");
-            var content = await response.Content.ReadAsStringAsync();
 
-            return JsonSerializer.Deserialize<ApiResponse<JobDetailDto>>(content, new JsonSerializerOptions
-            {
-                PropertyNameCaseInsensitive = true
-            }) ?? new ApiResponse<JobDetailDto> { Success = false, Message = "Failed to deserialize response" };
+            return await HandleResponse<JobDetailDto>(response);
         }
         catch (Exception ex)
         {
@@ -91,12 +120,8 @@ public class JobApiService : IJobApiService
             var content = new StringContent(json, Encoding.UTF8, "application/json");
 
             var response = await _httpClient.PutAsync($"/api/jobs/{id}", content);
-            var responseContent = await response.Content.ReadAsStringAsync();
 
-            return JsonSerializer.Deserialize<ApiResponse<JobDetailDto>>(responseContent, new JsonSerializerOptions
-            {
-                PropertyNameCaseInsensitive = true
-            }) ?? new ApiResponse<JobDetailDto> { Success = false, Message = "Failed to deserialize response" };
+            return await HandleResponse<JobDetailDto>(response);
         }
         catch (Exception ex)
         {
@@ -118,12 +143,8 @@ public class JobApiService : IJobApiService
             var content = new StringContent(json, Encoding.UTF8, "application/json");
 
             var response = await _httpClient.PostAsync("/api/jobs/search", content);
-            var responseContent = await response.Content.ReadAsStringAsync();
 
-            return JsonSerializer.Deserialize<ApiResponse<List<JobSummaryDto>>>(responseContent, new JsonSerializerOptions
-            {
-                PropertyNameCaseInsensitive = true
-            }) ?? new ApiResponse<List<JobSummaryDto>> { Success = false, Message = "Failed to deserialize response" };
+            return await HandleResponse<List<JobSummaryDto>>(response);
         }
         catch (Exception ex)
         {
@@ -143,12 +164,8 @@ public class JobApiService : IJobApiService
         {
             await SetAuthorizationHeaderAsync();
             var response = await _httpClient.GetAsync($"/api/jobs/customer/{customerId}?pageNumber={pageNumber}&pageSize={pageSize}");
-            var content = await response.Content.ReadAsStringAsync();
 
-            return JsonSerializer.Deserialize<ApiResponse<List<JobSummaryDto>>>(content, new JsonSerializerOptions
-            {
-                PropertyNameCaseInsensitive = true
-            }) ?? new ApiResponse<List<JobSummaryDto>> { Success = false, Message = "Failed to deserialize response" };
+            return await HandleResponse<List<JobSummaryDto>>(response);
         }
         catch (Exception ex)
         {
@@ -168,12 +185,8 @@ public class JobApiService : IJobApiService
         {
             await SetAuthorizationHeaderAsync();
             var response = await _httpClient.GetAsync($"/api/jobs/tradie/{tradieId}?pageNumber={pageNumber}&pageSize={pageSize}");
-            var content = await response.Content.ReadAsStringAsync();
 
-            return JsonSerializer.Deserialize<ApiResponse<List<JobSummaryDto>>>(content, new JsonSerializerOptions
-            {
-                PropertyNameCaseInsensitive = true
-            }) ?? new ApiResponse<List<JobSummaryDto>> { Success = false, Message = "Failed to deserialize response" };
+            return await HandleResponse<List<JobSummaryDto>>(response);
         }
         catch (Exception ex)
         {
@@ -197,12 +210,8 @@ public class JobApiService : IJobApiService
             var content = new StringContent(json, Encoding.UTF8, "application/json");
 
             var response = await _httpClient.PatchAsync($"/api/jobs/{id}/status", content);
-            var responseContent = await response.Content.ReadAsStringAsync();
 
-            return JsonSerializer.Deserialize<ApiResponse<bool>>(responseContent, new JsonSerializerOptions
-            {
-                PropertyNameCaseInsensitive = true
-            }) ?? new ApiResponse<bool> { Success = false, Message = "Failed to deserialize response" };
+            return await HandleResponse<bool>(response);
         }
         catch (Exception ex)
         {
@@ -226,12 +235,8 @@ public class JobApiService : IJobApiService
             var content = new StringContent(json, Encoding.UTF8, "application/json");
 
             var response = await _httpClient.PostAsync($"/api/jobs/{jobId}/assign", content);
-            var responseContent = await response.Content.ReadAsStringAsync();
 
-            return JsonSerializer.Deserialize<ApiResponse<bool>>(responseContent, new JsonSerializerOptions
-            {
-                PropertyNameCaseInsensitive = true
-            }) ?? new ApiResponse<bool> { Success = false, Message = "Failed to deserialize response" };
+            return await HandleResponse<bool>(response);
         }
         catch (Exception ex)
         {
@@ -255,12 +260,8 @@ public class JobApiService : IJobApiService
             var content = new StringContent(json, Encoding.UTF8, "application/json");
 
             var response = await _httpClient.PostAsync($"/api/jobs/{id}/complete", content);
-            var responseContent = await response.Content.ReadAsStringAsync();
 
-            return JsonSerializer.Deserialize<ApiResponse<bool>>(responseContent, new JsonSerializerOptions
-            {
-                PropertyNameCaseInsensitive = true
-            }) ?? new ApiResponse<bool> { Success = false, Message = "Failed to deserialize response" };
+            return await HandleResponse<bool>(response);
         }
         catch (Exception ex)
         {
