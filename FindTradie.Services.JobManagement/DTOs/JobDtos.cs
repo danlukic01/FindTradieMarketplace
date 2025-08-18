@@ -45,24 +45,25 @@ public record UpdateJobRequest(
     string? SpecialRequirements
 );
 
-public record JobSummaryDto(
-    Guid Id,
-    string Title,
-    string Description,
-    ServiceCategory Category,
-    string SubCategory,
-    JobUrgency Urgency,
-    JobStatus Status,
-    decimal? BudgetMin,
-    decimal? BudgetMax,
-    string Suburb,
-    string State,
-    double DistanceKm,
-    DateTime CreatedAt,
-    int QuoteCount,
-    bool HasImages,
-    DateTime? PreferredStartDate
-);
+public record JobSummaryDto
+{
+    public Guid Id { get; init; }
+    public string Title { get; init; } = string.Empty;
+    public string Description { get; init; } = string.Empty;
+    public ServiceCategory Category { get; init; }
+    public string SubCategory { get; init; } = string.Empty;
+    public JobUrgency Urgency { get; init; }
+    public JobStatus Status { get; init; }
+    public decimal? BudgetMin { get; init; }
+    public decimal? BudgetMax { get; init; }
+    public string Suburb { get; init; } = string.Empty;
+    public string State { get; init; } = string.Empty;
+    public double DistanceKm { get; init; }
+    public DateTime CreatedAt { get; init; }
+    public int QuoteCount { get; init; }
+    public bool HasImages { get; init; }
+    public DateTime? PreferredStartDate { get; init; }
+}
 
 public record JobDetailDto
 {

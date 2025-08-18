@@ -84,26 +84,27 @@ public class JobRepository : IJobRepository
         query = query.Where(j => j.Status == JobStatus.Posted || j.Status == JobStatus.QuoteRequested);
 
         var jobs = await query
-            .Select(j => new JobSummaryDto(
-                j.Id,
-                j.Title,
-                j.Description.Length > 200 ? j.Description.Substring(0, 200) + "..." : j.Description,
-                j.Category,
-                j.SubCategory,
-                j.Urgency,
-                j.Status,
-                j.BudgetMin,
-                j.BudgetMax,
-                j.Suburb,
-                j.State,
-                request.Latitude.HasValue && request.Longitude.HasValue
+            .Select(j => new JobSummaryDto
+            {
+                Id = j.Id,
+                Title = j.Title,
+                Description = j.Description.Length > 200 ? j.Description.Substring(0, 200) + "..." : j.Description,
+                Category = j.Category,
+                SubCategory = j.SubCategory,
+                Urgency = j.Urgency,
+                Status = j.Status,
+                BudgetMin = j.BudgetMin,
+                BudgetMax = j.BudgetMax,
+                Suburb = j.Suburb,
+                State = j.State,
+                DistanceKm = request.Latitude.HasValue && request.Longitude.HasValue
                     ? CalculateDistance(request.Latitude.Value, request.Longitude.Value, j.Latitude, j.Longitude)
                     : 0,
-                j.CreatedAt,
-                j.Quotes.Count(q => !q.IsDeleted),
-                j.Images.Any(),
-                j.PreferredStartDate
-            ))
+                CreatedAt = j.CreatedAt,
+                QuoteCount = j.Quotes.Count(q => !q.IsDeleted),
+                HasImages = j.Images.Any(),
+                PreferredStartDate = j.PreferredStartDate
+            })
             .Where(j => !request.RadiusKm.HasValue || j.DistanceKm <= request.RadiusKm.Value)
             .OrderBy(j => j.CreatedAt)
             .Skip((request.PageNumber - 1) * request.PageSize)
