@@ -65,16 +65,19 @@ public class JobService : IJobService
                 Status = JobStatus.Posted
             };
 
-            // Add images
-            for (int i = 0; i < request.ImageUrls.Count; i++)
+            // Add images if provided
+            if (request.ImageUrls?.Any() == true)
             {
-                job.Images.Add(new JobImage
+                for (int i = 0; i < request.ImageUrls.Count; i++)
                 {
-                    ImageUrl = request.ImageUrls[i],
-                    ImageType = ImageType.Problem,
-                    IsMainImage = i == 0,
-                    DisplayOrder = i + 1
-                });
+                    job.Images.Add(new JobImage
+                    {
+                        ImageUrl = request.ImageUrls[i],
+                        ImageType = ImageType.Problem,
+                        IsMainImage = i == 0,
+                        DisplayOrder = i + 1
+                    });
+                }
             }
 
             // Add status history
