@@ -1,6 +1,7 @@
 ﻿// Services/QuoteApiService.cs
 using FindTradie.Services.JobManagement.DTOs;
 using FindTradie.Shared.Contracts.Common;
+using FindTradie.Shared.Domain.Enums;
 using System.Text.Json;
 using System.Text;
 

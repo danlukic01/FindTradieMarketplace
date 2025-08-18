@@ -1,6 +1,7 @@
 ﻿// Services/IQuoteApiService.cs
 using FindTradie.Services.JobManagement.DTOs;
 using FindTradie.Shared.Contracts.Common;
+using FindTradie.Shared.Domain.Enums;
 
 namespace FindTradie.Web.Services;
 
