@@ -52,11 +52,11 @@
             <div class="controls-bar">
                 <div class="filter-group">
                     <button class="filter-btn @(filterBy == "all" ? "active" : "")"
-                            @onclick="() => SetFilter('all')">
+                            @onclick="@(() => SetFilter("all"))">
                         All Quotes (@quotes.Count)
                     </button>
                     <button class="filter-btn @(filterBy == "shortlisted" ? "active" : "")"
-                            @onclick="() => SetFilter('shortlisted')">
+                            @onclick="@(() => SetFilter("shortlisted"))">
                         Shortlisted (@shortlistedCount)
                     </button>
                 </div>
@@ -116,7 +116,7 @@
                                     </div>
                                 </div>
                             </div>
-                            <div class="shortlist-btn" @onclick="() => ToggleShortlist(quote.Id)">
+                            <div class="shortlist-btn" @onclick="@(() => ToggleShortlist(quote.Id))">
                                 <i class="@(quote.IsShortlisted ? "fas" : "far") fa-heart"></i>
                             </div>
                         </div>
@@ -151,15 +151,15 @@
                         <div class="quote-details">
                             <div class="detail-tabs">
                                 <button class="tab @(quote.ActiveTab == "description" ? "active" : "")"
-                                        @onclick="() => SetQuoteTab(quote.Id, 'description')">
+                                        @onclick="@(() => SetQuoteTab(quote.Id, "description"))">
                                     Description
                                 </button>
                                 <button class="tab @(quote.ActiveTab == "timeline" ? "active" : "")"
-                                        @onclick="() => SetQuoteTab(quote.Id, 'timeline')">
+                                        @onclick="@(() => SetQuoteTab(quote.Id, "timeline"))">
                                     Timeline
                                 </button>
                                 <button class="tab @(quote.ActiveTab == "included" ? "active" : "")"
-                                        @onclick="() => SetQuoteTab(quote.Id, 'included')">
+                                        @onclick="@(() => SetQuoteTab(quote.Id, "included"))">
                                     What's Included
                                 </button>
                             </div>
@@ -250,15 +250,15 @@
 
                         <!-- Quote Actions -->
                         <div class="quote-actions">
-                            <button class="btn btn-outline" @onclick="() => ViewTradieProfile(quote.TradieId)">
+                            <button class="btn btn-outline" @onclick="@(() => ViewTradieProfile(quote.TradieId))">
                                 <i class="fas fa-user"></i> View Profile
                             </button>
-                            <button class="btn btn-outline" @onclick="() => MessageTradie(quote.Id)">
+                            <button class="btn btn-outline" @onclick="@(() => MessageTradie(quote.Id))">
                                 <i class="fas fa-comment"></i> Message
                             </button>
                             @if (!quote.IsAccepted)
                             {
-                                <button class="btn btn-primary" @onclick="() => AcceptQuote(quote.Id)">
+                                <button class="btn btn-primary" @onclick="@(() => AcceptQuote(quote.Id))">
                                     <i class="fas fa-check"></i> Accept Quote
                                 </button>
                             }
@@ -337,7 +337,7 @@
                                     </td>
                                     <td>@(quote.HasWarranty ? "Yes" : "No")</td>
                                     <td>
-                                        <button class="btn btn-sm btn-primary" @onclick="() => AcceptQuote(quote.Id)">
+                                        <button class="btn btn-sm btn-primary" @onclick="@(() => AcceptQuote(quote.Id))">
                                             Accept
                                         </button>
                                     </td>
