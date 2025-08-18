@@ -1,0 +1,482 @@
+﻿@page "/job/{JobId:guid}"
+@attribute [Authorize]
+@using Microsoft.AspNetCore.Components.Authorization
+@using FindTradie.Shared.Domain.Enums
+@inject AuthenticationStateProvider AuthStateProvider
+@inject NavigationManager Navigation
+@inject IJSRuntime JSRuntime
+
+<PageTitle>User Job Details - FindTradie</PageTitle>
+
+<div class="job-details-page">
+    <!-- Header with Back Button -->
+    <section class="page-header-compact">
+        <div class="container">
+            <button class="back-btn" @onclick="GoBack">
+                <i class="fas fa-arrow-left"></i> Back to My Jobs
+            </button>
+        </div>
+    </section>
+
+    <!-- Job Overview Section -->
+    <section class="job-overview">
+        <div class="container">
+            <div class="overview-card">
+                <div class="overview-header">
+                    <div>
+                        <h1>@job.Title</h1>
+                        <div class="job-meta-tags">
+                            <span class="category-tag">
+                                <i class="fas fa-wrench"></i> @job.Category
+                            </span>
+                            <span class="urgency-tag @job.Urgency.ToString().ToLower()">
+                                <i class="fas fa-clock"></i> @job.Urgency
+                            </span>
+                            <span class="date-tag">
+                                <i class="fas fa-calendar"></i> Posted @job.PostedDate
+                            </span>
+                        </div>
+                    </div>
+                    <div class="status-section">
+                        <div class="current-status @job.Status.ToString().ToLower()">
+                            @GetStatusDisplay(job.Status)
+                        </div>
+                        @if (job.QuotesCount > 0)
+                        {
+                            <div class="quotes-summary">
+                                <span class="quotes-number">@job.QuotesCount</span>
+                                <span class="quotes-text">Quotes Received</span>
+                            </div>
+                        }
+                    </div>
+                </div>
+
+                <!-- Progress Timeline -->
+                <div class="progress-timeline">
+                    <div class="timeline-item @(job.Status >= JobStatus.Posted ? "completed" : "")">
+                        <div class="timeline-dot"></div>
+                        <div class="timeline-content">
+                            <span class="timeline-title">Posted</span>
+                            <span class="timeline-date">@job.PostedDate</span>
+                        </div>
+                    </div>
+                    <div class="timeline-item @(job.Status >= JobStatus.QuoteReceived ? "completed" : "")">
+                        <div class="timeline-dot"></div>
+                        <div class="timeline-content">
+                            <span class="timeline-title">Quotes Received</span>
+                            @if (job.FirstQuoteDate != null)
+                            {
+                                <span class="timeline-date">@job.FirstQuoteDate</span>
+                            }
+                        </div>
+                    </div>
+                    <div class="timeline-item @(job.Status >= JobStatus.Booked ? "completed" : "")">
+                        <div class="timeline-dot"></div>
+                        <div class="timeline-content">
+                            <span class="timeline-title">Tradie Assigned</span>
+                            @if (job.AssignedDate != null)
+                            {
+                                <span class="timeline-date">@job.AssignedDate</span>
+                            }
+                        </div>
+                    </div>
+                    <div class="timeline-item @(job.Status >= JobStatus.InProgress ? "completed" : "")">
+                        <div class="timeline-dot"></div>
+                        <div class="timeline-content">
+                            <span class="timeline-title">In Progress</span>
+                            @if (job.StartedDate != null)
+                            {
+                                <span class="timeline-date">@job.StartedDate</span>
+                            }
+                        </div>
+                    </div>
+                    <div class="timeline-item @(job.Status >= JobStatus.Completed ? "completed" : "")">
+                        <div class="timeline-dot"></div>
+                        <div class="timeline-content">
+                            <span class="timeline-title">Completed</span>
+                            @if (job.CompletedDate != null)
+                            {
+                                <span class="timeline-date">@job.CompletedDate</span>
+                            }
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Main Content Grid -->
+    <section class="job-content">
+        <div class="container">
+            <div class="content-grid">
+                <!-- Left Column - Job Details -->
+                <div class="details-column">
+                    <!-- Description Card -->
+                    <div class="detail-card">
+                        <h2><i class="fas fa-file-alt"></i> Description</h2>
+                        <p>@job.Description</p>
+                        @if (!string.IsNullOrEmpty(job.SpecialRequirements))
+                        {
+                            <div class="special-requirements">
+                                <h3>Special Requirements</h3>
+                                <p>@job.SpecialRequirements</p>
+                            </div>
+                        }
+                    </div>
+
+                    <!-- Location Card -->
+                    <div class="detail-card">
+                        <h2><i class="fas fa-map-marker-alt"></i> Location</h2>
+                        <div class="location-info">
+                            <p class="address">@job.Address</p>
+                            <p class="suburb">@job.Suburb, @job.State @job.PostCode</p>
+                            @if (job.IsLocationVisible)
+                            {
+                                <div class="map-container">
+                                    <div class="map-placeholder">
+                                        <i class="fas fa-map"></i>
+                                        <span>Map View</span>
+                                    </div>
+                                </div>
+                            }
+                        </div>
+                    </div>
+
+                    <!-- Budget & Timeline Card -->
+                    <div class="detail-card">
+                        <h2><i class="fas fa-dollar-sign"></i> Budget & Timeline</h2>
+                        <div class="budget-timeline-grid">
+                            <div class="info-item">
+                                <label>Budget Range</label>
+                                <span class="value">
+                                    @if (job.BudgetMin.HasValue && job.BudgetMax.HasValue)
+                                    {
+                                        <text>$@job.BudgetMin - $@job.BudgetMax</text>
+                                    }
+                                    else
+                                    {
+                                        <text>To be discussed</text>
+                                    }
+                                </span>
+                            </div>
+                            <div class="info-item">
+                                <label>Preferred Start</label>
+                                <span class="value">
+                                    @(job.PreferredStartDate?.ToString("dd MMM yyyy") ?? "Flexible")
+                                </span>
+                            </div>
+                            <div class="info-item">
+                                <label>Completion By</label>
+                                <span class="value">
+                                    @(job.PreferredEndDate?.ToString("dd MMM yyyy") ?? "Flexible")
+                                </span>
+                            </div>
+                            <div class="info-item">
+                                <label>Flexibility</label>
+                                <span class="value">
+                                    @(job.IsFlexibleTiming ? "Flexible with dates" : "Fixed timeline")
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Images Card -->
+                    @if (job.Images.Any())
+                    {
+                        <div class="detail-card">
+                            <h2><i class="fas fa-camera"></i> Photos</h2>
+                            <div class="image-gallery">
+                                @foreach (var image in job.Images)
+                                {
+                                    <div class="gallery-item" @onclick="() => ViewImage(image.Url)">
+                                        <img src="@image.Url" alt="@image.Caption" />
+                                        @if (!string.IsNullOrEmpty(image.Caption))
+                                        {
+                                            <span class="image-caption">@image.Caption</span>
+                                        }
+                                    </div>
+                                }
+                            </div>
+                        </div>
+                    }
+
+                    <!-- Messages/Activity -->
+                    <div class="detail-card">
+                        <h2><i class="fas fa-comments"></i> Activity</h2>
+                        <div class="activity-feed">
+                            @foreach (var activity in job.Activities)
+                            {
+                                <div class="activity-item">
+                                    <div class="activity-icon @activity.Type">
+                                        <i class="@GetActivityIcon(activity.Type)"></i>
+                                    </div>
+                                    <div class="activity-content">
+                                        <p>@activity.Description</p>
+                                        <span class="activity-time">@activity.TimeAgo</span>
+                                    </div>
+                                </div>
+                            }
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Right Column - Actions & Info -->
+                <div class="sidebar-column">
+                    <!-- Action Card -->
+                    <div class="action-card">
+                        <h3>Actions</h3>
+                        @if (job.Status == JobStatus.Posted || job.Status == JobStatus.QuoteReceived)
+                        {
+                            <button class="btn btn-primary btn-block" @onclick="ViewQuotes">
+                                <i class="fas fa-file-invoice-dollar"></i>
+                                View Quotes (@job.QuotesCount)
+                            </button>
+                            <button class="btn btn-outline btn-block" @onclick="EditJob">
+                                <i class="fas fa-edit"></i>
+                                Edit Job
+                            </button>
+                        }
+                        @if (job.Status == JobStatus.Booked || job.Status == JobStatus.InProgress)
+                        {
+                            <button class="btn btn-primary btn-block" @onclick="MessageTradie">
+                                <i class="fas fa-comment"></i>
+                                Message Tradie
+                            </button>
+                            <button class="btn btn-success btn-block" @onclick="MarkComplete">
+                                <i class="fas fa-check"></i>
+                                Mark as Complete
+                            </button>
+                        }
+                        @if (job.Status == JobStatus.Completed && !job.HasReview)
+                        {
+                            <button class="btn btn-primary btn-block" @onclick="LeaveReview">
+                                <i class="fas fa-star"></i>
+                                Leave Review
+                            </button>
+                        }
+                        <button class="btn btn-danger-outline btn-block" @onclick="CancelJob">
+                            <i class="fas fa-times"></i>
+                            Cancel Job
+                        </button>
+                    </div>
+
+                    <!-- Assigned Tradie Card -->
+                    @if (job.AssignedTradie != null)
+                    {
+                        <div class="tradie-card">
+                            <h3>Assigned Tradie</h3>
+                            <div class="tradie-info">
+                                <div class="tradie-avatar">
+                                    @if (!string.IsNullOrEmpty(job.AssignedTradie.Avatar))
+                                    {
+                                        <img src="@job.AssignedTradie.Avatar" alt="@job.AssignedTradie.Name" />
+                                    }
+                                    else
+                                    {
+                                        <span class="avatar-placeholder">@job.AssignedTradie.Initials</span>
+                                    }
+                                </div>
+                                <div class="tradie-details">
+                                    <h4>@job.AssignedTradie.Name</h4>
+                                    <p>@job.AssignedTradie.BusinessName</p>
+                                    <div class="rating">
+                                        @for (int i = 1; i <= 5; i++)
+                                        {
+                                            <i class="fas fa-star @(i <= job.AssignedTradie.Rating ? "filled" : "")"></i>
+                                        }
+                                        <span>(@job.AssignedTradie.ReviewCount reviews)</span>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="tradie-contact">
+                                <button class="btn btn-sm btn-outline" @onclick="CallTradie">
+                                    <i class="fas fa-phone"></i> Call
+                                </button>
+                                <button class="btn btn-sm btn-outline" @onclick="MessageTradie">
+                                    <i class="fas fa-comment"></i> Message
+                                </button>
+                            </div>
+                            <div class="accepted-quote">
+                                <label>Accepted Quote</label>
+                                <div class="quote-amount">$@job.AcceptedQuoteAmount</div>
+                                <div class="quote-timeline">
+                                    <i class="fas fa-calendar"></i>
+                                    Start: @job.AcceptedQuoteStartDate
+                                </div>
+                            </div>
+                        </div>
+                    }
+
+                    <!-- Requirements Card -->
+                    <div class="requirements-card">
+                        <h3>Requirements</h3>
+                        <div class="requirement-list">
+                            <div class="requirement-item @(job.RequiresLicense ? "required" : "not-required")">
+                                <i class="fas @(job.RequiresLicense ? "fa-check-circle" : "fa-times-circle")"></i>
+                                <span>License Required</span>
+                            </div>
+                            <div class="requirement-item @(job.RequiresInsurance ? "required" : "not-required")">
+                                <i class="fas @(job.RequiresInsurance ? "fa-check-circle" : "fa-times-circle")"></i>
+                                <span>Insurance Required</span>
+                            </div>
+                            <div class="requirement-item @(job.RequiresBackgroundCheck ? "required" : "not-required")">
+                                <i class="fas @(job.RequiresBackgroundCheck ? "fa-check-circle" : "fa-times-circle")"></i>
+                                <span>Background Check</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Help Card -->
+                    <div class="help-card">
+                        <h3>Need Help?</h3>
+                        <p>Our support team is here to assist you</p>
+                        <button class="btn btn-outline btn-sm btn-block">
+                            <i class="fas fa-headset"></i> Contact Support
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+</div>
+
+@code {
+    [Parameter] public Guid JobId { get; set; }
+
+    private JobDetailViewModel job = new();
+    private bool isLoading = true;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadJobDetails();
+    }
+
+    private async Task LoadJobDetails()
+    {
+        // TODO: Load from API
+        job = new JobDetailViewModel
+            {
+                Id = JobId,
+                Title = "Fix Leaking Tap in Kitchen",
+                Category = "Plumbing",
+                Status = JobStatus.QuoteReceived,
+                Urgency = JobUrgency.Normal,
+                PostedDate = "2 days ago",
+                Description = "Kitchen tap has been dripping for a week. It seems to be getting worse and now makes a constant dripping sound. The tap is a mixer tap installed about 5 years ago. Would like this fixed as soon as possible as it's wasting water.",
+                SpecialRequirements = "Please bring your own tools. Access through side gate if no one home.",
+                Address = "123 Main Street",
+                Suburb = "Bondi",
+                State = "NSW",
+                PostCode = "2026",
+                BudgetMin = 100,
+                BudgetMax = 300,
+                PreferredStartDate = DateTime.Now.AddDays(3),
+                IsFlexibleTiming = true,
+                QuotesCount = 3,
+                RequiresInsurance = true,
+                Images = new List<JobImageViewModel>
+            {
+                new() { Url = "/images/tap1.jpg", Caption = "Leaking tap" }
+            },
+                Activities = new List<ActivityViewModel>
+            {
+                new() { Type = "quote", Description = "New quote received from ABC Plumbing", TimeAgo = "2 hours ago" },
+                new() { Type = "message", Description = "Tradie asked about water pressure", TimeAgo = "5 hours ago" },
+                new() { Type = "quote", Description = "Quote received from QuickFix Plumbers", TimeAgo = "1 day ago" },
+                new() { Type = "created", Description = "Job posted", TimeAgo = "2 days ago" }
+            }
+            };
+
+        isLoading = false;
+    }
+
+    private void GoBack() => Navigation.NavigateTo("/my-jobs");
+    private void ViewQuotes() => Navigation.NavigateTo($"/job/{JobId}/quotes");
+    private void EditJob() => Navigation.NavigateTo($"/job/{JobId}/edit");
+    private void MessageTradie() => Navigation.NavigateTo($"/job/{JobId}/messages");
+    private void LeaveReview() => Navigation.NavigateTo($"/job/{JobId}/review");
+    private void CallTradie() { /* TODO */ }
+    private void MarkComplete() { /* TODO */ }
+    private void CancelJob() { /* TODO */ }
+    private void ViewImage(string url) { /* TODO: Open image modal */ }
+
+    private string GetStatusDisplay(JobStatus status) => status switch
+    {
+        JobStatus.Posted => "Accepting Quotes",
+        JobStatus.QuoteReceived => "Reviewing Quotes",
+        JobStatus.Booked => "Tradie Assigned",
+        JobStatus.InProgress => "Work In Progress",
+        JobStatus.Completed => "Completed",
+        _ => status.ToString()
+    };
+
+    private string GetActivityIcon(string type) => type switch
+    {
+        "quote" => "fas fa-file-invoice-dollar",
+        "message" => "fas fa-comment",
+        "created" => "fas fa-plus-circle",
+        "status" => "fas fa-info-circle",
+        _ => "fas fa-circle"
+    };
+
+    // View Models
+    private class JobDetailViewModel
+    {
+        public Guid Id { get; set; }
+        public string Title { get; set; } = "";
+        public string Category { get; set; } = "";
+        public JobStatus Status { get; set; }
+        public JobUrgency Urgency { get; set; }
+        public string PostedDate { get; set; } = "";
+        public string? FirstQuoteDate { get; set; }
+        public string? AssignedDate { get; set; }
+        public string? StartedDate { get; set; }
+        public string? CompletedDate { get; set; }
+        public string Description { get; set; } = "";
+        public string? SpecialRequirements { get; set; }
+        public string Address { get; set; } = "";
+        public string Suburb { get; set; } = "";
+        public string State { get; set; } = "";
+        public string PostCode { get; set; } = "";
+        public bool IsLocationVisible { get; set; } = true;
+        public decimal? BudgetMin { get; set; }
+        public decimal? BudgetMax { get; set; }
+        public DateTime? PreferredStartDate { get; set; }
+        public DateTime? PreferredEndDate { get; set; }
+        public bool IsFlexibleTiming { get; set; }
+        public int QuotesCount { get; set; }
+        public bool RequiresLicense { get; set; }
+        public bool RequiresInsurance { get; set; }
+        public bool RequiresBackgroundCheck { get; set; }
+        public bool HasReview { get; set; }
+        public decimal? AcceptedQuoteAmount { get; set; }
+        public string? AcceptedQuoteStartDate { get; set; }
+        public TradieViewModel? AssignedTradie { get; set; }
+        public List<JobImageViewModel> Images { get; set; } = new();
+        public List<ActivityViewModel> Activities { get; set; } = new();
+    }
+
+    private class TradieViewModel
+    {
+        public Guid Id { get; set; }
+        public string Name { get; set; } = "";
+        public string BusinessName { get; set; } = "";
+        public string? Avatar { get; set; }
+        public string Initials { get; set; } = "";
+        public decimal Rating { get; set; }
+        public int ReviewCount { get; set; }
+    }
+
+    private class JobImageViewModel
+    {
+        public string Url { get; set; } = "";
+        public string? Caption { get; set; }
+    }
+
+    private class ActivityViewModel
+    {
+        public string Type { get; set; } = "";
+        public string Description { get; set; } = "";
+        public string TimeAgo { get; set; } = "";
+    }
+}

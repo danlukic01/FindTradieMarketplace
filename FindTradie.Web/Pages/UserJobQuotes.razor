@@ -1,0 +1,536 @@
+﻿@page "/job/{JobId:guid}/quotes"
+@attribute [Authorize]
+@using Microsoft.AspNetCore.Components.Authorization
+@using FindTradie.Shared.Domain.Enums
+@inject AuthenticationStateProvider AuthStateProvider
+@inject NavigationManager Navigation
+
+<PageTitle>Job Quotes - FindTradie</PageTitle>
+
+<div class="quotes-page">
+    <!-- Header -->
+    <section class="page-header-compact">
+        <div class="container">
+            <button class="back-btn" @onclick="GoBack">
+                <i class="fas fa-arrow-left"></i> Back to Job Details
+            </button>
+        </div>
+    </section>
+
+    <!-- Job Summary -->
+    <section class="job-summary">
+        <div class="container">
+            <div class="summary-card">
+                <h1>Quotes for: @jobTitle</h1>
+                <div class="summary-stats">
+                    <div class="stat">
+                        <span class="stat-value">@quotes.Count</span>
+                        <span class="stat-label">Total Quotes</span>
+                    </div>
+                    <div class="stat">
+                        <span class="stat-value">$@lowestQuote</span>
+                        <span class="stat-label">Lowest Quote</span>
+                    </div>
+                    <div class="stat">
+                        <span class="stat-value">$@averageQuote</span>
+                        <span class="stat-label">Average Quote</span>
+                    </div>
+                    <div class="stat">
+                        <span class="stat-value">@daysRemaining days</span>
+                        <span class="stat-label">To Decide</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Filters and Sort -->
+    <section class="quotes-controls">
+        <div class="container">
+            <div class="controls-bar">
+                <div class="filter-group">
+                    <button class="filter-btn @(filterBy == "all" ? "active" : "")"
+                            @onclick="() => SetFilter('all')">
+                        All Quotes (@quotes.Count)
+                    </button>
+                    <button class="filter-btn @(filterBy == "shortlisted" ? "active" : "")"
+                            @onclick="() => SetFilter('shortlisted')">
+                        Shortlisted (@shortlistedCount)
+                    </button>
+                </div>
+                <div class="sort-group">
+                    <label>Sort by:</label>
+                    <select class="sort-select" @onchange="SortQuotes">
+                        <option value="price-low">Price: Low to High</option>
+                        <option value="price-high">Price: High to Low</option>
+                        <option value="rating">Rating: High to Low</option>
+                        <option value="newest">Newest First</option>
+                    </select>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Quotes List -->
+    <section class="quotes-list-section">
+        <div class="container">
+            <div class="quotes-grid">
+                @foreach (var quote in filteredQuotes)
+                {
+                    <div class="quote-card @(quote.IsShortlisted ? "shortlisted" : "") @(quote.IsAccepted ? "accepted" : "")">
+                        <!-- Quote Header -->
+                        <div class="quote-header">
+                            <div class="tradie-info">
+                                <div class="tradie-avatar">
+                                    @if (!string.IsNullOrEmpty(quote.TradieAvatar))
+                                    {
+                                        <img src="@quote.TradieAvatar" alt="@quote.TradieName" />
+                                    }
+                                    else
+                                    {
+                                        <span>@quote.TradieInitials</span>
+                                    }
+                                    @if (quote.IsVerified)
+                                    {
+                                        <span class="verified-badge" title="Verified Tradie">
+                                            <i class="fas fa-check"></i>
+                                        </span>
+                                    }
+                                </div>
+                                <div class="tradie-details">
+                                    <h3>@quote.TradieName</h3>
+                                    <p>@quote.BusinessName</p>
+                                    <div class="tradie-meta">
+                                        <div class="rating">
+                                            @for (int i = 1; i <= 5; i++)
+                                            {
+                                                <i class="fas fa-star @(i <= quote.Rating ? "filled" : "")"></i>
+                                            }
+                                            <span>@quote.Rating (@quote.ReviewCount)</span>
+                                        </div>
+                                        <span class="distance">
+                                            <i class="fas fa-map-marker-alt"></i> @quote.Distance km away
+                                        </span>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="shortlist-btn" @onclick="() => ToggleShortlist(quote.Id)">
+                                <i class="@(quote.IsShortlisted ? "fas" : "far") fa-heart"></i>
+                            </div>
+                        </div>
+
+                        <!-- Quote Amount -->
+                        <div class="quote-amount-section">
+                            <div class="amount-breakdown">
+                                <div class="total-amount">
+                                    <span class="label">Total Quote</span>
+                                    <span class="amount">$@quote.TotalAmount</span>
+                                </div>
+                                <div class="breakdown-details">
+                                    <div class="breakdown-item">
+                                        <span>Materials:</span>
+                                        <span>$@quote.MaterialsCost</span>
+                                    </div>
+                                    <div class="breakdown-item">
+                                        <span>Labour:</span>
+                                        <span>$@quote.LabourCost</span>
+                                    </div>
+                                </div>
+                            </div>
+                            @if (quote.IsLowestQuote)
+                            {
+                                <div class="best-price-badge">
+                                    <i class="fas fa-tag"></i> Best Price
+                                </div>
+                            }
+                        </div>
+
+                        <!-- Quote Details -->
+                        <div class="quote-details">
+                            <div class="detail-tabs">
+                                <button class="tab @(quote.ActiveTab == "description" ? "active" : "")"
+                                        @onclick="() => SetQuoteTab(quote.Id, 'description')">
+                                    Description
+                                </button>
+                                <button class="tab @(quote.ActiveTab == "timeline" ? "active" : "")"
+                                        @onclick="() => SetQuoteTab(quote.Id, 'timeline')">
+                                    Timeline
+                                </button>
+                                <button class="tab @(quote.ActiveTab == "included" ? "active" : "")"
+                                        @onclick="() => SetQuoteTab(quote.Id, 'included')">
+                                    What's Included
+                                </button>
+                            </div>
+
+                            <div class="tab-content">
+                                @if (quote.ActiveTab == "description")
+                                {
+                                    <p>@quote.Description</p>
+                                    @if (!string.IsNullOrEmpty(quote.Methodology))
+                                    {
+                                        <h4>How I'll Complete the Job</h4>
+                                        <p>@quote.Methodology</p>
+                                    }
+                                }
+                                else if (quote.ActiveTab == "timeline")
+                                {
+                                    <div class="timeline-info">
+                                        <div class="timeline-item">
+                                            <i class="fas fa-calendar-alt"></i>
+                                            <div>
+                                                <label>Can Start</label>
+                                                <span>@quote.ProposedStartDate</span>
+                                            </div>
+                                        </div>
+                                        <div class="timeline-item">
+                                            <i class="fas fa-clock"></i>
+                                            <div>
+                                                <label>Duration</label>
+                                                <span>@quote.EstimatedDuration</span>
+                                            </div>
+                                        </div>
+                                        <div class="timeline-item">
+                                            <i class="fas fa-check-circle"></i>
+                                            <div>
+                                                <label>Completion By</label>
+                                                <span>@quote.ProposedEndDate</span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                }
+                                else if (quote.ActiveTab == "included")
+                                {
+                                    <div class="included-items">
+                                        @if (!string.IsNullOrEmpty(quote.MaterialsIncluded))
+                                        {
+                                            <div class="included-section">
+                                                <h4><i class="fas fa-tools"></i> Materials Included</h4>
+                                                <p>@quote.MaterialsIncluded</p>
+                                            </div>
+                                        }
+                                        @if (!string.IsNullOrEmpty(quote.WarrantyOffered))
+                                        {
+                                            <div class="included-section">
+                                                <h4><i class="fas fa-shield-alt"></i> Warranty</h4>
+                                                <p>@quote.WarrantyOffered</p>
+                                            </div>
+                                        }
+                                        <div class="included-list">
+                                            <div class="included-item @(quote.IncludesCleanup ? "yes" : "no")">
+                                                <i class="fas @(quote.IncludesCleanup ? "fa-check" : "fa-times")"></i>
+                                                <span>Cleanup after job</span>
+                                            </div>
+                                            <div class="included-item @(quote.IncludesRemoval ? "yes" : "no")">
+                                                <i class="fas @(quote.IncludesRemoval ? "fa-check" : "fa-times")"></i>
+                                                <span>Waste removal</span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                }
+                            </div>
+                        </div>
+
+                        <!-- Tradie Stats -->
+                        <div class="tradie-stats">
+                            <div class="stat-item">
+                                <span class="stat-value">@quote.JobsCompleted</span>
+                                <span class="stat-label">Jobs Done</span>
+                            </div>
+                            <div class="stat-item">
+                                <span class="stat-value">@quote.ResponseTime</span>
+                                <span class="stat-label">Response Time</span>
+                            </div>
+                            <div class="stat-item">
+                                <span class="stat-value">@quote.OnTimeRate%</span>
+                                <span class="stat-label">On Time</span>
+                            </div>
+                        </div>
+
+                        <!-- Quote Actions -->
+                        <div class="quote-actions">
+                            <button class="btn btn-outline" @onclick="() => ViewTradieProfile(quote.TradieId)">
+                                <i class="fas fa-user"></i> View Profile
+                            </button>
+                            <button class="btn btn-outline" @onclick="() => MessageTradie(quote.Id)">
+                                <i class="fas fa-comment"></i> Message
+                            </button>
+                            @if (!quote.IsAccepted)
+                            {
+                                <button class="btn btn-primary" @onclick="() => AcceptQuote(quote.Id)">
+                                    <i class="fas fa-check"></i> Accept Quote
+                                </button>
+                            }
+                            else
+                            {
+                                <span class="accepted-badge">
+                                    <i class="fas fa-check-circle"></i> Accepted
+                                </span>
+                            }
+                        </div>
+
+                        <!-- Quote Footer -->
+                        <div class="quote-footer">
+                            <span class="quote-date">
+                                <i class="fas fa-clock"></i> Quoted @quote.QuotedDate
+                            </span>
+                            <span class="quote-expiry @(quote.DaysUntilExpiry <= 2 ? "urgent" : "")">
+                                Expires in @quote.DaysUntilExpiry days
+                            </span>
+                        </div>
+                    </div>
+                }
+            </div>
+
+            @if (!filteredQuotes.Any())
+            {
+                <div class="no-quotes">
+                    <i class="fas fa-inbox"></i>
+                    <h3>No quotes yet</h3>
+                    <p>Tradies are reviewing your job. You'll be notified when quotes arrive.</p>
+                    <button class="btn btn-primary" @onclick="InviteTradies">
+                        <i class="fas fa-user-plus"></i> Invite Tradies
+                    </button>
+                </div>
+            }
+        </div>
+    </section>
+
+    <!-- Comparison Table (Optional) -->
+    @if (showComparison && shortlistedQuotes.Count > 1)
+    {
+        <section class="comparison-section">
+            <div class="container">
+                <h2>Compare Shortlisted Quotes</h2>
+                <div class="comparison-table">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Tradie</th>
+                                <th>Total Price</th>
+                                <th>Start Date</th>
+                                <th>Duration</th>
+                                <th>Rating</th>
+                                <th>Warranty</th>
+                                <th>Action</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var quote in shortlistedQuotes)
+                            {
+                                <tr>
+                                    <td>
+                                        <div class="tradie-cell">
+                                            <img src="@quote.TradieAvatar" alt="@quote.TradieName" />
+                                            <span>@quote.TradieName</span>
+                                        </div>
+                                    </td>
+                                    <td class="price-cell">$@quote.TotalAmount</td>
+                                    <td>@quote.ProposedStartDate</td>
+                                    <td>@quote.EstimatedDuration</td>
+                                    <td>
+                                        <div class="rating-cell">
+                                            <i class="fas fa-star filled"></i>
+                                            @quote.Rating
+                                        </div>
+                                    </td>
+                                    <td>@(quote.HasWarranty ? "Yes" : "No")</td>
+                                    <td>
+                                        <button class="btn btn-sm btn-primary" @onclick="() => AcceptQuote(quote.Id)">
+                                            Accept
+                                        </button>
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </section>
+    }
+</div>
+
+@code {
+    [Parameter] public Guid JobId { get; set; }
+
+    private string jobTitle = "Fix Leaking Tap in Kitchen";
+    private List<QuoteViewModel> quotes = new();
+    private List<QuoteViewModel> filteredQuotes = new();
+    private List<QuoteViewModel> shortlistedQuotes = new();
+    private string filterBy = "all";
+    private int shortlistedCount = 0;
+    private decimal lowestQuote = 0;
+    private decimal averageQuote = 0;
+    private int daysRemaining = 5;
+    private bool showComparison = false;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadQuotes();
+        CalculateStats();
+    }
+
+    private async Task LoadQuotes()
+    {
+        // TODO: Load from API
+        quotes = new List<QuoteViewModel>
+        {
+            new()
+            {
+                Id = Guid.NewGuid(),
+                TradieId = Guid.NewGuid(),
+                TradieName = "John Smith",
+                TradieInitials = "JS",
+                BusinessName = "QuickFix Plumbing",
+                TradieAvatar = "/images/tradie1.jpg",
+                IsVerified = true,
+                Rating = 4.8m,
+                ReviewCount = 127,
+                Distance = 2.5m,
+                TotalAmount = 180,
+                MaterialsCost = 50,
+                LabourCost = 130,
+                Description = "I can fix your leaking tap quickly and efficiently. I've been fixing taps for over 10 years and can identify the issue immediately.",
+                Methodology = "I'll first inspect the tap to identify the cause of the leak, then replace the necessary washers or cartridge. All work guaranteed.",
+                MaterialsIncluded = "New washers, O-rings, and cartridge if needed",
+                WarrantyOffered = "12 months warranty on all work",
+                ProposedStartDate = "Tomorrow",
+                EstimatedDuration = "1-2 hours",
+                ProposedEndDate = "Tomorrow",
+                QuotedDate = "2 hours ago",
+                DaysUntilExpiry = 5,
+                JobsCompleted = 342,
+                ResponseTime = "< 1 hour",
+                OnTimeRate = 98,
+                IncludesCleanup = true,
+                IncludesRemoval = true,
+                IsLowestQuote = true,
+                ActiveTab = "description"
+            },
+            new()
+            {
+                Id = Guid.NewGuid(),
+                TradieId = Guid.NewGuid(),
+                TradieName = "Mike Wilson",
+                TradieInitials = "MW",
+                BusinessName = "Pro Plumbers",
+                IsVerified = true,
+                Rating = 4.5m,
+                ReviewCount = 89,
+                Distance = 5.2m,
+                TotalAmount = 220,
+                MaterialsCost = 60,
+                LabourCost = 160,
+                Description = "Professional plumbing service with guaranteed satisfaction.",
+                ProposedStartDate = "In 3 days",
+                EstimatedDuration = "2-3 hours",
+                QuotedDate = "1 day ago",
+                DaysUntilExpiry = 4,
+                JobsCompleted = 256,
+                ResponseTime = "< 2 hours",
+                OnTimeRate = 95,
+                IncludesCleanup = true,
+                ActiveTab = "description"
+            }
+        };
+
+        filteredQuotes = quotes;
+    }
+
+    private void CalculateStats()
+    {
+        if (quotes.Any())
+        {
+            lowestQuote = quotes.Min(q => q.TotalAmount);
+            averageQuote = Math.Round(quotes.Average(q => q.TotalAmount), 0);
+            shortlistedCount = quotes.Count(q => q.IsShortlisted);
+            shortlistedQuotes = quotes.Where(q => q.IsShortlisted).ToList();
+        }
+    }
+
+    private void SetFilter(string filter)
+    {
+        filterBy = filter;
+        filteredQuotes = filter == "shortlisted"
+            ? quotes.Where(q => q.IsShortlisted).ToList()
+            : quotes;
+    }
+
+    private void SortQuotes(ChangeEventArgs e)
+    {
+        var sortBy = e.Value?.ToString() ?? "price-low";
+        filteredQuotes = sortBy switch
+        {
+            "price-low" => filteredQuotes.OrderBy(q => q.TotalAmount).ToList(),
+            "price-high" => filteredQuotes.OrderByDescending(q => q.TotalAmount).ToList(),
+            "rating" => filteredQuotes.OrderByDescending(q => q.Rating).ToList(),
+            "newest" => filteredQuotes.OrderBy(q => q.QuotedDate).ToList(),
+            _ => filteredQuotes
+        };
+    }
+
+    private void ToggleShortlist(Guid quoteId)
+    {
+        var quote = quotes.FirstOrDefault(q => q.Id == quoteId);
+        if (quote != null)
+        {
+            quote.IsShortlisted = !quote.IsShortlisted;
+            CalculateStats();
+        }
+    }
+
+    private void SetQuoteTab(Guid quoteId, string tab)
+    {
+        var quote = quotes.FirstOrDefault(q => q.Id == quoteId);
+        if (quote != null)
+        {
+            quote.ActiveTab = tab;
+        }
+    }
+
+    private void AcceptQuote(Guid quoteId)
+    {
+        // TODO: Implement accept quote
+    }
+
+    private void ViewTradieProfile(Guid tradieId) => Navigation.NavigateTo($"/tradie/{tradieId}");
+    private void MessageTradie(Guid quoteId) => Navigation.NavigateTo($"/messages/quote/{quoteId}");
+    private void InviteTradies() => Navigation.NavigateTo($"/job/{JobId}/invite");
+    private void GoBack() => Navigation.NavigateTo($"/job/{JobId}");
+
+    // View Model
+    private class QuoteViewModel
+    {
+        public Guid Id { get; set; }
+        public Guid TradieId { get; set; }
+        public string TradieName { get; set; } = "";
+        public string TradieInitials { get; set; } = "";
+        public string BusinessName { get; set; } = "";
+        public string? TradieAvatar { get; set; }
+        public bool IsVerified { get; set; }
+        public decimal Rating { get; set; }
+        public int ReviewCount { get; set; }
+        public decimal Distance { get; set; }
+        public decimal TotalAmount { get; set; }
+        public decimal MaterialsCost { get; set; }
+        public decimal LabourCost { get; set; }
+        public string Description { get; set; } = "";
+        public string? Methodology { get; set; }
+        public string? MaterialsIncluded { get; set; }
+        public string? WarrantyOffered { get; set; }
+        public string ProposedStartDate { get; set; } = "";
+        public string EstimatedDuration { get; set; } = "";
+        public string ProposedEndDate { get; set; } = "";
+        public string QuotedDate { get; set; } = "";
+        public int DaysUntilExpiry { get; set; }
+        public int JobsCompleted { get; set; }
+        public string ResponseTime { get; set; } = "";
+        public int OnTimeRate { get; set; }
+        public bool IncludesCleanup { get; set; }
+        public bool IncludesRemoval { get; set; }
+        public bool HasWarranty => !string.IsNullOrEmpty(WarrantyOffered);
+        public bool IsShortlisted { get; set; }
+        public bool IsAccepted { get; set; }
+        public bool IsLowestQuote { get; set; }
+        public string ActiveTab { get; set; } = "description";
+    }
+}
