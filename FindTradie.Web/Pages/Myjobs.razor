@@ -1,584 +1,547 @@
-﻿@page "/my-jobs"
+﻿@page "/Myjobs"
+@attribute [Authorize]
+@using FindTradie.Services.JobManagement.Entities
 @using Microsoft.AspNetCore.Components.Authorization
-@using System.Security.Claims
+@using FindTradie.Shared.Domain.Enums
+@inject AuthenticationStateProvider AuthStateProvider
 @inject NavigationManager Navigation
-@inject AuthenticationStateProvider AuthenticationStateProvider
 
-<div class="my-jobs-container">
-    <!-- Hero Section -->
-    <section class="hero-section">
-        <div class="hero-content">
-            <h1 class="hero-title">My Jobs Dashboard</h1>
-            <p class="hero-subtitle">Track your applications, saved opportunities, and job alerts in one place</p>
-        </div>
-    </section>
+<PageTitle>My Jobs - FindTradie</PageTitle>
 
-    <!-- Stats Overview -->
-    <section class="stats-overview">
-        <div class="container">
-            <div class="stats-grid">
-                <div class="stat-card">
-                    <div class="stat-icon applications">
-                        <i class="fas fa-file-alt"></i>
-                    </div>
-                    <div class="stat-content">
-                        <h3>@totalApplications</h3>
-                        <p>Total Applications</p>
-                    </div>
-                </div>
-                <div class="stat-card">
-                    <div class="stat-icon interviews">
-                        <i class="fas fa-calendar-check"></i>
-                    </div>
-                    <div class="stat-content">
-                        <h3>@interviewsScheduled</h3>
-                        <p>Interviews Scheduled</p>
-                    </div>
-                </div>
-                <div class="stat-card">
-                    <div class="stat-icon saved">
-                        <i class="fas fa-bookmark"></i>
-                    </div>
-                    <div class="stat-content">
-                        <h3>@savedJobs</h3>
-                        <p>Saved Jobs</p>
-                    </div>
-                </div>
-                <div class="stat-card">
-                    <div class="stat-icon alerts">
-                        <i class="fas fa-bell"></i>
-                    </div>
-                    <div class="stat-content">
-                        <h3>@activeAlerts</h3>
-                        <p>Active Alerts</p>
-                    </div>
-                </div>
+<div class="my-jobs-page">
+    @if (IsCustomer)
+    {
+        <!-- Customer View -->
+        <section class="page-header">
+            <div class="container">
+                <h1>My Jobs</h1>
+                <p>Manage your posted jobs and track progress</p>
             </div>
-        </div>
-    </section>
+        </section>
 
-    <!-- Tab Navigation -->
-    <section class="jobs-tabs-section">
-        <div class="container">
-            <div class="tabs-navigation">
-                <button class="tab-btn @(activeTab == "applications" ? "active" : "")" @onclick="@(() => SetActiveTab("applications"))">
-                    <i class="fas fa-briefcase"></i>
-                    My Applications
-                </button>
-                <button class="tab-btn @(activeTab == "saved" ? "active" : "")" @onclick="@(() => SetActiveTab("saved"))">
-                    <i class="fas fa-heart"></i>
-                    Saved Jobs
-                </button>
-                <button class="tab-btn @(activeTab == "interviews" ? "active" : "")" @onclick="@(() => SetActiveTab("interviews"))">
-                    <i class="fas fa-video"></i>
-                    Interviews
-                </button>
-                <button class="tab-btn @(activeTab == "alerts" ? "active" : "")" @onclick="@(() => SetActiveTab("alerts"))">
-                    <i class="fas fa-bell"></i>
-                    Job Alerts
-                </button>
-            </div>
+        <section class="jobs-content">
+            <div class="container">
+                <!-- Job Status Tabs -->
+                <div class="job-tabs">
+                    <button class="tab-btn @(activeTab == "active" ? "active" : "")"
+                            @onclick="@(() => SetActiveTab("active"))">
+                        Active Jobs (@ActiveJobs.Count)
+                    </button>
+                    <button class="tab-btn @(activeTab == "completed" ? "active" : "")"
+                            @onclick="@(() => SetActiveTab("completed"))">
+                        Completed (@CompletedJobs.Count)
+                    </button>
+                    <button class="tab-btn @(activeTab == "cancelled" ? "active" : "")"
+                            @onclick="@(() => SetActiveTab("cancelled"))">
+                        Cancelled (@CancelledJobs.Count)
+                    </button>
+                </div>
 
-            <!-- Tab Content -->
-            <div class="tab-content">
-                @if (activeTab == "applications")
+                @if (activeTab == "active")
                 {
-                    <!-- Applications Tab -->
-                    <div class="applications-content">
-                        <div class="content-header">
-                            <h2>Job Applications</h2>
-                            <div class="filter-options">
-                                <select class="filter-select" @onchange="FilterApplications">
-                                    <option value="all">All Applications</option>
-                                    <option value="pending">Under Review</option>
-                                    <option value="shortlisted">Shortlisted</option>
-                                    <option value="rejected">Not Selected</option>
-                                </select>
-                            </div>
-                        </div>
-
-                        <div class="applications-list">
-                            @foreach (var application in applications)
+                    <div class="jobs-list">
+                        @if (ActiveJobs.Any())
+                        {
+                            @foreach (var job in ActiveJobs)
                             {
-                                <div class="application-card">
-                                    <div class="company-logo">
-                                        <img src="@application.CompanyLogo" alt="@application.CompanyName" />
-                                    </div>
-                                    <div class="application-details">
-                                        <h3>@application.JobTitle</h3>
-                                        <p class="company-name">@application.CompanyName • @application.Location</p>
-                                        <div class="application-meta">
-                                            <span class="apply-date">
-                                                <i class="fas fa-clock"></i> Applied @application.AppliedDate
-                                            </span>
-                                            <span class="status-badge @application.Status.ToLower().Replace(" ", "-")">
-                                                @application.Status
-                                            </span>
+                                <div class="job-card-detailed">
+                                    <div class="job-card-header">
+                                        <div>
+                                            <h3>@job.Title</h3>
+                                            <p class="job-meta">
+                                                <span class="category-badge">@job.Category</span>
+                                                <span class="date">Posted @job.PostedDate</span>
+                                            </p>
+                                        </div>
+                                        <div class="job-status-badge @job.Status.ToString().ToLower()">
+                                            @GetStatusDisplay(job.Status)
                                         </div>
                                     </div>
-                                    <div class="application-actions">
-                                        <button class="btn-view" @onclick="@(() => ViewApplication(application.Id))">
+
+                                    <div class="job-card-body">
+                                        <p>@job.Description</p>
+                                        <div class="job-details-row">
+                                            <div class="detail-item">
+                                                <i class="fas fa-map-marker-alt"></i>
+                                                @job.Suburb, @job.State
+                                            </div>
+                                            @if (job.BudgetMin.HasValue && job.BudgetMax.HasValue)
+                                            {
+                                                <div class="detail-item">
+                                                    <i class="fas fa-dollar-sign"></i>
+                                                    $@job.BudgetMin - $@job.BudgetMax
+                                                </div>
+                                            }
+                                            <div class="detail-item">
+                                                <i class="fas fa-clock"></i>
+                                                @job.Urgency
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div class="job-card-footer">
+                                        <div class="quotes-info">
+                                            <strong>@job.QuotesCount</strong> quotes received
+                                            @if (job.AssignedTradie != null)
+                                            {
+                                                <span class="assigned-info">
+                                                    • Assigned to <strong>@job.AssignedTradie</strong>
+                                                </span>
+                                            }
+                                        </div>
+                                        <div class="job-actions">
+                                            @if (job.Status == JobStatus.Posted || job.Status == JobStatus.QuoteReceived)
+                                            {
+                                                <button class="btn btn-outline" @onclick="() => ViewQuotes(job.Id)">
+                                                    View Quotes
+                                                </button>
+                                            }
+                                            @if (job.Status == JobStatus.InProgress)
+                                            {
+                                                <button class="btn btn-outline" @onclick="() => MessageTradie(job.Id)">
+                                                    Message Tradie
+                                                </button>
+                                            }
+                                            <button class="btn btn-primary" @onclick="() => ViewJobDetails(job.Id)">
+                                                View Details
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                            }
+                        }
+                        else
+                        {
+                            <div class="empty-state">
+                                <i class="fas fa-briefcase"></i>
+                                <h3>No active jobs</h3>
+                                <p>Post a job to get quotes from verified tradies</p>
+                                <button class="btn btn-primary" @onclick="NavigateToPostJob">
+                                    Post a Job
+                                </button>
+                            </div>
+                        }
+                    </div>
+                }
+                else if (activeTab == "completed")
+                {
+                    <div class="jobs-list">
+                        @if (CompletedJobs.Any())
+                        {
+                            @foreach (var job in CompletedJobs)
+                            {
+                                <div class="job-card-detailed completed">
+                                    <div class="job-card-header">
+                                        <div>
+                                            <h3>@job.Title</h3>
+                                            <p class="job-meta">
+                                                <span class="category-badge">@job.Category</span>
+                                                <span class="date">Completed @job.CompletedDate</span>
+                                            </p>
+                                        </div>
+                                        <div class="job-status-badge completed">
+                                            <i class="fas fa-check-circle"></i> Completed
+                                        </div>
+                                    </div>
+
+                                    <div class="job-card-body">
+                                        <div class="completion-info">
+                                            <p><strong>Tradie:</strong> @job.AssignedTradie</p>
+                                            <p><strong>Final Amount:</strong> $@job.FinalAmount</p>
+                                        </div>
+                                    </div>
+
+                                    <div class="job-card-footer">
+                                        <div class="rating-prompt">
+                                            @if (!job.HasReview)
+                                            {
+                                                <span>How was your experience?</span>
+                                                <button class="btn btn-primary" @onclick="() => LeaveReview(job.Id)">
+                                                    Leave a Review
+                                                </button>
+                                            }
+                                            else
+                                            {
+                                                <span class="review-done">
+                                                    <i class="fas fa-star"></i> Review submitted
+                                                </span>
+                                            }
+                                        </div>
+                                        <button class="btn btn-outline" @onclick="() => ViewJobDetails(job.Id)">
                                             View Details
-                                        </button>
-                                        <button class="btn-withdraw" @onclick="@(() => WithdrawApplication(application.Id))">
-                                            Withdraw
                                         </button>
                                     </div>
                                 </div>
                             }
-                        </div>
-
-                        @if (!applications.Any())
+                        }
+                        else
                         {
                             <div class="empty-state">
-                                <i class="fas fa-folder-open"></i>
-                                <h3>No Applications Yet</h3>
-                                <p>Start applying to jobs to track your applications here</p>
-                                <button class="btn-primary" @onclick="@(() => Navigation.NavigateTo("/jobs"))">
+                                <i class="fas fa-check-circle"></i>
+                                <h3>No completed jobs yet</h3>
+                                <p>Your completed jobs will appear here</p>
+                            </div>
+                        }
+                    </div>
+                }
+                else if (activeTab == "cancelled")
+                {
+                    <div class="jobs-list">
+                        @if (CancelledJobs.Any())
+                        {
+                            @foreach (var job in CancelledJobs)
+                            {
+                                <div class="job-card-detailed cancelled">
+                                    <div class="job-card-header">
+                                        <div>
+                                            <h3>@job.Title</h3>
+                                            <p class="job-meta">
+                                                <span class="category-badge">@job.Category</span>
+                                                <span class="date">Cancelled @job.CancelledDate</span>
+                                            </p>
+                                        </div>
+                                        <div class="job-status-badge cancelled">
+                                            Cancelled
+                                        </div>
+                                    </div>
+
+                                    <div class="job-card-footer">
+                                        <button class="btn btn-outline" @onclick="() => RepostJob(job.Id)">
+                                            Repost Job
+                                        </button>
+                                    </div>
+                                </div>
+                            }
+                        }
+                        else
+                        {
+                            <div class="empty-state">
+                                <i class="fas fa-times-circle"></i>
+                                <h3>No cancelled jobs</h3>
+                                <p>Any cancelled jobs will appear here</p>
+                            </div>
+                        }
+                    </div>
+                }
+            </div>
+        </section>
+    }
+    else if (IsTradie)
+    {
+        <!-- Tradie View -->
+        <section class="page-header">
+            <div class="container">
+                <h1>My Jobs</h1>
+                <p>Track your quotes and assigned jobs</p>
+            </div>
+        </section>
+
+        <section class="jobs-content">
+            <div class="container">
+                <!-- Quote Status Tabs -->
+                <div class="job-tabs">
+                    <button class="tab-btn @(activeTab == "quotes" ? "active" : "")"
+                            @onclick="@(() => SetActiveTab("quotes"))">
+                        Active Quotes (@ActiveQuotes.Count)
+                    </button>
+                    <button class="tab-btn @(activeTab == "assigned" ? "active" : "")"
+                            @onclick="@(() => SetActiveTab("assigned"))">
+                        Assigned Jobs (@AssignedJobs.Count)
+                    </button>
+                    <button class="tab-btn @(activeTab == "completed" ? "active" : "")"
+                            @onclick="@(() => SetActiveTab("completed"))">
+                        Completed (@CompletedJobs.Count)
+                    </button>
+                </div>
+
+                @if (activeTab == "quotes")
+                {
+                    <div class="jobs-list">
+                        @if (ActiveQuotes.Any())
+                        {
+                            @foreach (var quote in ActiveQuotes)
+                            {
+                                <div class="job-card-detailed">
+                                    <div class="job-card-header">
+                                        <div>
+                                            <h3>@quote.JobTitle</h3>
+                                            <p class="job-meta">
+                                                <span class="category-badge">@quote.Category</span>
+                                                <span class="date">Quoted @quote.QuotedDate</span>
+                                            </p>
+                                        </div>
+                                        <div class="quote-status-badge @quote.Status.ToString().ToLower()">
+                                            @quote.Status
+                                        </div>
+                                    </div>
+
+                                    <div class="job-card-body">
+                                        <div class="quote-details">
+                                            <div class="quote-amount">
+                                                <strong>Your Quote:</strong> $@quote.TotalAmount
+                                            </div>
+                                            <div class="quote-timeline">
+                                                <i class="fas fa-calendar"></i>
+                                                Proposed start: @quote.ProposedStartDate?.ToString("dd MMM yyyy")
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div class="job-card-footer">
+                                        <div class="quote-expiry">
+                                            Expires in @quote.DaysUntilExpiry days
+                                        </div>
+                                        <div class="job-actions">
+                                            <button class="btn btn-outline" @onclick="() => EditQuote(quote.Id)">
+                                                Edit Quote
+                                            </button>
+                                            <button class="btn btn-primary" @onclick="() => ViewQuoteDetails(quote.Id)">
+                                                View Details
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                            }
+                        }
+                        else
+                        {
+                            <div class="empty-state">
+                                <i class="fas fa-file-invoice-dollar"></i>
+                                <h3>No active quotes</h3>
+                                <p>Browse available jobs to submit quotes</p>
+                                <button class="btn btn-primary" @onclick="NavigateToBrowseJobs">
                                     Browse Jobs
                                 </button>
                             </div>
                         }
                     </div>
                 }
-                else if (activeTab == "saved")
+                else if (activeTab == "assigned")
                 {
-                    <!-- Saved Jobs Tab -->
-                    <div class="saved-jobs-content">
-                        <div class="content-header">
-                            <h2>Saved Jobs</h2>
-                            <p>Jobs you've saved for later</p>
-                        </div>
-
-                        <div class="saved-jobs-grid">
-                            @foreach (var job in savedJobsList)
-                            {
-                                <div class="saved-job-card">
-                                    <div class="job-header">
-                                        <img src="@job.CompanyLogo" alt="@job.CompanyName" class="company-logo-small" />
-                                        <button class="btn-unsave" @onclick="@(() => UnsaveJob(job.Id))">
-                                            <i class="fas fa-heart"></i>
-                                        </button>
-                                    </div>
-                                    <h3>@job.JobTitle</h3>
-                                    <p class="company-info">@job.CompanyName</p>
-                                    <p class="location-info">
-                                        <i class="fas fa-map-marker-alt"></i> @job.Location
-                                    </p>
-                                    <div class="job-tags">
-                                        <span class="tag">@job.JobType</span>
-                                        <span class="tag">@job.ExperienceLevel</span>
-                                    </div>
-                                    <div class="saved-date">
-                                        Saved @job.SavedDate
-                                    </div>
-                                    <button class="btn-apply-now" @onclick="@(() => ApplyToJob(job.Id))">
-                                        Apply Now
-                                    </button>
-                                </div>
-                            }
-                        </div>
-
-                        @if (!savedJobsList.Any())
+                    <div class="jobs-list">
+                        @if (AssignedJobs.Any())
                         {
-                            <div class="empty-state">
-                                <i class="fas fa-bookmark"></i>
-                                <h3>No Saved Jobs</h3>
-                                <p>Save jobs you're interested in to review them later</p>
-                                <button class="btn-primary" @onclick="@(() => Navigation.NavigateTo("/jobs"))">
-                                    Explore Jobs
-                                </button>
-                            </div>
-                        }
-                    </div>
-                }
-                else if (activeTab == "interviews")
-                {
-                    <!-- Interviews Tab -->
-                    <div class="interviews-content">
-                        <div class="content-header">
-                            <h2>Interview Schedule</h2>
-                            <button class="btn-calendar">
-                                <i class="fas fa-calendar"></i> Sync Calendar
-                            </button>
-                        </div>
-
-                        <div class="interviews-timeline">
-                            @foreach (var interview in interviews)
+                            @foreach (var job in AssignedJobs)
                             {
-                                <div class="interview-card @(interview.IsUpcoming ? "upcoming" : "past")">
-                                    <div class="interview-date">
-                                        <span class="day">@interview.Day</span>
-                                        <span class="month">@interview.Month</span>
-                                    </div>
-                                    <div class="interview-details">
-                                        <h3>@interview.JobTitle</h3>
-                                        <p class="company">@interview.CompanyName</p>
-                                        <div class="interview-info">
-                                            <span><i class="fas fa-clock"></i> @interview.Time</span>
-                                            <span><i class="fas fa-video"></i> @interview.Type</span>
-                                            <span class="interview-round">@interview.Round</span>
+                                <div class="job-card-detailed assigned">
+                                    <div class="job-card-header">
+                                        <div>
+                                            <h3>@job.Title</h3>
+                                            <p class="job-meta">
+                                                <span class="customer-name">Customer: @job.CustomerName</span>
+                                            </p>
+                                        </div>
+                                        <div class="job-status-badge in-progress">
+                                            In Progress
                                         </div>
                                     </div>
-                                    <div class="interview-actions">
-                                        @if (interview.IsUpcoming)
-                                        {
-                                            <button class="btn-join" @onclick="@(() => JoinInterview(interview.Id))">
-                                                Join Interview
+
+                                    <div class="job-card-body">
+                                        <div class="job-details-row">
+                                            <div class="detail-item">
+                                                <i class="fas fa-map-marker-alt"></i>
+                                                @job.Address
+                                            </div>
+                                            <div class="detail-item">
+                                                <i class="fas fa-phone"></i>
+                                                @job.CustomerPhone
+                                            </div>
+                                            <div class="detail-item">
+                                                <i class="fas fa-dollar-sign"></i>
+                                                $@job.AcceptedAmount
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div class="job-card-footer">
+                                        <div class="job-actions">
+                                            <button class="btn btn-outline" @onclick="() => MessageCustomer(job.Id)">
+                                                Message Customer
                                             </button>
-                                        }
-                                        <button class="btn-details" @onclick="@(() => ViewInterviewDetails(interview.Id))">
-                                            View Details
-                                        </button>
-                                    </div>
-                                </div>
-                            }
-                        </div>
-
-                        @if (!interviews.Any())
-                        {
-                            <div class="empty-state">
-                                <i class="fas fa-calendar-times"></i>
-                                <h3>No Scheduled Interviews</h3>
-                                <p>Your upcoming interviews will appear here</p>
-                            </div>
-                        }
-                    </div>
-                }
-                else if (activeTab == "alerts")
-                {
-                    <!-- Job Alerts Tab -->
-                    <div class="alerts-content">
-                        <div class="content-header">
-                            <h2>Job Alerts</h2>
-                            <button class="btn-create-alert" @onclick="CreateNewAlert">
-                                <i class="fas fa-plus"></i> Create Alert
-                            </button>
-                        </div>
-
-                        <div class="alerts-list">
-                            @foreach (var alert in jobAlerts)
-                            {
-                                <div class="alert-card">
-                                    <div class="alert-header">
-                                        <h3>@alert.Title</h3>
-                                        <div class="alert-toggle">
-                                            <label class="switch">
-                                                <input type="checkbox" checked="@alert.IsActive" @onchange="@(() => ToggleAlert(alert.Id))" />
-                                                <span class="slider"></span>
-                                            </label>
+                                            <button class="btn btn-success" @onclick="() => MarkComplete(job.Id)">
+                                                Mark Complete
+                                            </button>
+                                            <button class="btn btn-primary" @onclick="() => ViewJobDetails(job.Id)">
+                                                View Details
+                                            </button>
                                         </div>
                                     </div>
-                                    <div class="alert-criteria">
-                                        <span class="criteria-tag">
-                                            <i class="fas fa-search"></i> @alert.Keywords
-                                        </span>
-                                        <span class="criteria-tag">
-                                            <i class="fas fa-map-marker-alt"></i> @alert.Location
-                                        </span>
-                                        <span class="criteria-tag">
-                                            <i class="fas fa-briefcase"></i> @alert.JobType
-                                        </span>
-                                    </div>
-                                    <div class="alert-footer">
-                                        <span class="alert-frequency">
-                                            <i class="fas fa-envelope"></i> @alert.Frequency
-                                        </span>
-                                        <span class="alert-matches">
-                                            @alert.NewMatches new matches
-                                        </span>
-                                    </div>
-                                    <div class="alert-actions">
-                                        <button class="btn-edit" @onclick="@(() => EditAlert(alert.Id))">
-                                            Edit
-                                        </button>
-                                        <button class="btn-delete" @onclick="@(() => DeleteAlert(alert.Id))">
-                                            Delete
-                                        </button>
-                                    </div>
                                 </div>
                             }
-                        </div>
-
-                        @if (!jobAlerts.Any())
+                        }
+                        else
                         {
                             <div class="empty-state">
-                                <i class="fas fa-bell-slash"></i>
-                                <h3>No Job Alerts</h3>
-                                <p>Create alerts to get notified about new job opportunities</p>
-                                <button class="btn-primary" @onclick="CreateNewAlert">
-                                    Create Your First Alert
-                                </button>
+                                <i class="fas fa-hard-hat"></i>
+                                <h3>No assigned jobs</h3>
+                                <p>Jobs you've been hired for will appear here</p>
                             </div>
                         }
                     </div>
                 }
             </div>
-        </div>
-    </section>
-
-    <!-- Quick Actions -->
-    <section class="quick-actions">
-        <div class="container">
-            <h2>Quick Actions</h2>
-            <div class="actions-grid">
-                <a href="/profile" class="action-card">
-                    <i class="fas fa-user-edit"></i>
-                    <h3>Update Profile</h3>
-                    <p>Keep your profile up to date</p>
-                </a>
-                <a href="/resume-builder" class="action-card">
-                    <i class="fas fa-file-pdf"></i>
-                    <h3>Resume Builder</h3>
-                    <p>Create or update your resume</p>
-                </a>
-                <a href="/skill-assessment" class="action-card">
-                    <i class="fas fa-award"></i>
-                    <h3>Skill Assessment</h3>
-                    <p>Take assessments to stand out</p>
-                </a>
-                <a href="/career-advice" class="action-card">
-                    <i class="fas fa-lightbulb"></i>
-                    <h3>Career Advice</h3>
-                    <p>Get tips and guidance</p>
-                </a>
-            </div>
-        </div>
-    </section>
+        </section>
+    }
 </div>
 
 @code {
-    private string activeTab = "applications";
-    private int totalApplications = 24;
-    private int interviewsScheduled = 3;
-    private int savedJobs = 12;
-    private int activeAlerts = 5;
+    private string UserName = "";
+    private bool IsCustomer = true;
+    private bool IsTradie = false;
+    private string activeTab = "active";
 
-    private List<JobApplication> applications = new List<JobApplication>
-    {
-        new JobApplication
-        {
-            Id = 1,
-            JobTitle = "Senior Software Engineer",
-            CompanyName = "Tech Innovations Inc.",
-            CompanyLogo = "/images/company1.png",
-            Location = "San Francisco, CA",
-            AppliedDate = "3 days ago",
-            Status = "Under Review"
-        },
-        new JobApplication
-        {
-            Id = 2,
-            JobTitle = "Full Stack Developer",
-            CompanyName = "Digital Solutions Corp",
-            CompanyLogo = "/images/company2.png",
-            Location = "New York, NY",
-            AppliedDate = "1 week ago",
-            Status = "Shortlisted"
-        },
-        new JobApplication
-        {
-            Id = 3,
-            JobTitle = "DevOps Engineer",
-            CompanyName = "Cloud Systems Ltd",
-            CompanyLogo = "/images/company3.png",
-            Location = "Austin, TX",
-            AppliedDate = "2 weeks ago",
-            Status = "Interview Scheduled"
-        }
-    };
+    // Customer job lists
+    private List<CustomerJobViewModel> ActiveJobs = new();
+    private List<CustomerJobViewModel> CompletedJobs = new();
+    private List<CustomerJobViewModel> CancelledJobs = new();
 
-    private List<SavedJob> savedJobsList = new List<SavedJob>
-    {
-        new SavedJob
-        {
-            Id = 1,
-            JobTitle = "React Developer",
-            CompanyName = "StartUp Hub",
-            CompanyLogo = "/images/company4.png",
-            Location = "Remote",
-            JobType = "Full-time",
-            ExperienceLevel = "Mid-level",
-            SavedDate = "2 days ago"
-        },
-        new SavedJob
-        {
-            Id = 2,
-            JobTitle = "UI/UX Designer",
-            CompanyName = "Creative Agency",
-            CompanyLogo = "/images/company5.png",
-            Location = "Los Angeles, CA",
-            JobType = "Contract",
-            ExperienceLevel = "Senior",
-            SavedDate = "5 days ago"
-        }
-    };
+    // Tradie lists
+    private List<TradieQuoteViewModel> ActiveQuotes = new();
+    private List<TradieJobViewModel> AssignedJobs = new();
 
-    private List<Interview> interviews = new List<Interview>
+    protected override async Task OnInitializedAsync()
     {
-        new Interview
-        {
-            Id = 1,
-            JobTitle = "Senior Software Engineer",
-            CompanyName = "Tech Innovations Inc.",
-            Day = "15",
-            Month = "Jan",
-            Time = "2:00 PM PST",
-            Type = "Video Call",
-            Round = "Technical Round",
-            IsUpcoming = true
-        },
-        new Interview
-        {
-            Id = 2,
-            JobTitle = "Full Stack Developer",
-            CompanyName = "Digital Solutions Corp",
-            Day = "18",
-            Month = "Jan",
-            Time = "10:00 AM EST",
-            Type = "Phone Screen",
-            Round = "HR Round",
-            IsUpcoming = true
-        }
-    };
+        var authState = await AuthStateProvider.GetAuthenticationStateAsync();
 
-    private List<JobAlert> jobAlerts = new List<JobAlert>
-    {
-        new JobAlert
+        if (authState.User.Identity?.IsAuthenticated == true)
         {
-            Id = 1,
-            Title = "Software Engineer - Remote",
-            Keywords = "Software Engineer, Developer",
-            Location = "Remote, USA",
-            JobType = "Full-time",
-            Frequency = "Daily",
-            NewMatches = 8,
-            IsActive = true
-        },
-        new JobAlert
-        {
-            Id = 2,
-            Title = "Senior Positions - Tech",
-            Keywords = "Senior, Lead, Principal",
-            Location = "San Francisco Bay Area",
-            JobType = "Full-time",
-            Frequency = "Weekly",
-            NewMatches = 5,
-            IsActive = true
+            UserName = authState.User.FindFirst("FirstName")?.Value ??
+                      authState.User.Identity.Name ?? "User";
+
+            var userType = authState.User.FindFirst("UserType")?.Value;
+            IsCustomer = userType == "Customer" || userType == "1";
+            IsTradie = userType == "Tradie" || userType == "ServiceProvider" || userType == "2";
+
+            if (IsTradie)
+            {
+                activeTab = "quotes";
+            }
+
+            await LoadJobs();
         }
-    };
+        else
+        {
+            Navigation.NavigateTo("/login");
+        }
+    }
+
+    private async Task LoadJobs()
+    {
+        // TODO: Call actual API service to load jobs
+        // This is sample data
+        if (IsCustomer)
+        {
+            ActiveJobs = new List<CustomerJobViewModel>
+            {
+                new CustomerJobViewModel
+                {
+                    Id = Guid.NewGuid(),
+                    Title = "Fix Leaking Tap in Kitchen",
+                    Category = "Plumbing",
+                    Description = "Kitchen tap has been dripping for a week",
+                    Status = JobStatus.QuoteReceived,
+                    PostedDate = "2 days ago",
+                    Suburb = "Bondi",
+                    State = "NSW",
+                    BudgetMin = 100,
+                    BudgetMax = 300,
+                    Urgency = JobUrgency.Normal,
+                    QuotesCount = 3
+                }
+            };
+        }
+        else
+        {
+            ActiveQuotes = new List<TradieQuoteViewModel>
+            {
+                new TradieQuoteViewModel
+                {
+                    Id = Guid.NewGuid(),
+                    JobTitle = "Bathroom Renovation",
+                    Category = "Plumbing",
+                    Status = QuoteStatus.Submitted,
+                    QuotedDate = "1 day ago",
+                    TotalAmount = 2500,
+                    ProposedStartDate = DateTime.Now.AddDays(7),
+                    DaysUntilExpiry = 6
+                }
+            };
+        }
+    }
 
     private void SetActiveTab(string tab)
     {
         activeTab = tab;
     }
 
-    private void FilterApplications(ChangeEventArgs e)
+    private string GetStatusDisplay(JobStatus status)
     {
-        // Filter logic here
-    }
-
-    private void ViewApplication(int id)
-    {
-        Navigation.NavigateTo($"/application/{id}");
-    }
-
-    private void WithdrawApplication(int id)
-    {
-        // Withdraw application logic
-    }
-
-    private void UnsaveJob(int id)
-    {
-        savedJobsList.RemoveAll(j => j.Id == id);
-        savedJobs--;
-    }
-
-    private void ApplyToJob(int id)
-    {
-        Navigation.NavigateTo($"/apply/{id}");
-    }
-
-    private void JoinInterview(int id)
-    {
-        // Join interview logic
-    }
-
-    private void ViewInterviewDetails(int id)
-    {
-        Navigation.NavigateTo($"/interview/{id}");
-    }
-
-    private void CreateNewAlert()
-    {
-        Navigation.NavigateTo("/create-alert");
-    }
-
-    private void ToggleAlert(int id)
-    {
-        var alert = jobAlerts.FirstOrDefault(a => a.Id == id);
-        if (alert != null)
+        return status switch
         {
-            alert.IsActive = !alert.IsActive;
-        }
+            JobStatus.Posted => "Accepting Quotes",
+            JobStatus.QuoteReceived => "Reviewing Quotes",
+            JobStatus.Booked => "Tradie Assigned",
+            JobStatus.InProgress => "In Progress",
+            JobStatus.Completed => "Completed",
+            JobStatus.Cancelled => "Cancelled",
+            _ => status.ToString()
+        };
     }
 
-    private void EditAlert(int id)
+    // Navigation methods
+    private void NavigateToPostJob() => Navigation.NavigateTo("/post-job");
+    private void NavigateToBrowseJobs() => Navigation.NavigateTo("/browse-jobs");
+    private void ViewJobDetails(Guid id) => Navigation.NavigateTo($"/job/{id}");
+    private void ViewQuotes(Guid id) => Navigation.NavigateTo($"/job/{id}/quotes");
+    private void ViewQuoteDetails(Guid id) => Navigation.NavigateTo($"/quote/{id}");
+    private void EditQuote(Guid id) => Navigation.NavigateTo($"/quote/{id}/edit");
+    private void MessageTradie(Guid id) => Navigation.NavigateTo($"/job/{id}/messages");
+    private void MessageCustomer(Guid id) => Navigation.NavigateTo($"/job/{id}/messages");
+    private void LeaveReview(Guid id) => Navigation.NavigateTo($"/job/{id}/review");
+    private void RepostJob(Guid id) { /* TODO */ }
+    private void MarkComplete(Guid id) { /* TODO */ }
+
+    // View models
+    private class CustomerJobViewModel
     {
-        Navigation.NavigateTo($"/edit-alert/{id}");
+        public Guid Id { get; set; }
+        public string Title { get; set; } = "";
+        public string Category { get; set; } = "";
+        public string Description { get; set; } = "";
+        public JobStatus Status { get; set; }
+        public string PostedDate { get; set; } = "";
+        public string CompletedDate { get; set; } = "";
+        public string CancelledDate { get; set; } = "";
+        public string Suburb { get; set; } = "";
+        public string State { get; set; } = "";
+        public decimal? BudgetMin { get; set; }
+        public decimal? BudgetMax { get; set; }
+        public JobUrgency Urgency { get; set; }
+        public int QuotesCount { get; set; }
+        public string? AssignedTradie { get; set; }
+        public decimal? FinalAmount { get; set; }
+        public bool HasReview { get; set; }
     }
 
-    private void DeleteAlert(int id)
+    private class TradieQuoteViewModel
     {
-        jobAlerts.RemoveAll(a => a.Id == id);
-        activeAlerts--;
+        public Guid Id { get; set; }
+        public string JobTitle { get; set; } = "";
+        public string Category { get; set; } = "";
+        public QuoteStatus Status { get; set; }
+        public string QuotedDate { get; set; } = "";
+        public decimal TotalAmount { get; set; }
+        public DateTime? ProposedStartDate { get; set; }
+        public int DaysUntilExpiry { get; set; }
     }
 
-    public class JobApplication
+    private class TradieJobViewModel
     {
-        public int Id { get; set; }
-        public string JobTitle { get; set; }
-        public string CompanyName { get; set; }
-        public string CompanyLogo { get; set; }
-        public string Location { get; set; }
-        public string AppliedDate { get; set; }
-        public string Status { get; set; }
-    }
-
-    public class SavedJob
-    {
-        public int Id { get; set; }
-        public string JobTitle { get; set; }
-        public string CompanyName { get; set; }
-        public string CompanyLogo { get; set; }
-        public string Location { get; set; }
-        public string JobType { get; set; }
-        public string ExperienceLevel { get; set; }
-        public string SavedDate { get; set; }
-    }
-
-    public class Interview
-    {
-        public int Id { get; set; }
-        public string JobTitle { get; set; }
-        public string CompanyName { get; set; }
-        public string Day { get; set; }
-        public string Month { get; set; }
-        public string Time { get; set; }
-        public string Type { get; set; }
-        public string Round { get; set; }
-        public bool IsUpcoming { get; set; }
-    }
-
-    public class JobAlert
-    {
-        public int Id { get; set; }
-        public string Title { get; set; }
-        public string Keywords { get; set; }
-        public string Location { get; set; }
-        public string JobType { get; set; }
-        public string Frequency { get; set; }
-        public int NewMatches { get; set; }
-        public bool IsActive { get; set; }
+        public Guid Id { get; set; }
+        public string Title { get; set; } = "";
+        public string CustomerName { get; set; } = "";
+        public string CustomerPhone { get; set; } = "";
+        public string Address { get; set; } = "";
+        public decimal AcceptedAmount { get; set; }
     }
 }
