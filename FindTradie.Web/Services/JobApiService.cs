@@ -159,18 +159,18 @@ public class JobApiService : IJobApiService
         }
     }
 
-    public async Task<ApiResponse<List<JobSummaryDto>>> GetCustomerJobsAsync(Guid customerId, int pageNumber = 1, int pageSize = 20)
+    public async Task<ApiResponse<List<JobSummaryDto>>> GetCustomerJobsAsync(int pageNumber = 1, int pageSize = 20)
     {
         try
         {
             await SetAuthorizationHeaderAsync();
-            var response = await _httpClient.GetAsync($"/api/jobs/customer/{customerId}?pageNumber={pageNumber}&pageSize={pageSize}");
+            var response = await _httpClient.GetAsync($"/api/jobs/customer?pageNumber={pageNumber}&pageSize={pageSize}");
 
             return await HandleResponse<List<JobSummaryDto>>(response);
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Error getting customer jobs for {CustomerId}", customerId);
+            _logger.LogError(ex, "Error getting customer jobs");
             return new ApiResponse<List<JobSummaryDto>>
             {
                 Success = false,
@@ -180,18 +180,18 @@ public class JobApiService : IJobApiService
         }
     }
 
-    public async Task<ApiResponse<List<JobSummaryDto>>> GetTradieJobsAsync(Guid tradieId, int pageNumber = 1, int pageSize = 20)
+    public async Task<ApiResponse<List<JobSummaryDto>>> GetTradieJobsAsync(int pageNumber = 1, int pageSize = 20)
     {
         try
         {
             await SetAuthorizationHeaderAsync();
-            var response = await _httpClient.GetAsync($"/api/jobs/tradie/{tradieId}?pageNumber={pageNumber}&pageSize={pageSize}");
+            var response = await _httpClient.GetAsync($"/api/jobs/tradie?pageNumber={pageNumber}&pageSize={pageSize}");
 
             return await HandleResponse<List<JobSummaryDto>>(response);
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Error getting tradie jobs for {TradieId}", tradieId);
+            _logger.LogError(ex, "Error getting tradie jobs");
             return new ApiResponse<List<JobSummaryDto>>
             {
                 Success = false,

@@ -451,7 +451,7 @@
         {
             AssignedJobs.Clear();
 
-            var response = await JobService.GetTradieJobsAsync(UserId);
+            var response = await JobService.GetTradieJobsAsync();
             if (response.Success && response.Data != null)
             {
                 AssignedJobs = response.Data.Select(dto => new TradieJobViewModel
@@ -469,7 +469,7 @@
             CompletedJobs.Clear();
             CancelledJobs.Clear();
 
-            var response = await JobService.GetCustomerJobsAsync(UserId);
+            var response = await JobService.GetCustomerJobsAsync();
             if (response.Success && response.Data != null)
             {
                 var jobs = response.Data.Select(MapCustomerJob).ToList();

@@ -67,29 +67,39 @@ public class JobsController : ControllerBase
     }
 
     /// <summary>
-    /// Get jobs for a specific customer
+    /// Get jobs for the currently authenticated customer
     /// </summary>
-    [HttpGet("customer/{customerId}")]
+    [HttpGet("customer")]
     [Authorize(Roles = nameof(UserType.Customer))]
     public async Task<ActionResult<ApiResponse<List<JobSummaryDto>>>> GetCustomerJobs(
-        Guid customerId,
         [FromQuery] int pageNumber = 1,
         [FromQuery] int pageSize = 20)
     {
+        var customerIdClaim = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
+        if (!Guid.TryParse(customerIdClaim, out var customerId))
+        {
+            return Unauthorized(ApiResponse<List<JobSummaryDto>>.ErrorResult("Invalid user identifier"));
+        }
+
         var result = await _jobService.GetCustomerJobsAsync(customerId, pageNumber, pageSize);
         return Ok(result);
     }
 
     /// <summary>
-    /// Get jobs for a specific tradie
+    /// Get jobs for the currently authenticated tradie
     /// </summary>
-    [HttpGet("tradie/{tradieId}")]
+    [HttpGet("tradie")]
     [Authorize(Roles = nameof(UserType.Tradie))]
     public async Task<ActionResult<ApiResponse<List<JobSummaryDto>>>> GetTradieJobs(
-        Guid tradieId,
         [FromQuery] int pageNumber = 1,
         [FromQuery] int pageSize = 20)
     {
+        var tradieIdClaim = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
+        if (!Guid.TryParse(tradieIdClaim, out var tradieId))
+        {
+            return Unauthorized(ApiResponse<List<JobSummaryDto>>.ErrorResult("Invalid user identifier"));
+        }
+
         var result = await _jobService.GetTradieJobsAsync(tradieId, pageNumber, pageSize);
         return Ok(result);
     }
