@@ -21,6 +21,19 @@ public class CreateJobRequestValidator : AbstractValidator<CreateJobRequest>
         RuleFor(x => x.CustomerId)
             .NotEmpty().WithMessage("Customer ID is required");
 
+        RuleFor(x => x.CustomerName)
+            .NotEmpty().WithMessage("Customer name is required")
+            .MaximumLength(100).WithMessage("Customer name cannot exceed 100 characters");
+
+        RuleFor(x => x.CustomerEmail)
+            .NotEmpty().WithMessage("Customer email is required")
+            .EmailAddress().WithMessage("Invalid email address")
+            .MaximumLength(255).WithMessage("Email cannot exceed 255 characters");
+
+        RuleFor(x => x.CustomerPhone)
+            .NotEmpty().WithMessage("Customer phone is required")
+            .MaximumLength(20).WithMessage("Phone number cannot exceed 20 characters");
+
         RuleFor(x => x.Address)
             .NotEmpty().WithMessage("Address is required")
             .MaximumLength(200).WithMessage("Address cannot exceed 200 characters");
