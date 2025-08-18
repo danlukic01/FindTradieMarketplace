@@ -1,5 +1,9 @@
 ﻿@page "/browse-jobs"
+@attribute [Authorize(Roles = "Tradie,ServiceProvider")]
 @using FindTradie.Web.Services
+@using FindTradie.Services.JobManagement.DTOs
+@using FindTradie.Shared.Domain.Enums
+@using System.Linq
 @inject IJobApiService JobService
 @inject NavigationManager Navigation
 @inject AuthenticationStateProvider AuthStateProvider
@@ -218,44 +222,31 @@
         isLoading = true;
         try
         {
-            // Mock data for demonstration
-            allJobs = new List<JobDto>
+            var response = await JobService.SearchJobsAsync(new JobSearchRequest());
+            if (response.Success && response.Data != null)
             {
-                new JobDto
+                allJobs = response.Data.Select(dto => new JobDto
                 {
-                    Id = Guid.NewGuid(),
-                    Title = "Fix Leaking Bathroom Tap",
-                    Category = "Plumbing",
-                    Description = "Bathroom tap has been leaking for a week. Need urgent repair.",
-                    Location = "Surry Hills, Sydney",
-                    Distance = 5.2,
-                    BudgetMin = 200,
-                    BudgetMax = 400,
-                    PostedTime = "2 hours ago",
-                    Timeframe = "ASAP",
-                    IsUrgent = true,
-                    PhotoCount = 3,
-                    QuoteCount = 3,
-                    ViewCount = 15
-                },
-                new JobDto
-                {
-                    Id = Guid.NewGuid(),
-                    Title = "Install Ceiling Fans in 3 Bedrooms",
-                    Category = "Electrical",
-                    Description = "Need 3 ceiling fans installed in bedrooms. Wiring already in place.",
-                    Location = "Bondi, Sydney",
-                    Distance = 8.7,
-                    BudgetMin = 600,
-                    BudgetMax = 900,
-                    PostedTime = "5 hours ago",
-                    Timeframe = "This week",
-                    IsUrgent = false,
-                    PhotoCount = 0,
-                    QuoteCount = 5,
-                    ViewCount = 22
-                }
-            };
+                    Id = dto.Id,
+                    Title = dto.Title,
+                    Category = dto.Category.ToString(),
+                    Description = dto.Description,
+                    Location = $"{dto.Suburb}, {dto.State}",
+                    Distance = dto.DistanceKm,
+                    BudgetMin = dto.BudgetMin ?? 0,
+                    BudgetMax = dto.BudgetMax ?? 0,
+                    PostedTime = dto.CreatedAt.ToString("dd MMM yyyy"),
+                    Timeframe = dto.PreferredStartDate?.ToString("dd MMM") ?? "Flexible",
+                    IsUrgent = dto.Urgency != JobUrgency.Normal,
+                    PhotoCount = dto.HasImages ? 1 : 0,
+                    QuoteCount = dto.QuoteCount,
+                    ViewCount = 0
+                }).ToList();
+            }
+            else
+            {
+                allJobs = new List<JobDto>();
+            }
 
             ApplyFilters();
         }

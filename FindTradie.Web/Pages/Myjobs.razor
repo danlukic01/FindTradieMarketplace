@@ -417,8 +417,9 @@
             UserName = user.FindFirst("FirstName")?.Value ??
                       user.Identity?.Name ?? "User";
 
-            IsCustomer = user.IsInRole("Customer");
             IsTradie = user.IsInRole("Tradie") || user.IsInRole("ServiceProvider");
+            // Treat any non-tradie as customer so regular users can view their jobs
+            IsCustomer = user.IsInRole("Customer") || !IsTradie;
 
             var userIdClaim = user.FindFirst(ClaimTypes.NameIdentifier)?.Value;
             if (Guid.TryParse(userIdClaim, out var id))
@@ -446,22 +447,7 @@
             return;
         }
 
-        if (IsCustomer)
-        {
-            ActiveJobs.Clear();
-            CompletedJobs.Clear();
-            CancelledJobs.Clear();
-
-            var response = await JobService.GetCustomerJobsAsync(UserId);
-            if (response.Success && response.Data != null)
-            {
-                var jobs = response.Data.Select(MapCustomerJob).ToList();
-                ActiveJobs = jobs.Where(j => j.Status != JobStatus.Completed && j.Status != JobStatus.Cancelled).ToList();
-                CompletedJobs = jobs.Where(j => j.Status == JobStatus.Completed).ToList();
-                CancelledJobs = jobs.Where(j => j.Status == JobStatus.Cancelled).ToList();
-            }
-        }
-        else
+        if (IsTradie)
         {
             AssignedJobs.Clear();
 
@@ -475,6 +461,21 @@
                     Address = $"{dto.Suburb}, {dto.State}",
                     AcceptedAmount = dto.BudgetMax ?? 0,
                 }).ToList();
+            }
+        }
+        else
+        {
+            ActiveJobs.Clear();
+            CompletedJobs.Clear();
+            CancelledJobs.Clear();
+
+            var response = await JobService.GetCustomerJobsAsync(UserId);
+            if (response.Success && response.Data != null)
+            {
+                var jobs = response.Data.Select(MapCustomerJob).ToList();
+                ActiveJobs = jobs.Where(j => j.Status != JobStatus.Completed && j.Status != JobStatus.Cancelled).ToList();
+                CompletedJobs = jobs.Where(j => j.Status == JobStatus.Completed).ToList();
+                CancelledJobs = jobs.Where(j => j.Status == JobStatus.Cancelled).ToList();
             }
         }
     }

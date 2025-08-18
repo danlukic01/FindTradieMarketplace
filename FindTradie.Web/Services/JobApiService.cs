@@ -139,6 +139,7 @@ public class JobApiService : IJobApiService
     {
         try
         {
+            await SetAuthorizationHeaderAsync();
             var json = JsonSerializer.Serialize(request);
             var content = new StringContent(json, Encoding.UTF8, "application/json");
 
