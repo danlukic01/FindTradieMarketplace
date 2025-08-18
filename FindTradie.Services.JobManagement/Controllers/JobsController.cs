@@ -9,6 +9,7 @@ using FindTradie.Shared.Domain.Enums;
 using System.Threading.Tasks;
 using System.Collections.Generic;
 using System;
+using System.IdentityModel.Tokens.Jwt;
 
 namespace FindTradie.Services.JobManagement.Controllers;
 
@@ -94,7 +95,9 @@ public class JobsController : ControllerBase
         [FromQuery] int pageNumber = 1,
         [FromQuery] int pageSize = 20)
     {
-        var tradieIdClaim = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
+        var tradieIdClaim = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value
+            ?? User.FindFirst(JwtRegisteredClaimNames.Sub)?.Value;
+
         if (!Guid.TryParse(tradieIdClaim, out var tradieId))
         {
             return Unauthorized(ApiResponse<List<JobSummaryDto>>.ErrorResult("Invalid user identifier"));
