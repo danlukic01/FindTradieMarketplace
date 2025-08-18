@@ -4,6 +4,7 @@
 @using Microsoft.AspNetCore.Components.Forms
 @using Microsoft.AspNetCore.Components.Web
 @inject FindTradie.Web.Services.IJobApiService JobService
+@inject FindTradie.Web.Services.IAuthService AuthService
 @inject NavigationManager Navigation
 
 <PageTitle>Post a Job - FindTradie</PageTitle>
@@ -174,31 +175,31 @@
                             <label>What's your budget?</label>
                             <div class="budget-options">
                                 <label class="budget-option">
-                                    <input type="radio" name="budget" value="under500" />
+                                    <input type="radio" name="budget" value="under500" @bind="job.BudgetRange" />
                                     <span>Under $500</span>
                                 </label>
                                 <label class="budget-option">
-                                    <input type="radio" name="budget" value="500-1000" />
+                                    <input type="radio" name="budget" value="500-1000" @bind="job.BudgetRange" />
                                     <span>$500 - $1,000</span>
                                 </label>
                                 <label class="budget-option">
-                                    <input type="radio" name="budget" value="1000-2500" />
+                                    <input type="radio" name="budget" value="1000-2500" @bind="job.BudgetRange" />
                                     <span>$1,000 - $2,500</span>
                                 </label>
                                 <label class="budget-option">
-                                    <input type="radio" name="budget" value="2500-5000" />
+                                    <input type="radio" name="budget" value="2500-5000" @bind="job.BudgetRange" />
                                     <span>$2,500 - $5,000</span>
                                 </label>
                                 <label class="budget-option">
-                                    <input type="radio" name="budget" value="5000-10000" />
+                                    <input type="radio" name="budget" value="5000-10000" @bind="job.BudgetRange" />
                                     <span>$5,000 - $10,000</span>
                                 </label>
                                 <label class="budget-option">
-                                    <input type="radio" name="budget" value="over10000" />
+                                    <input type="radio" name="budget" value="over10000" @bind="job.BudgetRange" />
                                     <span>Over $10,000</span>
                                 </label>
                                 <label class="budget-option">
-                                    <input type="radio" name="budget" value="quote" />
+                                    <input type="radio" name="budget" value="quote" @bind="job.BudgetRange" />
                                     <span>Get quotes first</span>
                                 </label>
                             </div>
@@ -427,19 +428,28 @@
 
     private async Task PostJobAsync()
     {
+        var user = await AuthService.GetCurrentUserAsync();
+        if (user == null)
+            return;
+
         var category = Enum.TryParse<ServiceCategory>(job.ServiceType, out var cat) ? cat : ServiceCategory.Other;
+        var (budgetMin, budgetMax) = ParseBudget(job.BudgetRange);
+
         var request = new CreateJobRequest(
             Title: job.Title,
             Description: job.Description,
             Category: category,
             SubCategory: job.ServiceType,
             Urgency: JobUrgency.Normal,
-            BudgetMin: null,
-            BudgetMax: null,
+            BudgetMin: budgetMin,
+            BudgetMax: budgetMax,
             PreferredStartDate: null,
             PreferredEndDate: null,
             IsFlexibleTiming: true,
-            CustomerId: Guid.Empty,
+            CustomerId: user.Id,
+            CustomerName: $"{user.FirstName} {user.LastName}",
+            CustomerEmail: user.Email,
+            CustomerPhone: user.PhoneNumber,
             Address: job.Address,
             Suburb: job.Suburb,
             State: "",
@@ -457,6 +467,17 @@
             Navigation.NavigateTo($"/job-posted/{result.Data.Id}");
         }
     }
+
+    private static (decimal? min, decimal? max) ParseBudget(string range) => range switch
+    {
+        "under500" => (null, 500m),
+        "500-1000" => (500m, 1000m),
+        "1000-2500" => (1000m, 2500m),
+        "2500-5000" => (2500m, 5000m),
+        "5000-10000" => (5000m, 10000m),
+        "over10000" => (10000m, null),
+        _ => (null, null)
+    };
 
     private class JobPostModel
     {
