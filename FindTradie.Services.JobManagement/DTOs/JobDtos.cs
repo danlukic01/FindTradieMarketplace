@@ -64,43 +64,44 @@ public record JobSummaryDto(
     DateTime? PreferredStartDate
 );
 
-public record JobDetailDto(
-    Guid Id,
-    string Title,
-    string Description,
-    ServiceCategory Category,
-    string SubCategory,
-    JobUrgency Urgency,
-    JobStatus Status,
-    decimal? BudgetMin,
-    decimal? BudgetMax,
-    DateTime? PreferredStartDate,
-    DateTime? PreferredEndDate,
-    bool IsFlexibleTiming,
-    Guid CustomerId,
-    string CustomerName,
-    string CustomerEmail,
-    string CustomerPhone,
-    string Address,
-    string Suburb,
-    string State,
-    string PostCode,
-    double Latitude,
-    double Longitude,
-    string? SpecialRequirements,
-    bool RequiresLicense,
-    bool RequiresInsurance,
-    bool RequiresBackgroundCheck,
-    Guid? AssignedTradieId,
-    DateTime? StartedAt,
-    DateTime? CompletedAt,
-    decimal? FinalAmount,
-    DateTime CreatedAt,
-    DateTime UpdatedAt,
-    List<JobImageDto> Images,
-    List<QuoteSummaryDto> Quotes,
-    List<JobMessageDto> RecentMessages
-);
+public record JobDetailDto
+{
+    public Guid Id { get; init; }
+    public string Title { get; init; } = string.Empty;
+    public string Description { get; init; } = string.Empty;
+    public ServiceCategory Category { get; init; }
+    public string SubCategory { get; init; } = string.Empty;
+    public JobUrgency Urgency { get; init; }
+    public JobStatus Status { get; init; }
+    public decimal? BudgetMin { get; init; }
+    public decimal? BudgetMax { get; init; }
+    public DateTime? PreferredStartDate { get; init; }
+    public DateTime? PreferredEndDate { get; init; }
+    public bool IsFlexibleTiming { get; init; }
+    public Guid CustomerId { get; init; }
+    public string CustomerName { get; init; } = string.Empty;
+    public string CustomerEmail { get; init; } = string.Empty;
+    public string CustomerPhone { get; init; } = string.Empty;
+    public string Address { get; init; } = string.Empty;
+    public string Suburb { get; init; } = string.Empty;
+    public string State { get; init; } = string.Empty;
+    public string PostCode { get; init; } = string.Empty;
+    public double Latitude { get; init; }
+    public double Longitude { get; init; }
+    public string? SpecialRequirements { get; init; }
+    public bool RequiresLicense { get; init; }
+    public bool RequiresInsurance { get; init; }
+    public bool RequiresBackgroundCheck { get; init; }
+    public Guid? AssignedTradieId { get; init; }
+    public DateTime? StartedAt { get; init; }
+    public DateTime? CompletedAt { get; init; }
+    public decimal? FinalAmount { get; init; }
+    public DateTime CreatedAt { get; init; }
+    public DateTime UpdatedAt { get; init; }
+    public List<JobImageDto> Images { get; init; } = new();
+    public List<QuoteSummaryDto> Quotes { get; init; } = new();
+    public List<JobMessageDto> RecentMessages { get; init; } = new();
+}
 
 public record JobImageDto(
     Guid Id,
