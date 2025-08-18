@@ -95,6 +95,7 @@ public class JobApiService : IJobApiService
     {
         try
         {
+            await SetAuthorizationHeaderAsync();
             var response = await _httpClient.GetAsync($"/api/jobs/{id}");
 
             return await HandleResponse<JobDetailDto>(response);
