@@ -31,7 +31,7 @@ public record CreateJobRequest(
     string? SpecialRequirements,
     bool RequiresLicense,
     bool RequiresInsurance,
-    List<string> ImageUrls
+    List<string>? ImageUrls = null
 );
 
 public record UpdateJobRequest(

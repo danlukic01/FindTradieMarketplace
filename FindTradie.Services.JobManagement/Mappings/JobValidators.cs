@@ -74,7 +74,8 @@ public class CreateJobRequestValidator : AbstractValidator<CreateJobRequest>
             .When(x => x.PreferredStartDate.HasValue && x.PreferredEndDate.HasValue);
 
         RuleFor(x => x.ImageUrls)
-            .Must(x => x.Count <= 10).WithMessage("Cannot exceed 10 images per job");
+            .Must(x => x == null || x.Count <= 10)
+            .WithMessage("Cannot exceed 10 images per job");
     }
 }
 
