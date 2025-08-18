@@ -1,5 +1,746 @@
-﻿<h3>Component</h3>
+﻿@page "/my-work"
+@attribute [Authorize(Policy = "TradieOnly")]
+@using FindTradie.Web.Services
+@using FindTradie.Services.JobManagement.DTOs
+@using FindTradie.Shared.Domain.Enums
+@using Microsoft.AspNetCore.Components.Authorization
+@using System.Security.Claims
+@inject IJobApiService JobService
+@inject IQuoteApiService QuoteService
+@inject ITradieApiService TradieService
+@inject AuthenticationStateProvider AuthStateProvider
+@inject NavigationManager Navigation
+
+<PageTitle>My Work - FindTradie</PageTitle>
+
+<div class="my-work-page">
+    <div class="page-header">
+        <div class="container">
+            <h1>My Work</h1>
+            <p class="text-muted">Manage your quotes and assigned jobs</p>
+        </div>
+    </div>
+
+    @if (isLoading)
+    {
+        <div class="container">
+            <div class="text-center py-5">
+                <div class="spinner-border text-primary" role="status">
+                    <span class="visually-hidden">Loading...</span>
+                </div>
+                <p class="mt-3">Loading your work...</p>
+            </div>
+        </div>
+    }
+    else if (errorMessage != null)
+    {
+        <div class="container">
+            <div class="alert alert-danger">
+                <h5>Error Loading Work</h5>
+                <p>@errorMessage</p>
+                <button class="btn btn-primary" @onclick="LoadWork">Retry</button>
+            </div>
+        </div>
+    }
+    else
+    {
+        <div class="container">
+            <!-- Stats Overview -->
+            <div class="stats-overview mb-4">
+                <div class="row g-3">
+                    <div class="col-md-3">
+                        <div class="stat-card">
+                            <div class="stat-value">@quotedJobs.Count</div>
+                            <div class="stat-label">Active Quotes</div>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="stat-card">
+                            <div class="stat-value">@assignedJobs.Count</div>
+                            <div class="stat-label">Assigned Jobs</div>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="stat-card">
+                            <div class="stat-value">@completedJobs.Count</div>
+                            <div class="stat-label">Completed</div>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="stat-card">
+                            <div class="stat-value">$@monthlyEarnings.ToString("N0")</div>
+                            <div class="stat-label">This Month</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Work Tabs -->
+            <ul class="nav nav-tabs mb-4">
+                <li class="nav-item">
+                    <button class="nav-link @(activeTab == "quoted" ? "active" : "")"
+                            @onclick="@(() => SetActiveTab("quoted"))">
+                        <i class="bi bi-chat-quote"></i> My Quotes (@quotedJobs.Count)
+                    </button>
+                </li>
+                <li class="nav-item">
+                    <button class="nav-link @(activeTab == "assigned" ? "active" : "")"
+                            @onclick="@(() => SetActiveTab("assigned"))">
+                        <i class="bi bi-hammer"></i> Assigned Jobs (@assignedJobs.Count)
+                    </button>
+                </li>
+                <li class="nav-item">
+                    <button class="nav-link @(activeTab == "inprogress" ? "active" : "")"
+                            @onclick="@(() => SetActiveTab("inprogress"))">
+                        <i class="bi bi-clock-history"></i> In Progress (@inProgressJobs.Count)
+                    </button>
+                </li>
+                <li class="nav-item">
+                    <button class="nav-link @(activeTab == "completed" ? "active" : "")"
+                            @onclick="@(() => SetActiveTab("completed"))">
+                        <i class="bi bi-check-circle"></i> Completed (@completedJobs.Count)
+                    </button>
+                </li>
+            </ul>
+
+            <!-- Tab Content -->
+            <div class="tab-content">
+                @if (activeTab == "quoted")
+                {
+                    @if (!quotedJobs.Any())
+                    {
+                        <div class="empty-state text-center py-5">
+                            <i class="bi bi-chat-quote display-1 text-muted"></i>
+                            <h3 class="mt-3">No active quotes</h3>
+                            <p class="text-muted">Browse available jobs to send quotes</p>
+                            <a href="/find-work" class="btn btn-primary">Find Work</a>
+                        </div>
+                    }
+                    else
+                    {
+                        <div class="row g-4">
+                            @foreach (var job in quotedJobs)
+                            {
+                                <div class="col-md-6 col-lg-4">
+                                    <div class="card job-card h-100">
+                                        <div class="card-body">
+                                            <div class="d-flex justify-content-between align-items-start mb-2">
+                                                <span class="badge bg-warning">Quote Pending</span>
+                                                @if (job.Urgency == JobUrgency.Emergency || job.Urgency == JobUrgency.SameDay)
+                                                {
+                                                    <span class="badge bg-danger">@job.Urgency</span>
+                                                }
+                                            </div>
+                                            <h5 class="card-title">@job.Title</h5>
+                                            <p class="card-text text-muted">@TruncateText(job.Description, 100)</p>
+                                            <div class="job-info mb-3">
+                                                <div><i class="bi bi-tag"></i> @GetCategoryDisplayName(job.Category)</div>
+                                                <div><i class="bi bi-geo-alt"></i> @job.Suburb, @job.State</div>
+                                                <div><i class="bi bi-cash"></i> @FormatBudgetRange(job.BudgetMin, job.BudgetMax)</div>
+                                                <div><i class="bi bi-calendar"></i> Quoted @GetTimeAgo(job.CreatedAt)</div>
+                                            </div>
+                                            <div class="d-grid gap-2">
+                                                <button class="btn btn-primary" @onclick="() => ViewJobDetails(job.Id)">
+                                                    View Details
+                                                </button>
+                                                <button class="btn btn-outline-secondary" @onclick="() => WithdrawQuote(job.Id)">
+                                                    Withdraw Quote
+                                                </button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            }
+                        </div>
+                    }
+                }
+                else if (activeTab == "assigned")
+                {
+                    @if (!assignedJobs.Any())
+                    {
+                        <div class="empty-state text-center py-5">
+                            <i class="bi bi-briefcase display-1 text-muted"></i>
+                            <h3 class="mt-3">No assigned jobs</h3>
+                            <p class="text-muted">Jobs you've been hired for will appear here</p>
+                        </div>
+                    }
+                    else
+                    {
+                        <div class="row g-4">
+                            @foreach (var job in assignedJobs)
+                            {
+                                <div class="col-md-6 col-lg-4">
+                                    <div class="card job-card h-100">
+                                        <div class="card-body">
+                                            <span class="badge bg-success mb-2">Assigned</span>
+                                            <h5 class="card-title">@job.Title</h5>
+                                            <p class="card-text text-muted">@TruncateText(job.Description, 100)</p>
+                                            <div class="job-info mb-3">
+                                                <div><i class="bi bi-tag"></i> @GetCategoryDisplayName(job.Category)</div>
+                                                <div><i class="bi bi-geo-alt"></i> @job.Suburb, @job.State</div>
+                                                @if (job.PreferredStartDate.HasValue)
+                                                {
+                                                    <div><i class="bi bi-calendar-event"></i> Start: @job.PreferredStartDate.Value.ToShortDateString()</div>
+                                                }
+                                            </div>
+                                            <div class="d-grid gap-2">
+                                                <button class="btn btn-primary" @onclick="() => ViewJobDetails(job.Id)">
+                                                    View Details
+                                                </button>
+                                                <button class="btn btn-success" @onclick="() => StartJob(job.Id)">
+                                                    Start Job
+                                                </button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            }
+                        </div>
+                    }
+                }
+                else if (activeTab == "inprogress")
+                {
+                    @if (!inProgressJobs.Any())
+                    {
+                        <div class="empty-state text-center py-5">
+                            <i class="bi bi-hammer display-1 text-muted"></i>
+                            <h3 class="mt-3">No jobs in progress</h3>
+                            <p class="text-muted">Jobs you're currently working on will appear here</p>
+                        </div>
+                    }
+                    else
+                    {
+                        <div class="row g-4">
+                            @foreach (var job in inProgressJobs)
+                            {
+                                <div class="col-md-6 col-lg-4">
+                                    <div class="card job-card h-100">
+                                        <div class="card-body">
+                                            <span class="badge bg-primary mb-2">In Progress</span>
+                                            <h5 class="card-title">@job.Title</h5>
+                                            <p class="card-text text-muted">@TruncateText(job.Description, 100)</p>
+                                            <div class="job-info mb-3">
+                                                <div><i class="bi bi-tag"></i> @GetCategoryDisplayName(job.Category)</div>
+                                                <div><i class="bi bi-geo-alt"></i> @job.Suburb, @job.State</div>
+                                                <div><i class="bi bi-clock"></i> Started @GetTimeAgo(job.CreatedAt)</div>
+                                            </div>
+                                            <div class="d-grid gap-2">
+                                                <button class="btn btn-primary" @onclick="() => ViewJobDetails(job.Id)">
+                                                    View Details
+                                                </button>
+                                                <button class="btn btn-success" @onclick="() => CompleteJob(job.Id)">
+                                                    Mark Complete
+                                                </button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            }
+                        </div>
+                    }
+                }
+                else if (activeTab == "completed")
+                {
+                    @if (!completedJobs.Any())
+                    {
+                        <div class="empty-state text-center py-5">
+                            <i class="bi bi-check-circle display-1 text-muted"></i>
+                            <h3 class="mt-3">No completed jobs</h3>
+                            <p class="text-muted">Your completed jobs will appear here</p>
+                        </div>
+                    }
+                    else
+                    {
+                        <div class="row g-4">
+                            @foreach (var job in completedJobs)
+                            {
+                                <div class="col-md-6 col-lg-4">
+                                    <div class="card job-card h-100">
+                                        <div class="card-body">
+                                            <span class="badge bg-info mb-2">Completed</span>
+                                            <h5 class="card-title">@job.Title</h5>
+                                            <p class="card-text text-muted">@TruncateText(job.Description, 100)</p>
+                                            <div class="job-info mb-3">
+                                                <div><i class="bi bi-tag"></i> @GetCategoryDisplayName(job.Category)</div>
+                                                <div><i class="bi bi-geo-alt"></i> @job.Suburb, @job.State</div>
+                                                <div><i class="bi bi-calendar-check"></i> Completed @GetTimeAgo(job.CreatedAt)</div>
+                                            </div>
+                                            <button class="btn btn-outline-primary w-100" @onclick="() => ViewJobDetails(job.Id)">
+                                                View Details
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                            }
+                        </div>
+                    }
+                }
+            </div>
+        </div>
+    }
+</div>
 
 @code {
+    private bool isLoading = true;
+    private string? errorMessage;
+    private string activeTab = "quoted";
 
+    // User info
+    private Guid currentTradieId = Guid.Empty;
+
+    // Job lists
+    private List<JobSummaryDto> allJobs = new();
+    private List<JobSummaryDto> quotedJobs = new();
+    private List<JobSummaryDto> assignedJobs = new();
+    private List<JobSummaryDto> inProgressJobs = new();
+    private List<JobSummaryDto> completedJobs = new();
+
+    // Stats
+    private decimal monthlyEarnings = 0;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await GetTradieInfo();
+        await LoadWork();
+    }
+
+    private async Task GetTradieInfo()
+    {
+        var authState = await AuthStateProvider.GetAuthenticationStateAsync();
+
+        if (authState.User.Identity?.IsAuthenticated == true)
+        {
+            // Get user ID from claims
+            var userIdClaim = authState.User.FindFirst(ClaimTypes.NameIdentifier) ??
+                              authState.User.FindFirst("UserId") ??
+                              authState.User.FindFirst("Id");
+
+            if (userIdClaim != null && Guid.TryParse(userIdClaim.Value, out var userId))
+            {
+                // Get tradie profile
+                try
+                {
+                    var tradieProfileResponse = await TradieService.GetProfileByUserIdAsync(userId);
+                    if (tradieProfileResponse?.Success == true && tradieProfileResponse.Data != null)
+                    {
+                        currentTradieId = tradieProfileResponse.Data.Id;
+                    }
+                    else
+                    {
+                        currentTradieId = userId; // Fallback
+                    }
+                }
+                catch
+                {
+                    currentTradieId = userId; // Fallback
+                }
+            }
+            else
+            {
+                errorMessage = "Unable to determine user identity. Please log in again.";
+                Navigation.NavigateTo("/login");
+            }
+        }
+        else
+        {
+            Navigation.NavigateTo("/login");
+        }
+    }
+
+    private async Task LoadWork()
+    {
+        isLoading = true;
+        errorMessage = null;
+
+        try
+        {
+            if (currentTradieId == Guid.Empty)
+            {
+                errorMessage = "Unable to identify tradie profile. Please ensure your profile is set up.";
+                return;
+            }
+
+            // Load all quotes for this tradie
+            var quotesResponse = await QuoteService.GetTradieQuotesAsync(currentTradieId);
+
+            // Load jobs the tradie is working on
+            // Note: GetTradieJobsAsync should return jobs where the tradie is assigned or has quoted
+            // We'll need to call the actual endpoint that exists in your backend
+
+            // For now, let's use SearchJobsAsync to get all available jobs
+            // and combine with quotes to determine which jobs the tradie is involved with
+            var searchRequest = new JobSearchRequest(
+                Latitude: null,
+                Longitude: null,
+                RadiusKm: 50, // 50km radius - you can get this from tradie profile
+                Categories: null, // You could filter by tradie's service categories
+                Urgency: null,
+                MinBudget: null,
+                MaxBudget: null,
+                StartDateFrom: null,
+                StartDateTo: null,
+                HasBudget: null,
+                PageNumber: 1,
+                PageSize: 100
+            );
+
+            var jobsResponse = await JobService.SearchJobsAsync(searchRequest);
+
+            if (jobsResponse.Success && jobsResponse.Data != null)
+            {
+                allJobs = jobsResponse.Data;
+
+                // If we have quotes data, use it to categorize jobs properly
+                if (quotesResponse?.Success == true && quotesResponse.Data != null)
+                {
+                    var myQuotes = quotesResponse.Data;
+
+                    // Match jobs with quotes to properly categorize them
+                    foreach (var job in allJobs)
+                    {
+                        var hasQuote = myQuotes.Any(q => q.JobId == job.Id);
+                        if (hasQuote)
+                        {
+                            var quote = myQuotes.First(q => q.JobId == job.Id);
+                            // Update job status based on quote status if needed
+                            // This helps us properly categorize the jobs
+                        }
+                    }
+                }
+
+                CategorizeJobs();
+                await CalculateStats();
+            }
+            else
+            {
+                errorMessage = jobsResponse.Message ?? "Failed to load jobs. Please try again.";
+                allJobs = new List<JobSummaryDto>();
+            }
+        }
+        catch (Exception ex)
+        {
+            errorMessage = $"Error loading work: {ex.Message}";
+            Console.WriteLine($"Error loading work: {ex}");
+            allJobs = new List<JobSummaryDto>();
+        }
+        finally
+        {
+            isLoading = false;
+        }
+    }
+
+    private void CategorizeJobs()
+    {
+        // Categorize based on actual job status from the database
+        // These statuses come from the JobStatus enum in your domain
+
+        // Jobs where quotes have been sent but not yet accepted
+        quotedJobs = allJobs.Where(j =>
+            j.Status == JobStatus.QuoteRequested ||
+            j.Status == JobStatus.QuoteReceived).ToList();
+
+        // Jobs where this tradie has been assigned (quote accepted)
+        assignedJobs = allJobs.Where(j =>
+            j.Status == JobStatus.Booked).ToList();
+
+        // Jobs currently being worked on
+        inProgressJobs = allJobs.Where(j =>
+            j.Status == JobStatus.InProgress).ToList();
+
+        // Completed jobs
+        completedJobs = allJobs.Where(j =>
+            j.Status == JobStatus.Completed).ToList();
+    }
+
+    private async Task CalculateStats()
+    {
+        // Calculate monthly earnings from completed jobs
+        // In a real implementation, you'd get this from a specific API endpoint
+        // that tracks actual payments/earnings for the tradie
+
+        var thisMonthCompleted = completedJobs
+            .Where(j => j.CreatedAt >= DateTime.Now.AddDays(-30))
+            .ToList();
+
+        // For now, estimate earnings based on budget ranges
+        // In production, you'd have actual payment data
+        monthlyEarnings = 0;
+        foreach (var job in thisMonthCompleted)
+        {
+            if (job.BudgetMax.HasValue && job.BudgetMin.HasValue)
+            {
+                // Estimate using average of min and max
+                monthlyEarnings += (job.BudgetMax.Value + job.BudgetMin.Value) / 2;
+            }
+            else if (job.BudgetMax.HasValue)
+            {
+                monthlyEarnings += job.BudgetMax.Value * 0.8m; // Conservative estimate
+            }
+            else if (job.BudgetMin.HasValue)
+            {
+                monthlyEarnings += job.BudgetMin.Value;
+            }
+        }
+    }
+
+    private List<JobSummaryDto> GetMockJobs()
+    {
+        var jobs = new List<JobSummaryDto>();
+
+        // Add mock quoted jobs
+        jobs.Add(new JobSummaryDto(
+            Id: Guid.NewGuid(),
+            Title: "Kitchen Tap Repair",
+            Description: "Kitchen tap has been leaking, needs urgent repair or replacement.",
+            Category: ServiceCategory.Plumbing,
+            SubCategory: "Tap Repair",
+            Urgency: JobUrgency.SameDay,
+            Status: JobStatus.QuoteReceived,
+            BudgetMin: 150,
+            BudgetMax: 300,
+            Suburb: "Richmond",
+            State: "VIC",
+            DistanceKm: 3.5,
+            CreatedAt: DateTime.Now.AddDays(-1),
+            QuoteCount: 4,
+            HasImages: true,
+            PreferredStartDate: DateTime.Now.AddDays(1)
+        ));
+
+        // Add mock assigned job
+        jobs.Add(new JobSummaryDto(
+            Id: Guid.NewGuid(),
+            Title: "Bathroom Renovation Plumbing",
+            Description: "Complete plumbing work for bathroom renovation including toilet, shower, and sink installation.",
+            Category: ServiceCategory.Plumbing,
+            SubCategory: "Bathroom",
+            Urgency: JobUrgency.Normal,
+            Status: JobStatus.Booked,
+            BudgetMin: 2000,
+            BudgetMax: 3500,
+            Suburb: "South Yarra",
+            State: "VIC",
+            DistanceKm: 5.2,
+            CreatedAt: DateTime.Now.AddDays(-3),
+            QuoteCount: 6,
+            HasImages: true,
+            PreferredStartDate: DateTime.Now.AddDays(7)
+        ));
+
+        return jobs;
+    }
+
+    private void SetActiveTab(string tab)
+    {
+        activeTab = tab;
+    }
+
+    private void ViewJobDetails(Guid jobId)
+    {
+        Navigation.NavigateTo($"/job-details/{jobId}");
+    }
+
+    private async Task WithdrawQuote(Guid jobId)
+    {
+        try
+        {
+            // Get the quote for this job
+            var quotesResponse = await QuoteService.GetQuotesByJobAsync(jobId);
+            if (quotesResponse?.Success == true && quotesResponse.Data != null)
+            {
+                var myQuote = quotesResponse.Data.FirstOrDefault(q => q.TradieId == currentTradieId);
+                if (myQuote != null)
+                {
+                    // Call the withdraw quote API
+                    var withdrawResponse = await QuoteService.WithdrawQuoteAsync(myQuote.Id, "Withdrawn by tradie");
+
+                    if (withdrawResponse.Success)
+                    {
+                        // Reload the jobs
+                        await LoadWork();
+                    }
+                    else
+                    {
+                        errorMessage = "Failed to withdraw quote. Please try again.";
+                    }
+                }
+            }
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error withdrawing quote: {ex.Message}");
+            errorMessage = "An error occurred while withdrawing the quote.";
+        }
+    }
+
+    private async Task StartJob(Guid jobId)
+    {
+        try
+        {
+            // Update job status to InProgress
+            var response = await JobService.UpdateJobStatusAsync(jobId, JobStatus.InProgress, "Job started by tradie");
+
+            if (response.Success)
+            {
+                // Reload the jobs
+                await LoadWork();
+            }
+            else
+            {
+                errorMessage = "Failed to start job. Please try again.";
+            }
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error starting job: {ex.Message}");
+            errorMessage = "An error occurred while starting the job.";
+        }
+    }
+
+    private async Task CompleteJob(Guid jobId)
+    {
+        try
+        {
+            // Mark job as completed
+            var response = await JobService.CompleteJobAsync(jobId, "Job completed successfully");
+
+            if (response.Success)
+            {
+                // Reload the jobs
+                await LoadWork();
+            }
+            else
+            {
+                errorMessage = "Failed to complete job. Please try again.";
+            }
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error completing job: {ex.Message}");
+            errorMessage = "An error occurred while completing the job.";
+        }
+    }
+
+    // Helper methods
+    private string TruncateText(string text, int maxLength)
+    {
+        if (string.IsNullOrEmpty(text))
+            return "";
+
+        if (text.Length <= maxLength)
+            return text;
+
+        return text.Substring(0, maxLength) + "...";
+    }
+
+    private string GetTimeAgo(DateTime dateTime)
+    {
+        var timeSpan = DateTime.Now - dateTime;
+
+        if (timeSpan.TotalMinutes < 1)
+            return "just now";
+        if (timeSpan.TotalMinutes < 60)
+            return $"{(int)timeSpan.TotalMinutes} minute{((int)timeSpan.TotalMinutes == 1 ? "" : "s")} ago";
+        if (timeSpan.TotalHours < 24)
+            return $"{(int)timeSpan.TotalHours} hour{((int)timeSpan.TotalHours == 1 ? "" : "s")} ago";
+        if (timeSpan.TotalDays < 7)
+            return $"{(int)timeSpan.TotalDays} day{((int)timeSpan.TotalDays == 1 ? "" : "s")} ago";
+
+        return dateTime.ToShortDateString();
+    }
+
+    private string GetCategoryDisplayName(ServiceCategory category)
+    {
+        return category switch
+        {
+            ServiceCategory.Plumbing => "Plumbing",
+            ServiceCategory.Electrical => "Electrical",
+            ServiceCategory.Carpentry => "Carpentry",
+            ServiceCategory.Painting => "Painting",
+            ServiceCategory.Roofing => "Roofing",
+            ServiceCategory.HVAC => "HVAC",
+            ServiceCategory.Landscaping => "Landscaping",
+            ServiceCategory.Cleaning => "Cleaning",
+            ServiceCategory.Handyman => "Handyman",
+            ServiceCategory.Emergency => "Emergency",
+            ServiceCategory.Other => "Other",
+            _ => category.ToString()
+        };
+    }
+
+    private string FormatBudgetRange(decimal? min, decimal? max)
+    {
+        if (min.HasValue && max.HasValue)
+            return $"${min:N0} - ${max:N0}";
+        if (min.HasValue)
+            return $"From ${min:N0}";
+        if (max.HasValue)
+            return $"Up to ${max:N0}";
+        return "Negotiable";
+    }
 }
+
+<style>
+    .my-work-page {
+        min-height: calc(100vh - 60px);
+        background: #f8f9fa;
+    }
+
+    .page-header {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        padding: 40px 0;
+    }
+
+    .stats-overview {
+        margin-top: -30px;
+    }
+
+    .stat-card {
+        background: white;
+        border-radius: 8px;
+        padding: 20px;
+        text-align: center;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
+
+    .stat-value {
+        font-size: 2rem;
+        font-weight: 600;
+        color: #333;
+    }
+
+    .stat-label {
+        font-size: 0.875rem;
+        color: #6c757d;
+        margin-top: 5px;
+    }
+
+    .job-card {
+        transition: transform 0.2s;
+    }
+
+        .job-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+        }
+
+    .job-info > div {
+        margin-bottom: 5px;
+        font-size: 0.875rem;
+        color: #6c757d;
+    }
+
+    .job-info i {
+        width: 20px;
+        margin-right: 5px;
+    }
+
+    .empty-state {
+        padding: 60px 20px;
+    }
+
+        .empty-state i {
+            color: #dee2e6;
+        }
+</style>

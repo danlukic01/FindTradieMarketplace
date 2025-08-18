@@ -72,7 +72,7 @@ public class QuoteApiService : IQuoteApiService
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Error getting quote {Id}", id);
+            _logger.LogError(ex, "Error getting quote {QuoteId}", id);
             return new ApiResponse<QuoteDetailDto>
             {
                 Success = false,
@@ -107,7 +107,7 @@ public class QuoteApiService : IQuoteApiService
         }
     }
 
-    public async Task<ApiResponse<List<QuoteSummaryDto>>> GetQuotesByTradieAsync(Guid tradieId, int pageNumber = 1, int pageSize = 20)
+    public async Task<ApiResponse<List<QuoteSummaryDto>>> GetTradieQuotesAsync(Guid tradieId, int pageNumber = 1, int pageSize = 20)
     {
         try
         {
@@ -122,7 +122,7 @@ public class QuoteApiService : IQuoteApiService
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Error getting quotes for tradie {TradieId}", tradieId);
+            _logger.LogError(ex, "Error getting tradie quotes for {TradieId}", tradieId);
             return new ApiResponse<List<QuoteSummaryDto>>
             {
                 Success = false,
@@ -150,7 +150,7 @@ public class QuoteApiService : IQuoteApiService
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Error updating quote status {Id}", id);
+            _logger.LogError(ex, "Error updating quote status for {QuoteId}", id);
             return new ApiResponse<bool>
             {
                 Success = false,
@@ -179,11 +179,11 @@ public class QuoteApiService : IQuoteApiService
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Error withdrawing quote {Id}", id);
+            _logger.LogError(ex, "Error withdrawing quote {QuoteId}", id);
             return new ApiResponse<bool>
             {
                 Success = false,
-                Message = "An error occurred while withdrawing quote",
+                Message = "An error occurred while withdrawing the quote",
                 Errors = new List<string> { ex.Message }
             };
         }

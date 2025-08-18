@@ -1,0 +1,581 @@
+﻿@page "/find-work"
+@attribute [Authorize(Policy = "TradieOnly")]
+@using FindTradie.Web.Services
+@using FindTradie.Shared.Domain.Enums
+@using FindTradie.Services.JobManagement.DTOs
+@using Microsoft.AspNetCore.Components.Authorization
+@inject IJobApiService JobService
+@inject NavigationManager Navigation
+@inject AuthenticationStateProvider AuthStateProvider
+
+<PageTitle>Find Work - FindTradie</PageTitle>
+
+<div class="find-work-page">
+    <!-- Header Section -->
+    <div class="page-header">
+        <div class="container">
+            <h1>Find Work</h1>
+            <p class="text-muted">Browse available jobs in your area and send quotes</p>
+        </div>
+    </div>
+
+    <!-- Quick Stats Bar -->
+    <div class="stats-bar">
+        <div class="container">
+            <div class="row">
+                <div class="col-md-3">
+                    <div class="stat-item">
+                        <span class="stat-value">@totalJobs</span>
+                        <span class="stat-label">Available Jobs</span>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="stat-item">
+                        <span class="stat-value">@jobs.Count(j => j.Urgency == JobUrgency.Emergency || j.Urgency == JobUrgency.SameDay)</span>
+                        <span class="stat-label">Urgent Jobs</span>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="stat-item">
+                        <span class="stat-value">@jobs.Count(j => j.CreatedAt > DateTime.Now.AddHours(-24))</span>
+                        <span class="stat-label">Posted Today</span>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="stat-item">
+                        <span class="stat-value">@averageBudget</span>
+                        <span class="stat-label">Avg. Budget</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Filters Section -->
+    <div class="filters-section">
+        <div class="container">
+            <div class="row g-3">
+                <!-- Category Filter -->
+                <div class="col-lg-3">
+                    <label class="form-label">Category</label>
+                    <select class="form-select" @bind="selectedCategory" @bind:event="onchange" @bind:after="ApplyFilters">
+                        <option value="">All Categories</option>
+                        @foreach (var category in Enum.GetValues<ServiceCategory>())
+                        {
+                            <option value="@((int)category)">@GetCategoryDisplayName(category)</option>
+                        }
+                    </select>
+                </div>
+
+                <!-- Urgency Filter -->
+                <div class="col-lg-2">
+                    <label class="form-label">Urgency</label>
+                    <select class="form-select" @bind="selectedUrgency" @bind:event="onchange" @bind:after="ApplyFilters">
+                        <option value="">Any Urgency</option>
+                        @foreach (var urgency in Enum.GetValues<JobUrgency>())
+                        {
+                            <option value="@((int)urgency)">@urgency.ToString()</option>
+                        }
+                    </select>
+                </div>
+
+                <!-- Budget Range Filter -->
+                <div class="col-lg-2">
+                    <label class="form-label">Budget Range</label>
+                    <select class="form-select" @bind="selectedBudget" @bind:event="onchange" @bind:after="ApplyFilters">
+                        <option value="">Any Budget</option>
+                        <option value="0-500">Under $500</option>
+                        <option value="500-1000">$500 - $1,000</option>
+                        <option value="1000-5000">$1,000 - $5,000</option>
+                        <option value="5000-0">Over $5,000</option>
+                    </select>
+                </div>
+
+                <!-- Distance Filter -->
+                <div class="col-lg-2">
+                    <label class="form-label">Distance</label>
+                    <select class="form-select" @bind="selectedDistance" @bind:event="onchange" @bind:after="ApplyFilters">
+                        <option value="">Any Distance</option>
+                        <option value="5">Within 5 km</option>
+                        <option value="10">Within 10 km</option>
+                        <option value="20">Within 20 km</option>
+                        <option value="50">Within 50 km</option>
+                    </select>
+                </div>
+
+                <!-- Search Button -->
+                <div class="col-lg-3">
+                    <label class="form-label">&nbsp;</label>
+                    <button class="btn btn-primary w-100" @onclick="ApplyFilters">
+                        <i class="bi bi-search"></i> Apply Filters
+                    </button>
+                </div>
+            </div>
+
+            @if (HasActiveFilters())
+            {
+                <div class="active-filters mt-3">
+                    <span class="me-2">Active filters:</span>
+                    <button class="btn btn-sm btn-outline-secondary" @onclick="ClearAllFilters">
+                        Clear All <i class="bi bi-x"></i>
+                    </button>
+                </div>
+            }
+        </div>
+    </div>
+
+    <!-- View Toggle -->
+    <div class="container mt-3">
+        <div class="d-flex justify-content-between align-items-center">
+            <p class="mb-0">Showing @jobs.Count of @totalJobs jobs</p>
+            <div class="btn-group" role="group">
+                <button class="btn btn-sm @(viewMode == "grid" ? "btn-primary" : "btn-outline-primary")"
+                        @onclick="@(() => SetViewMode("grid"))">
+                    <i class="bi bi-grid-3x3-gap"></i> Grid
+                </button>
+                <button class="btn btn-sm @(viewMode == "list" ? "btn-primary" : "btn-outline-primary")"
+                        @onclick="@(() => SetViewMode("list"))">
+                    <i class="bi bi-list-ul"></i> List
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Jobs Display -->
+    <div class="jobs-section mt-4">
+        <div class="container">
+            @if (isLoading)
+            {
+                <div class="text-center py-5">
+                    <div class="spinner-border text-primary" role="status">
+                        <span class="visually-hidden">Loading jobs...</span>
+                    </div>
+                    <p class="mt-3">Finding available work...</p>
+                </div>
+            }
+            else if (errorMessage != null)
+            {
+                <div class="alert alert-danger">
+                    <h5>Error Loading Jobs</h5>
+                    <p>@errorMessage</p>
+                    <button class="btn btn-primary" @onclick="LoadJobs">Retry</button>
+                </div>
+            }
+            else if (!jobs.Any())
+            {
+                <div class="no-jobs-message text-center py-5">
+                    <i class="bi bi-inbox display-1 text-muted"></i>
+                    <h3 class="mt-3">No jobs found</h3>
+                    <p class="text-muted">Try adjusting your filters or check back later for new opportunities</p>
+                    <button class="btn btn-primary" @onclick="ClearAllFilters">Clear Filters</button>
+                </div>
+            }
+            else
+            {
+                @if (viewMode == "grid")
+                {
+                    <div class="row g-4">
+                        @foreach (var job in GetPagedJobs())
+                        {
+                            <div class="col-md-6 col-lg-4">
+                                <div class="card job-card h-100 @(job.Urgency == JobUrgency.Emergency ? "border-danger" : "")">
+                                    <div class="card-body">
+                                        <div class="d-flex justify-content-between align-items-start mb-2">
+                                            <span class="badge bg-primary">@GetCategoryDisplayName(job.Category)</span>
+                                            @if (job.Urgency == JobUrgency.Emergency || job.Urgency == JobUrgency.SameDay)
+                                            {
+                                                <span class="badge bg-danger">@job.Urgency</span>
+                                            }
+                                        </div>
+                                        <h5 class="card-title">@job.Title</h5>
+                                        <p class="card-text text-muted">@TruncateDescription(job.Description, 150)</p>
+                                        <div class="job-meta mb-3">
+                                            <div class="d-flex justify-content-between">
+                                                <span><i class="bi bi-geo-alt"></i> @job.Suburb, @job.State</span>
+                                                <span class="text-muted">@FormatDistance(job.DistanceKm)</span>
+                                            </div>
+                                            <div class="mt-2">
+                                                <i class="bi bi-cash"></i>
+                                                @FormatBudgetRange(job.BudgetMin, job.BudgetMax)
+                                            </div>
+                                            <div class="mt-1">
+                                                <i class="bi bi-clock"></i> Posted @GetTimeAgo(job.CreatedAt)
+                                            </div>
+                                            @if (job.QuoteCount > 0)
+                                            {
+                                                <div class="mt-1">
+                                                    <i class="bi bi-chat-quote"></i> @job.QuoteCount quotes
+                                                </div>
+                                            }
+                                        </div>
+                                        <div class="d-grid gap-2">
+                                            <button class="btn btn-primary" @onclick="() => SendQuote(job.Id)">
+                                                <i class="bi bi-send"></i> Send Quote
+                                            </button>
+                                            <button class="btn btn-outline-primary" @onclick="() => ViewJobDetails(job.Id)">
+                                                View Details
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        }
+                    </div>
+                }
+                else
+                {
+                    <div class="list-group">
+                        @foreach (var job in GetPagedJobs())
+                        {
+                            <div class="list-group-item">
+                                <div class="row align-items-center">
+                                    <div class="col-lg-7">
+                                        <div class="d-flex align-items-start">
+                                            <div class="flex-grow-1">
+                                                <h5 class="mb-1">
+                                                    @job.Title
+                                                    @if (job.Urgency == JobUrgency.Emergency || job.Urgency == JobUrgency.SameDay)
+                                                    {
+                                                        <span class="badge bg-danger ms-2">@job.Urgency</span>
+                                                    }
+                                                </h5>
+                                                <p class="text-muted mb-2">@TruncateDescription(job.Description, 200)</p>
+                                                <div class="job-meta">
+                                                    <span class="badge bg-primary me-2">@GetCategoryDisplayName(job.Category)</span>
+                                                    <span class="me-3"><i class="bi bi-geo-alt"></i> @job.Suburb, @job.State (@FormatDistance(job.DistanceKm))</span>
+                                                    <span class="me-3"><i class="bi bi-clock"></i> @GetTimeAgo(job.CreatedAt)</span>
+                                                    @if (job.QuoteCount > 0)
+                                                    {
+                                                        <span><i class="bi bi-chat-quote"></i> @job.QuoteCount quotes</span>
+                                                    }
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="col-lg-2 text-center">
+                                        <div class="budget-display">
+                                            <small class="text-muted">Budget</small>
+                                            <div class="fw-bold">
+                                                @FormatBudgetRange(job.BudgetMin, job.BudgetMax)
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="col-lg-3 text-end">
+                                        <button class="btn btn-primary" @onclick="() => SendQuote(job.Id)">
+                                            Send Quote
+                                        </button>
+                                        <button class="btn btn-outline-primary ms-2" @onclick="() => ViewJobDetails(job.Id)">
+                                            Details
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        }
+                    </div>
+                }
+
+                <!-- Pagination -->
+                @if (totalPages > 1)
+                {
+                    <nav aria-label="Jobs pagination" class="mt-4">
+                        <ul class="pagination justify-content-center">
+                            <li class="page-item @(currentPage == 1 ? "disabled" : "")">
+                                <button class="page-link" @onclick="() => ChangePage(currentPage - 1)" disabled="@(currentPage == 1)">
+                                    Previous
+                                </button>
+                            </li>
+                            @for (int i = 1; i <= Math.Min(totalPages, 10); i++)
+                            {
+                                var pageNum = i;
+                                <li class="page-item @(currentPage == pageNum ? "active" : "")">
+                                    <button class="page-link" @onclick="() => ChangePage(pageNum)">@pageNum</button>
+                                </li>
+                            }
+                            <li class="page-item @(currentPage == totalPages ? "disabled" : "")">
+                                <button class="page-link" @onclick="() => ChangePage(currentPage + 1)" disabled="@(currentPage == totalPages)">
+                                    Next
+                                </button>
+                            </li>
+                        </ul>
+                    </nav>
+                }
+            }
+        </div>
+    </div>
+</div>
+
+@code {
+    private List<JobSummaryDto> jobs = new();
+    private bool isLoading = true;
+    private string? errorMessage;
+    private string viewMode = "grid";
+    private int totalJobs = 0;
+    private string averageBudget = "$0";
+
+    // Filter properties
+    private string selectedCategory = "";
+    private string selectedUrgency = "";
+    private string selectedDistance = "";
+    private string selectedBudget = "";
+
+    // Pagination
+    private int currentPage = 1;
+    private int pageSize = 12;
+    private int totalPages = 1;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadJobs();
+    }
+
+    private async Task LoadJobs()
+    {
+        isLoading = true;
+        errorMessage = null;
+
+        try
+        {
+            // Build search request
+            var searchRequest = BuildSearchRequest();
+
+            var response = await JobService.SearchJobsAsync(searchRequest);
+
+            if (response.Success && response.Data != null)
+            {
+                jobs = response.Data;
+                totalJobs = jobs.Count;
+                totalPages = (int)Math.Ceiling(totalJobs / (double)pageSize);
+                CalculateStats();
+            }
+            else
+            {
+                errorMessage = response.Message ?? "Failed to load jobs. Please try again.";
+            }
+        }
+        catch (Exception ex)
+        {
+            errorMessage = "An error occurred while loading jobs. Please try again later.";
+            Console.WriteLine($"Error loading jobs: {ex.Message}");
+        }
+        finally
+        {
+            isLoading = false;
+        }
+    }
+
+    private JobSearchRequest BuildSearchRequest()
+    {
+        List<ServiceCategory>? categories = null;
+        if (!string.IsNullOrEmpty(selectedCategory))
+        {
+            categories = new List<ServiceCategory> { (ServiceCategory)int.Parse(selectedCategory) };
+        }
+
+        var request = new JobSearchRequest(
+            Latitude: null, // TODO: Get from user location
+            Longitude: null,
+            RadiusKm: string.IsNullOrEmpty(selectedDistance) ? null : double.Parse(selectedDistance),
+            Categories: categories,
+            Urgency: string.IsNullOrEmpty(selectedUrgency) ? null : (JobUrgency?)int.Parse(selectedUrgency),
+            MinBudget: null,
+            MaxBudget: null,
+            StartDateFrom: null,
+            StartDateTo: null,
+            HasBudget: null,
+            PageNumber: 1,
+            PageSize: 100 // Get all for client-side pagination
+        );
+
+        // Apply budget filter
+        if (!string.IsNullOrEmpty(selectedBudget))
+        {
+            var parts = selectedBudget.Split('-');
+            if (parts.Length == 2)
+            {
+                if (decimal.TryParse(parts[0], out var min))
+                    request = request with { MinBudget = min };
+                if (parts[1] != "0" && decimal.TryParse(parts[1], out var max))
+                    request = request with { MaxBudget = max };
+                else if (parts[1] == "0") // "5000-0" means over 5000
+                    request = request with { MinBudget = 5000m };
+            }
+        }
+
+        return request;
+    }
+
+    private void CalculateStats()
+    {
+        if (jobs.Any())
+        {
+            var avgBudget = jobs
+                .Where(j => j.BudgetMax.HasValue)
+                .Select(j => j.BudgetMax.Value)
+                .DefaultIfEmpty(0)
+                .Average();
+            averageBudget = $"${avgBudget:N0}";
+        }
+    }
+
+    private List<JobSummaryDto> GetPagedJobs()
+    {
+        return jobs
+            .Skip((currentPage - 1) * pageSize)
+            .Take(pageSize)
+            .ToList();
+    }
+
+    private async Task ApplyFilters()
+    {
+        currentPage = 1;
+        await LoadJobs();
+    }
+
+    private bool HasActiveFilters()
+    {
+        return !string.IsNullOrEmpty(selectedCategory) ||
+               !string.IsNullOrEmpty(selectedUrgency) ||
+               !string.IsNullOrEmpty(selectedDistance) ||
+               !string.IsNullOrEmpty(selectedBudget);
+    }
+
+    private async Task ClearAllFilters()
+    {
+        selectedCategory = "";
+        selectedUrgency = "";
+        selectedDistance = "";
+        selectedBudget = "";
+        currentPage = 1;
+        await LoadJobs();
+    }
+
+    private void SetViewMode(string mode)
+    {
+        viewMode = mode;
+    }
+
+    private void ViewJobDetails(Guid jobId)
+    {
+        Navigation.NavigateTo($"/job-details/{jobId}");
+    }
+
+    private void SendQuote(Guid jobId)
+    {
+        Navigation.NavigateTo($"/send-quote/{jobId}");
+    }
+
+    private async Task ChangePage(int page)
+    {
+        if (page >= 1 && page <= totalPages)
+        {
+            currentPage = page;
+        }
+    }
+
+    // Helper methods
+    private string GetCategoryDisplayName(ServiceCategory category)
+    {
+        return category switch
+        {
+            ServiceCategory.Plumbing => "Plumbing",
+            ServiceCategory.Electrical => "Electrical",
+            ServiceCategory.Carpentry => "Carpentry",
+            ServiceCategory.Painting => "Painting",
+            ServiceCategory.Roofing => "Roofing",
+            ServiceCategory.HVAC => "HVAC",
+            ServiceCategory.Landscaping => "Landscaping",
+            ServiceCategory.Cleaning => "Cleaning",
+            ServiceCategory.Handyman => "Handyman",
+            ServiceCategory.Emergency => "Emergency",
+            ServiceCategory.Other => "Other",
+            _ => category.ToString()
+        };
+    }
+
+    private string TruncateDescription(string description, int maxLength)
+    {
+        if (string.IsNullOrEmpty(description))
+            return "";
+
+        if (description.Length <= maxLength)
+            return description;
+
+        return description.Substring(0, maxLength) + "...";
+    }
+
+    private string FormatBudgetRange(decimal? min, decimal? max)
+    {
+        if (min.HasValue && max.HasValue)
+            return $"${min:N0} - ${max:N0}";
+        if (min.HasValue)
+            return $"From ${min:N0}";
+        if (max.HasValue)
+            return $"Up to ${max:N0}";
+        return "Negotiable";
+    }
+
+    private string FormatDistance(double distanceKm)
+    {
+        if (distanceKm < 1)
+            return $"{(int)(distanceKm * 1000)}m away";
+        return $"{distanceKm:F1}km away";
+    }
+
+    private string GetTimeAgo(DateTime dateTime)
+    {
+        var timeSpan = DateTime.Now - dateTime;
+
+        if (timeSpan.TotalMinutes < 1)
+            return "just now";
+        if (timeSpan.TotalMinutes < 60)
+            return $"{(int)timeSpan.TotalMinutes}m ago";
+        if (timeSpan.TotalHours < 24)
+            return $"{(int)timeSpan.TotalHours}h ago";
+        if (timeSpan.TotalDays < 7)
+            return $"{(int)timeSpan.TotalDays}d ago";
+
+        return dateTime.ToShortDateString();
+    }
+}
+
+<style>
+    .find-work-page {
+        min-height: calc(100vh - 60px);
+        background: #f8f9fa;
+    }
+
+    .stats-bar {
+        background: white;
+        padding: 20px 0;
+        margin-top: -30px;
+        position: relative;
+        z-index: 10;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
+
+    .stat-item {
+        text-align: center;
+    }
+
+    .stat-value {
+        font-size: 1.5rem;
+        font-weight: 600;
+        color: #333;
+        display: block;
+    }
+
+    .stat-label {
+        font-size: 0.875rem;
+        color: #6c757d;
+    }
+
+    .job-card.border-danger {
+        border-left: 4px solid #dc3545 !important;
+    }
+
+    .budget-display {
+        padding: 10px;
+        background: #f8f9fa;
+        border-radius: 6px;
+    }
+</style>
