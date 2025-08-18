@@ -30,7 +30,7 @@
       "DownstreamHostAndPorts": [
         {
           "Host": "localhost",
-          "Port": 7199
+          "Port": 7003
         }
       ],
       "UpstreamPathTemplate": "/api/jobs",
@@ -42,7 +42,7 @@
       "DownstreamHostAndPorts": [
         {
           "Host": "localhost",
-          "Port": 7199
+          "Port": 7003
         }
       ],
       "UpstreamPathTemplate": "/api/jobs/{everything}",
@@ -54,7 +54,7 @@
       "DownstreamHostAndPorts": [
         {
           "Host": "localhost",
-          "Port": 7199
+          "Port": 7003
         }
       ],
       "UpstreamPathTemplate": "/api/quotes",
@@ -66,7 +66,7 @@
       "DownstreamHostAndPorts": [
         {
           "Host": "localhost",
-          "Port": 7199
+          "Port": 7003
         }
       ],
       "UpstreamPathTemplate": "/api/quotes/{everything}",
