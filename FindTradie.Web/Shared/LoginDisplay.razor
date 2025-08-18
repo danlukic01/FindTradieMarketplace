@@ -26,6 +26,7 @@
             {
                 <div class="user-dropdown">
                     <a href="/my-profile" @onclick="NavigateToProfile" @onclick:preventDefault="true" class="dropdown-link"><span>👤</span> My Profile</a>
+                    <a href="/my-jobs" @onclick="NavigateToMyJobs" @onclick:preventDefault="true" class="dropdown-link"><span>📋</span> My Jobs</a>
                     <a href="/settings" @onclick="NavigateToSettings" @onclick:preventDefault="true" class="dropdown-link"><span>⚙️</span> Settings</a>
                     <hr class="dropdown-divider" />
                     <button @onclick="LogoutAsync" class="dropdown-link logout"><span>🚪</span> Log Out</button>
@@ -59,6 +60,12 @@
     {
         showMenu = false;
         Navigation.NavigateTo("/my-profile");
+    }
+
+    private void NavigateToMyJobs()
+    {
+        showMenu = false;
+        Navigation.NavigateTo("/my-jobs");
     }
 
     private void NavigateToSettings()
