@@ -24,8 +24,12 @@ builder.Services.AddCors(options =>
 var jwtSecret = builder.Configuration["JWT:Secret"];
 if (!string.IsNullOrEmpty(jwtSecret))
 {
-    builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
-        .AddJwtBearer(options =>
+    builder.Services.AddAuthentication(options =>
+    {
+        options.DefaultAuthenticateScheme = "JwtBearer";
+        options.DefaultChallengeScheme = "JwtBearer";
+    })
+        .AddJwtBearer("JwtBearer", options =>
         {
             options.TokenValidationParameters = new TokenValidationParameters
             {
