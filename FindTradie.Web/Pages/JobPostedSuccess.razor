@@ -1,0 +1,404 @@
+﻿@page "/job-posted/{JobId:guid}"
+@page "/job-posted"
+@using Microsoft.AspNetCore.Components.Authorization
+@using FindTradie.Shared.Domain.Enums
+@inject AuthenticationStateProvider AuthStateProvider
+@inject NavigationManager Navigation
+@inject IJSRuntime JSRuntime
+
+<PageTitle>Job Posted Successfully - FindTradie</PageTitle>
+
+<div class="job-posted-page">
+    <!-- Success Animation Section -->
+    <section class="success-hero">
+        <div class="container">
+            <div class="success-content">
+                <!-- Animated Success Icon -->
+                <div class="success-animation">
+                    <div class="success-icon">
+                        <div class="success-circle">
+                            <svg class="checkmark" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 52 52">
+                                <circle class="checkmark-circle" cx="26" cy="26" r="25" fill="none" />
+                                <path class="checkmark-check" fill="none" d="M14.1 27.2l7.1 7.2 16.7-16.8" />
+                            </svg>
+                        </div>
+                    </div>
+                </div>
+
+                <h1 class="success-title">Job Posted Successfully!</h1>
+                <p class="success-subtitle">
+                    Your job has been posted and is now visible to qualified tradies in your area.
+                </p>
+
+                <!-- Job Reference -->
+                <div class="job-reference">
+                    <span class="ref-label">Job Reference:</span>
+                    <span class="ref-number">#@jobReference</span>
+                    <button class="copy-btn" @onclick="CopyReference" title="Copy reference">
+                        <i class="fas fa-copy"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- What Happens Next -->
+    <section class="next-steps">
+        <div class="container">
+            <h2>What Happens Next?</h2>
+
+            <div class="timeline-steps">
+                <div class="timeline-step active">
+                    <div class="step-number">1</div>
+                    <div class="step-content">
+                        <h3>Job Posted</h3>
+                        <p>Your job is now live and visible to tradies</p>
+                        <span class="step-status">Completed</span>
+                    </div>
+                </div>
+
+                <div class="timeline-connector"></div>
+
+                <div class="timeline-step pending">
+                    <div class="step-number">2</div>
+                    <div class="step-content">
+                        <h3>Tradies Review</h3>
+                        <p>Local tradies will review your job details</p>
+                        <span class="step-time">Next 24-48 hours</span>
+                    </div>
+                </div>
+
+                <div class="timeline-connector"></div>
+
+                <div class="timeline-step pending">
+                    <div class="step-number">3</div>
+                    <div class="step-content">
+                        <h3>Receive Quotes</h3>
+                        <p>Get competitive quotes from interested tradies</p>
+                        <span class="step-time">Usually within 2 days</span>
+                    </div>
+                </div>
+
+                <div class="timeline-connector"></div>
+
+                <div class="timeline-step pending">
+                    <div class="step-number">4</div>
+                    <div class="step-content">
+                        <h3>Choose & Hire</h3>
+                        <p>Review quotes and hire your preferred tradie</p>
+                        <span class="step-time">At your convenience</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Job Summary Card -->
+    <section class="job-summary-section">
+        <div class="container">
+            <div class="summary-grid">
+                <!-- Job Details Summary -->
+                <div class="summary-card">
+                    <h3><i class="fas fa-briefcase"></i> Your Posted Job</h3>
+
+                    <div class="job-summary-details">
+                        <h4>@jobTitle</h4>
+
+                        <div class="summary-items">
+                            <div class="summary-item">
+                                <i class="fas fa-tag"></i>
+                                <span class="item-label">Category:</span>
+                                <span class="item-value">@jobCategory</span>
+                            </div>
+                            <div class="summary-item">
+                                <i class="fas fa-map-marker-alt"></i>
+                                <span class="item-label">Location:</span>
+                                <span class="item-value">@jobLocation</span>
+                            </div>
+                            <div class="summary-item">
+                                <i class="fas fa-dollar-sign"></i>
+                                <span class="item-label">Budget:</span>
+                                <span class="item-value">@jobBudget</span>
+                            </div>
+                            <div class="summary-item">
+                                <i class="fas fa-calendar"></i>
+                                <span class="item-label">Preferred Start:</span>
+                                <span class="item-value">@preferredStart</span>
+                            </div>
+                            <div class="summary-item">
+                                <i class="fas fa-clock"></i>
+                                <span class="item-label">Urgency:</span>
+                                <span class="item-value urgency-@jobUrgency.ToString().ToLower()">@jobUrgency</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="summary-actions">
+                        <button class="btn btn-outline" @onclick="ViewJobDetails">
+                            <i class="fas fa-eye"></i> View Job Details
+                        </button>
+                        <button class="btn btn-outline" @onclick="EditJob">
+                            <i class="fas fa-edit"></i> Edit Job
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Tips Card -->
+                <div class="tips-card">
+                    <h3><i class="fas fa-lightbulb"></i> Tips for Success</h3>
+
+                    <div class="tips-list">
+                        <div class="tip-item">
+                            <div class="tip-icon">
+                                <i class="fas fa-check-circle"></i>
+                            </div>
+                            <div class="tip-content">
+                                <h4>Respond Quickly</h4>
+                                <p>Tradies appreciate quick responses. Check your quotes regularly.</p>
+                            </div>
+                        </div>
+
+                        <div class="tip-item">
+                            <div class="tip-icon">
+                                <i class="fas fa-comments"></i>
+                            </div>
+                            <div class="tip-content">
+                                <h4>Ask Questions</h4>
+                                <p>Don't hesitate to message tradies for clarification on their quotes.</p>
+                            </div>
+                        </div>
+
+                        <div class="tip-item">
+                            <div class="tip-icon">
+                                <i class="fas fa-star"></i>
+                            </div>
+                            <div class="tip-content">
+                                <h4>Check Reviews</h4>
+                                <p>Read reviews and ratings before making your decision.</p>
+                            </div>
+                        </div>
+
+                        <div class="tip-item">
+                            <div class="tip-icon">
+                                <i class="fas fa-shield-alt"></i>
+                            </div>
+                            <div class="tip-content">
+                                <h4>Verify Insurance</h4>
+                                <p>Ensure your chosen tradie has appropriate insurance coverage.</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Notification Settings -->
+    <section class="notification-section">
+        <div class="container">
+            <div class="notification-card">
+                <div class="notification-header">
+                    <h3><i class="fas fa-bell"></i> Stay Updated</h3>
+                    <p>We'll notify you when tradies submit quotes</p>
+                </div>
+
+                <div class="notification-options">
+                    <div class="notification-option">
+                        <div class="option-icon email-icon">
+                            <i class="fas fa-envelope"></i>
+                        </div>
+                        <div class="option-content">
+                            <h4>Email Notifications</h4>
+                            <p>Receive instant email alerts when you get new quotes</p>
+                            <div class="toggle-switch">
+                                <input type="checkbox" id="emailToggle" checked @onchange="ToggleEmailNotifications" />
+                                <label for="emailToggle">
+                                    <span class="toggle-slider"></span>
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="notification-option">
+                        <div class="option-icon sms-icon">
+                            <i class="fas fa-mobile-alt"></i>
+                        </div>
+                        <div class="option-content">
+                            <h4>SMS Notifications</h4>
+                            <p>Get text messages for urgent updates</p>
+                            <div class="toggle-switch">
+                                <input type="checkbox" id="smsToggle" @onchange="ToggleSmsNotifications" />
+                                <label for="smsToggle">
+                                    <span class="toggle-slider"></span>
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Actions Section -->
+    <section class="actions-section">
+        <div class="container">
+            <div class="action-buttons">
+                <button class="btn btn-primary btn-large" @onclick="GoToMyJobs">
+                    <i class="fas fa-briefcase"></i> Go to My Jobs
+                </button>
+                <button class="btn btn-outline btn-large" @onclick="PostAnotherJob">
+                    <i class="fas fa-plus"></i> Post Another Job
+                </button>
+                <button class="btn btn-text" @onclick="BrowseTradies">
+                    Browse Tradies in Your Area
+                </button>
+            </div>
+        </div>
+    </section>
+
+    <!-- Share Section -->
+    <section class="share-section">
+        <div class="container">
+            <div class="share-card">
+                <h3>Increase Your Chances</h3>
+                <p>Share your job to get more quotes from qualified tradies</p>
+
+                <div class="share-buttons">
+                    <button class="share-btn facebook" @onclick="ShareOnFacebook">
+                        <i class="fab fa-facebook-f"></i>
+                        <span>Share</span>
+                    </button>
+                    <button class="share-btn twitter" @onclick="ShareOnTwitter">
+                        <i class="fab fa-twitter"></i>
+                        <span>Tweet</span>
+                    </button>
+                    <button class="share-btn whatsapp" @onclick="ShareOnWhatsApp">
+                        <i class="fab fa-whatsapp"></i>
+                        <span>WhatsApp</span>
+                    </button>
+                    <button class="share-btn email" @onclick="ShareViaEmail">
+                        <i class="fas fa-envelope"></i>
+                        <span>Email</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </section>
+</div>
+
+@code {
+    [Parameter] public Guid JobId { get; set; }
+
+    // Job details for display
+    private string jobReference = "JOB-2024-0847";
+    private string jobTitle = "Fix Leaking Tap in Kitchen";
+    private string jobCategory = "Plumbing";
+    private string jobLocation = "Bondi, NSW 2026";
+    private string jobBudget = "$100 - $300";
+    private string preferredStart = "Within 3 days";
+    private JobUrgency jobUrgency = JobUrgency.Normal;
+
+    private bool emailNotifications = true;
+    private bool smsNotifications = false;
+
+    protected override async Task OnInitializedAsync()
+    {
+        // Load job details if JobId is provided
+        if (JobId != Guid.Empty)
+        {
+            await LoadJobDetails();
+        }
+
+        // Start success animation
+        await Task.Delay(100);
+        StateHasChanged();
+    }
+
+    private async Task LoadJobDetails()
+    {
+        // TODO: Load actual job details from API
+        // For now using sample data
+        jobReference = $"JOB-{DateTime.Now.Year}-{new Random().Next(1000, 9999)}";
+    }
+
+    private async Task CopyReference()
+    {
+        await JSRuntime.InvokeVoidAsync("navigator.clipboard.writeText", jobReference);
+        // TODO: Show toast notification
+    }
+
+    private void ViewJobDetails()
+    {
+        if (JobId != Guid.Empty)
+        {
+            Navigation.NavigateTo($"/job/{JobId}");
+        }
+    }
+
+    private void EditJob()
+    {
+        if (JobId != Guid.Empty)
+        {
+            Navigation.NavigateTo($"/job/{JobId}/edit");
+        }
+    }
+
+    private void GoToMyJobs()
+    {
+        Navigation.NavigateTo("/my-jobs");
+    }
+
+    private void PostAnotherJob()
+    {
+        Navigation.NavigateTo("/post-job");
+    }
+
+    private void BrowseTradies()
+    {
+        Navigation.NavigateTo("/find-tradies");
+    }
+
+    private void ToggleEmailNotifications(ChangeEventArgs e)
+    {
+        emailNotifications = e.Value?.ToString()?.ToLower() == "true";
+        // TODO: Update notification preferences via API
+    }
+
+    private void ToggleSmsNotifications(ChangeEventArgs e)
+    {
+        smsNotifications = e.Value?.ToString()?.ToLower() == "true";
+        // TODO: Update notification preferences via API
+    }
+
+    private async Task ShareOnFacebook()
+    {
+        var url = $"{Navigation.BaseUri}job/{JobId}";
+        var shareUrl = $"https://www.facebook.com/sharer/sharer.php?u={Uri.EscapeDataString(url)}";
+        await JSRuntime.InvokeVoidAsync("window.open", shareUrl, "_blank");
+    }
+
+    private async Task ShareOnTwitter()
+    {
+        var url = $"{Navigation.BaseUri}job/{JobId}";
+        var text = $"I just posted a job for {jobTitle} on FindTradie!";
+        var shareUrl = $"https://twitter.com/intent/tweet?text={Uri.EscapeDataString(text)}&url={Uri.EscapeDataString(url)}";
+        await JSRuntime.InvokeVoidAsync("window.open", shareUrl, "_blank");
+    }
+
+    private async Task ShareOnWhatsApp()
+    {
+        var url = $"{Navigation.BaseUri}job/{JobId}";
+        var text = $"I just posted a job for {jobTitle} on FindTradie! {url}";
+        var shareUrl = $"https://wa.me/?text={Uri.EscapeDataString(text)}";
+        await JSRuntime.InvokeVoidAsync("window.open", shareUrl, "_blank");
+    }
+
+    private async Task ShareViaEmail()
+    {
+        var url = $"{Navigation.BaseUri}job/{JobId}";
+        var subject = $"Job Posted: {jobTitle}";
+        var body = $"I just posted a job on FindTradie:\n\n{jobTitle}\nLocation: {jobLocation}\nBudget: {jobBudget}\n\nView details: {url}";
+        var mailtoUrl = $"mailto:?subject={Uri.EscapeDataString(subject)}&body={Uri.EscapeDataString(body)}";
+        await JSRuntime.InvokeVoidAsync("window.open", mailtoUrl);
+    }
+}
