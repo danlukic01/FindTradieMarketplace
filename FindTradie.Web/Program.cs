@@ -4,6 +4,7 @@ using FindTradie.Web.Services;
 using FindTradie.Web.Auth;
 using Microsoft.AspNetCore.Components.Authorization;
 using Blazored.LocalStorage;
+using FindTradie.Shared.Domain.Enums;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -32,7 +33,11 @@ builder.Services.AddScoped<ITradieApiService, TradieApiService>();
 builder.Services.AddScoped<IJobApiService, JobApiService>();
 builder.Services.AddScoped<IQuoteApiService, QuoteApiService>();
 // Add Authorization
-builder.Services.AddAuthorizationCore();
+builder.Services.AddAuthorizationCore(options =>
+{
+    options.AddPolicy("TradieOnly", policy =>
+        policy.RequireClaim("UserType", nameof(UserType.Tradie)));
+});
 
 var app = builder.Build();
 
