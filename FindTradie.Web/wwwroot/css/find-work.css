@@ -1,0 +1,39 @@
+.find-work-page {
+    min-height: calc(100vh - 60px);
+    background: #f8f9fa;
+}
+
+.stats-bar {
+    background: white;
+    padding: 20px 0;
+    margin-top: -30px;
+    position: relative;
+    z-index: 10;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.stat-item {
+    text-align: center;
+}
+
+.stat-value {
+    font-size: 1.5rem;
+    font-weight: 600;
+    color: #333;
+    display: block;
+}
+
+.stat-label {
+    font-size: 0.875rem;
+    color: #6c757d;
+}
+
+.job-card.border-danger {
+    border-left: 4px solid #dc3545 !important;
+}
+
+.budget-display {
+    padding: 10px;
+    background: #f8f9fa;
+    border-radius: 6px;
+}

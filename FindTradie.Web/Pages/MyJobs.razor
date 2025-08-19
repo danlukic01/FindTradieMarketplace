@@ -316,8 +316,8 @@
                                 <i class="fas fa-file-invoice-dollar"></i>
                                 <h3>No active quotes</h3>
                                 <p>Browse available jobs to submit quotes</p>
-                                <button class="btn btn-primary" @onclick="NavigateToBrowseJobs">
-                                    Browse Jobs
+                                <button class="btn btn-primary" @onclick="NavigateToFindWork">
+                                    Find Work
                                 </button>
                             </div>
                         }
@@ -517,7 +517,7 @@
 
     // Navigation methods
     private void NavigateToPostJob() => Navigation.NavigateTo("/post-job");
-    private void NavigateToBrowseJobs() => Navigation.NavigateTo("/browse-jobs");
+    private void NavigateToFindWork() => Navigation.NavigateTo("/find-work");
     private void ViewJobDetails(Guid id) => Navigation.NavigateTo($"/job/{id}");
     private void ViewQuotes(Guid id) => Navigation.NavigateTo($"/job/{id}/quotes");
     private void ViewQuoteDetails(Guid id) => Navigation.NavigateTo($"/quote/{id}");
