@@ -19,8 +19,8 @@
                     <p>Manage and track all your submitted quotes</p>
                 </div>
                 <div class="header-actions">
-                    <button class="btn btn-primary" @onclick="NavigateToBrowseJobs">
-                        <i class="icon-search"></i> Browse New Jobs
+                    <button class="btn btn-primary" @onclick="NavigateToFindWork">
+                        <i class="icon-search"></i> Find Work
                     </button>
                 </div>
             </div>
@@ -157,8 +157,8 @@
                 }
                 else
                 {
-                    <button class="btn btn-primary" @onclick="NavigateToBrowseJobs">
-                        Browse Available Jobs
+                    <button class="btn btn-primary" @onclick="NavigateToFindWork">
+                        Find Work
                     </button>
                 }
             </div>
@@ -509,7 +509,7 @@
     private async Task MarkAsComplete(Guid quoteId) { /* Implement completion */ }
     private void ResendQuote(Guid quoteId) => Navigation.NavigateTo($"/send-quote/{quoteId}");
     private async Task DownloadQuote(Guid quoteId) { /* Implement download */ }
-    private void NavigateToBrowseJobs() => Navigation.NavigateTo("/browse-jobs");
+    private void NavigateToFindWork() => Navigation.NavigateTo("/find-work");
 
     private void GoToPage(int page)
     {

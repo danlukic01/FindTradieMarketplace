@@ -1,10 +1,132 @@
-﻿@using FindTradie.Services.JobManagement.DTOs
-@using FindTradie.Services.JobManagement.Services
+@page "/my-work"
+@attribute [Authorize(Policy = "TradieOnly")]
+@using FindTradie.Services.JobManagement.DTOs
 @using FindTradie.Services.TradieManagement.Entities
 @using FindTradie.Shared.Domain.Enums
 @using System.Security.Claims
-@using Microsoft.EntityFrameworkCore.Metadata.Internal
 
+@inject IJobApiService JobService
+@inject IQuoteApiService QuoteService
+@inject ITradieApiService TradieService
+@inject AuthenticationStateProvider AuthStateProvider
+@inject NavigationManager Navigation
+
+<link rel="stylesheet" href="css/browse-jobs.css" />
+
+<div class="browse-jobs-page">
+    <div class="browse-jobs-header">
+        <div class="container">
+            <h1>My Work</h1>
+            <p>Manage jobs you're working on</p>
+        </div>
+    </div>
+
+    <div class="container">
+        @if (isLoading)
+        {
+            <div class="loading-spinner">
+                <div class="spinner-border text-primary" role="status">
+                    <span class="visually-hidden">Loading...</span>
+                </div>
+            </div>
+        }
+        else if (!quotedJobs.Any() && !assignedJobs.Any() && !inProgressJobs.Any() && !completedJobs.Any())
+        {
+            <div class="empty-state">
+                <div class="empty-state-icon">🛠️</div>
+                <h3>No work yet</h3>
+                <p>You don't have any jobs in progress.</p>
+                <button class="btn btn-primary" @onclick='() => Navigation.NavigateTo("/find-work")'>Find Work</button>
+            </div>
+        }
+        else
+        {
+            <div class="job-tabs">
+                <button class="tab-btn @(activeTab == "quoted" ? "active" : "")" @onclick="() => SetActiveTab("quoted")">Quoted (@quotedJobs.Count)</button>
+                <button class="tab-btn @(activeTab == "assigned" ? "active" : "")" @onclick="() => SetActiveTab("assigned")">Assigned (@assignedJobs.Count)</button>
+                <button class="tab-btn @(activeTab == "inprogress" ? "active" : "")" @onclick="() => SetActiveTab("inprogress")">In Progress (@inProgressJobs.Count)</button>
+                <button class="tab-btn @(activeTab == "completed" ? "active" : "")" @onclick="() => SetActiveTab("completed")">Completed (@completedJobs.Count)</button>
+            </div>
+
+            @if (activeTab == "quoted")
+            {
+                <div class="jobs-list">
+                    @foreach (var job in quotedJobs)
+                    {
+                        <div class="job-card">
+                            <div class="job-card-content">
+                                <h3 class="job-title">@job.Title</h3>
+                                <p class="job-description">@TruncateText(job.Description, 120)</p>
+                                <div class="job-meta">
+                                    <span>@job.Suburb, @job.State</span>
+                                    <span>@FormatBudgetRange(job.BudgetMin, job.BudgetMax)</span>
+                                </div>
+                            </div>
+                            <div class="job-card-footer">
+                                <button class="btn btn-outline" @onclick="() => ViewJobDetails(job.Id)">Details</button>
+                                <button class="btn btn-outline-danger" @onclick="() => WithdrawQuote(job.Id)">Withdraw</button>
+                            </div>
+                        </div>
+                    }
+                </div>
+            }
+            else if (activeTab == "assigned")
+            {
+                <div class="jobs-list">
+                    @foreach (var job in assignedJobs)
+                    {
+                        <div class="job-card">
+                            <div class="job-card-content">
+                                <h3 class="job-title">@job.Title</h3>
+                                <p class="job-description">@TruncateText(job.Description, 120)</p>
+                            </div>
+                            <div class="job-card-footer">
+                                <button class="btn btn-outline" @onclick="() => StartJob(job.Id)">Start Job</button>
+                                <button class="btn btn-outline" @onclick="() => ViewJobDetails(job.Id)">Details</button>
+                            </div>
+                        </div>
+                    }
+                </div>
+            }
+            else if (activeTab == "inprogress")
+            {
+                <div class="jobs-list">
+                    @foreach (var job in inProgressJobs)
+                    {
+                        <div class="job-card">
+                            <div class="job-card-content">
+                                <h3 class="job-title">@job.Title</h3>
+                                <p class="job-description">@TruncateText(job.Description, 120)</p>
+                            </div>
+                            <div class="job-card-footer">
+                                <button class="btn btn-outline" @onclick="() => CompleteJob(job.Id)">Mark Complete</button>
+                                <button class="btn btn-outline" @onclick="() => ViewJobDetails(job.Id)">Details</button>
+                            </div>
+                        </div>
+                    }
+                </div>
+            }
+            else if (activeTab == "completed")
+            {
+                <div class="jobs-list">
+                    @foreach (var job in completedJobs)
+                    {
+                        <div class="job-card">
+                            <div class="job-card-content">
+                                <h3 class="job-title">@job.Title</h3>
+                                <p class="job-description">@TruncateText(job.Description, 120)</p>
+                            </div>
+                            <div class="job-card-footer">
+                                <span class="job-status-badge completed">Completed</span>
+                                <button class="btn btn-outline" @onclick="() => ViewJobDetails(job.Id)">Details</button>
+                            </div>
+                        </div>
+                    }
+                </div>
+            }
+        }
+    </div>
+</div>
 
 @code {
     private bool isLoading = true;
@@ -310,11 +432,11 @@
         if (timeSpan.TotalMinutes < 1)
             return "just now";
         if (timeSpan.TotalMinutes < 60)
-            return $"{(int)timeSpan.TotalMinutes} minute{((int)timeSpan.TotalMinutes == 1 ? "" : "s")} ago";
+            return $"{(int)timeSpan.TotalMinutes} minute{((int)timeSpan.TotalMinutes == 1 ? "" : "s") } ago";
         if (timeSpan.TotalHours < 24)
-            return $"{(int)timeSpan.TotalHours} hour{((int)timeSpan.TotalHours == 1 ? "" : "s")} ago";
+            return $"{(int)timeSpan.TotalHours} hour{((int)timeSpan.TotalHours == 1 ? "" : "s") } ago";
         if (timeSpan.TotalDays < 7)
-            return $"{(int)timeSpan.TotalDays} day{((int)timeSpan.TotalDays == 1 ? "" : "s")} ago";
+            return $"{(int)timeSpan.TotalDays} day{((int)timeSpan.TotalDays == 1 ? "" : "s") } ago";
 
         return dateTime.ToShortDateString();
     }
