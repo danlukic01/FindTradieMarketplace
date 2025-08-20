@@ -42,11 +42,27 @@
         else
         {
             <div class="job-tabs">
-                <button class="tab-btn @(activeTab == "quoted" ? "active" : "")" @onclick="() => SetActiveTab("quoted")">Quoted (@quotedJobs.Count)</button>
-                <button class="tab-btn @(activeTab == "assigned" ? "active" : "")" @onclick="() => SetActiveTab("assigned")">Assigned (@assignedJobs.Count)</button>
-                <button class="tab-btn @(activeTab == "inprogress" ? "active" : "")" @onclick="() => SetActiveTab("inprogress")">In Progress (@inProgressJobs.Count)</button>
-                <button class="tab-btn @(activeTab == "completed" ? "active" : "")" @onclick="() => SetActiveTab("completed")">Completed (@completedJobs.Count)</button>
+                <button class="tab-btn @(activeTab == "quoted" ? "active" : "")"
+                        @onclick='() => SetActiveTab("quoted")'>
+                    Quoted (@quotedJobs.Count)
+                </button>
+
+                <button class="tab-btn @(activeTab == "assigned" ? "active" : "")"
+                        @onclick='() => SetActiveTab("assigned")'>
+                    Assigned (@assignedJobs.Count)
+                </button>
+
+                <button class="tab-btn @(activeTab == "inprogress" ? "active" : "")"
+                        @onclick='() => SetActiveTab("inprogress")'>
+                    In Progress (@inProgressJobs.Count)
+                </button>
+
+                <button class="tab-btn @(activeTab == "completed" ? "active" : "")"
+                        @onclick='() => SetActiveTab("completed")'>
+                    Completed (@completedJobs.Count)
+                </button>
             </div>
+
 
             @if (activeTab == "quoted")
             {
