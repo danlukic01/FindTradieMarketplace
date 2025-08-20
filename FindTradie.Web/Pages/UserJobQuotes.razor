@@ -2,8 +2,11 @@
 @attribute [Authorize]
 @using Microsoft.AspNetCore.Components.Authorization
 @using FindTradie.Shared.Domain.Enums
+@using FindTradie.Services.JobManagement.DTOs
 @inject AuthenticationStateProvider AuthStateProvider
 @inject NavigationManager Navigation
+@inject IQuoteApiService QuoteService
+@inject IJobApiService JobService
 
 <PageTitle>Job Quotes - FindTradie</PageTitle>
 
@@ -354,7 +357,7 @@
 @code {
     [Parameter] public Guid JobId { get; set; }
 
-    private string jobTitle = "Fix Leaking Tap in Kitchen";
+    private string jobTitle = string.Empty;
     private List<QuoteViewModel> quotes = new();
     private List<QuoteViewModel> filteredQuotes = new();
     private List<QuoteViewModel> shortlistedQuotes = new();
@@ -362,7 +365,7 @@
     private int shortlistedCount = 0;
     private decimal lowestQuote = 0;
     private decimal averageQuote = 0;
-    private int daysRemaining = 5;
+    private int daysRemaining = 0;
     private bool showComparison = false;
 
     protected override async Task OnInitializedAsync()
@@ -371,73 +374,58 @@
         CalculateStats();
     }
 
+
     private async Task LoadQuotes()
     {
-        // TODO: Load from API
-        quotes = new List<QuoteViewModel>
+        var jobResponse = await JobService.GetJobAsync(JobId);
+        if (jobResponse.Success && jobResponse.Data != null)
         {
-            new()
-            {
-                Id = Guid.NewGuid(),
-                TradieId = Guid.NewGuid(),
-                TradieName = "John Smith",
-                TradieInitials = "JS",
-                BusinessName = "QuickFix Plumbing",
-                TradieAvatar = "/images/tradie1.jpg",
-                IsVerified = true,
-                Rating = 4.8m,
-                ReviewCount = 127,
-                Distance = 2.5m,
-                TotalAmount = 180,
-                MaterialsCost = 50,
-                LabourCost = 130,
-                Description = "I can fix your leaking tap quickly and efficiently. I've been fixing taps for over 10 years and can identify the issue immediately.",
-                Methodology = "I'll first inspect the tap to identify the cause of the leak, then replace the necessary washers or cartridge. All work guaranteed.",
-                MaterialsIncluded = "New washers, O-rings, and cartridge if needed",
-                WarrantyOffered = "12 months warranty on all work",
-                ProposedStartDate = "Tomorrow",
-                EstimatedDuration = "1-2 hours",
-                ProposedEndDate = "Tomorrow",
-                QuotedDate = "2 hours ago",
-                DaysUntilExpiry = 5,
-                JobsCompleted = 342,
-                ResponseTime = "< 1 hour",
-                OnTimeRate = 98,
-                IncludesCleanup = true,
-                IncludesRemoval = true,
-                IsLowestQuote = true,
-                ActiveTab = "description"
-            },
-            new()
-            {
-                Id = Guid.NewGuid(),
-                TradieId = Guid.NewGuid(),
-                TradieName = "Mike Wilson",
-                TradieInitials = "MW",
-                BusinessName = "Pro Plumbers",
-                IsVerified = true,
-                Rating = 4.5m,
-                ReviewCount = 89,
-                Distance = 5.2m,
-                TotalAmount = 220,
-                MaterialsCost = 60,
-                LabourCost = 160,
-                Description = "Professional plumbing service with guaranteed satisfaction.",
-                ProposedStartDate = "In 3 days",
-                EstimatedDuration = "2-3 hours",
-                QuotedDate = "1 day ago",
-                DaysUntilExpiry = 4,
-                JobsCompleted = 256,
-                ResponseTime = "< 2 hours",
-                OnTimeRate = 95,
-                IncludesCleanup = true,
-                ActiveTab = "description"
-            }
-        };
+            jobTitle = jobResponse.Data.Title;
+        }
 
-        filteredQuotes = quotes;
+        var quoteResponse = await QuoteService.GetQuotesByJobAsync(JobId);
+        if (quoteResponse.Success && quoteResponse.Data != null)
+        {
+            var detailTasks = quoteResponse.Data.Select(q => QuoteService.GetQuoteAsync(q.Id));
+            var detailResponses = await Task.WhenAll(detailTasks);
+
+            quotes = detailResponses
+                .Where(r => r.Success && r.Data != null)
+                .Select(r => MapToViewModel(r.Data!))
+                .ToList();
+
+            filteredQuotes = quotes;
+        }
     }
 
+    private QuoteViewModel MapToViewModel(QuoteDetailDto quote)
+    {
+        var initials = string.Join(string.Empty,
+            quote.TradieBusinessName.Split(' ', StringSplitOptions.RemoveEmptyEntries)
+                .Select(s => char.ToUpperInvariant(s[0])));
+
+        return new QuoteViewModel
+        {
+            Id = quote.Id,
+            TradieId = quote.TradieId,
+            TradieName = quote.TradieBusinessName,
+            TradieInitials = initials,
+            BusinessName = quote.TradieBusinessName,
+            MaterialsCost = quote.MaterialsCost,
+            LabourCost = quote.LabourCost,
+            TotalAmount = quote.TotalCost,
+            Description = quote.Description,
+            MaterialsIncluded = quote.MaterialsIncluded,
+            Methodology = quote.Methodology,
+            WarrantyOffered = quote.WarrantyOffered,
+            ProposedStartDate = quote.ProposedStartDate?.ToString("dd MMM yyyy") ?? string.Empty,
+            ProposedEndDate = quote.ProposedEndDate?.ToString("dd MMM yyyy") ?? string.Empty,
+            EstimatedDuration = quote.EstimatedDurationHours > 0 ? $"{quote.EstimatedDurationHours} hrs" : string.Empty,
+            QuotedDate = quote.CreatedAt.ToString("dd MMM yyyy"),
+            DaysUntilExpiry = (int)Math.Ceiling((quote.ExpiresAt - DateTime.UtcNow).TotalDays),
+            ActiveTab = "description"
+        };
+    }
     private void CalculateStats()
     {
         if (quotes.Any())
@@ -446,6 +434,7 @@
             averageQuote = Math.Round(quotes.Average(q => q.TotalAmount), 0);
             shortlistedCount = quotes.Count(q => q.IsShortlisted);
             shortlistedQuotes = quotes.Where(q => q.IsShortlisted).ToList();
+            daysRemaining = quotes.Max(q => q.DaysUntilExpiry);
         }
     }
 
