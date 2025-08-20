@@ -2,9 +2,12 @@
 @attribute [Authorize]
 @using Microsoft.AspNetCore.Components.Authorization
 @using FindTradie.Shared.Domain.Enums
+@using FindTradie.Services.JobManagement.DTOs
+@using System.Linq
 @inject AuthenticationStateProvider AuthStateProvider
 @inject NavigationManager Navigation
 @inject IJSRuntime JSRuntime
+@inject IJobApiService JobService
 
 <PageTitle>User Job Details - FindTradie</PageTitle>
 
@@ -355,42 +358,42 @@
 
     private async Task LoadJobDetails()
     {
-        // TODO: Load from API
-        job = new JobDetailViewModel
-            {
-                Id = JobId,
-                Title = "Fix Leaking Tap in Kitchen",
-                Category = "Plumbing",
-                Status = JobStatus.QuoteReceived,
-                Urgency = JobUrgency.Normal,
-                PostedDate = "2 days ago",
-                Description = "Kitchen tap has been dripping for a week. It seems to be getting worse and now makes a constant dripping sound. The tap is a mixer tap installed about 5 years ago. Would like this fixed as soon as possible as it's wasting water.",
-                SpecialRequirements = "Please bring your own tools. Access through side gate if no one home.",
-                Address = "123 Main Street",
-                Suburb = "Bondi",
-                State = "NSW",
-                PostCode = "2026",
-                BudgetMin = 100,
-                BudgetMax = 300,
-                PreferredStartDate = DateTime.Now.AddDays(3),
-                IsFlexibleTiming = true,
-                QuotesCount = 3,
-                RequiresInsurance = true,
-                Images = new List<JobImageViewModel>
-            {
-                new() { Url = "/images/tap1.jpg", Caption = "Leaking tap" }
-            },
-                Activities = new List<ActivityViewModel>
-            {
-                new() { Type = "quote", Description = "New quote received from ABC Plumbing", TimeAgo = "2 hours ago" },
-                new() { Type = "message", Description = "Tradie asked about water pressure", TimeAgo = "5 hours ago" },
-                new() { Type = "quote", Description = "Quote received from QuickFix Plumbers", TimeAgo = "1 day ago" },
-                new() { Type = "created", Description = "Job posted", TimeAgo = "2 days ago" }
-            }
-            };
-
+        isLoading = true;
+        var response = await JobService.GetJobAsync(JobId);
+        if (response.Success && response.Data != null)
+        {
+            job = MapJob(response.Data);
+        }
         isLoading = false;
     }
+
+    private JobDetailViewModel MapJob(JobDetailDto dto) => new()
+    {
+        Id = dto.Id,
+        Title = dto.Title,
+        Category = dto.Category.ToString(),
+        Status = dto.Status,
+        Urgency = dto.Urgency,
+        PostedDate = dto.CreatedAt.ToString("dd MMM yyyy"),
+        Description = dto.Description,
+        SpecialRequirements = dto.SpecialRequirements,
+        Address = dto.Address,
+        Suburb = dto.Suburb,
+        State = dto.State,
+        PostCode = dto.PostCode,
+        BudgetMin = dto.BudgetMin,
+        BudgetMax = dto.BudgetMax,
+        PreferredStartDate = dto.PreferredStartDate,
+        PreferredEndDate = dto.PreferredEndDate,
+        IsFlexibleTiming = dto.IsFlexibleTiming,
+        QuotesCount = dto.Quotes?.Count ?? 0,
+        RequiresLicense = dto.RequiresLicense,
+        RequiresInsurance = dto.RequiresInsurance,
+        RequiresBackgroundCheck = dto.RequiresBackgroundCheck,
+        StartedDate = dto.StartedAt?.ToString("dd MMM yyyy"),
+        CompletedDate = dto.CompletedAt?.ToString("dd MMM yyyy"),
+        Images = dto.Images.Select(i => new JobImageViewModel { Url = i.ImageUrl, Caption = i.Caption }).ToList(),
+    };
 
     private void GoBack() => Navigation.NavigateTo("/myjobs");
     private void ViewQuotes() => Navigation.NavigateTo($"/job/{JobId}/quotes");
