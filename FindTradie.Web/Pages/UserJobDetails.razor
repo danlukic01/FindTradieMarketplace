@@ -348,8 +348,8 @@
 @if (showImageModal && !string.IsNullOrEmpty(selectedImageUrl))
 {
     <div class="photo-modal" @onclick="CloseImageModal">
+        <button class="modal-close" @onclick="CloseImageModal" aria-label="Close image"></button>
         <div class="modal-content" @onclick:stopPropagation="true">
-            <button class="modal-close" @onclick="CloseImageModal">&times;</button>
             <img src="@selectedImageUrl" alt="Job image" />
         </div>
     </div>
