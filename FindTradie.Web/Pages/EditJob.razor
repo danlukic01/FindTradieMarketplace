@@ -325,6 +325,7 @@
     private bool isLoading = true;
     private bool isSaving = false;
     private List<NewPhotoModel> newPhotos = new();
+    private List<Guid> removedPhotoIds = new();
     private List<ServiceCategory> categories = Enum.GetValues<ServiceCategory>().ToList();
 
     protected override async Task OnInitializedAsync()
@@ -415,29 +416,21 @@
 
             // Prepare update request
             var updateRequest = new UpdateJobRequest
-                {
-                    Title = job.Title,
-                    Description = job.Description,
-                    Category = job.Category!.Value,
-                    Urgency = job.Urgency,
-                    Suburb = job.Suburb,
-                    PostCode = job.Postcode,
-                    Address = job.AddressDetails ?? string.Empty,
-                    BudgetMin = job.BudgetMin,
-                    BudgetMax = job.BudgetMax,
-                    PreferredStartDate = job.PreferredStartDate,
-                    IsFlexibleTiming = job.FlexibleOnDates
-                };
-
-            // Upload new photos if any
-            if (newPhotos.Any())
             {
-                foreach (var photo in newPhotos)
-                {
-                    // Upload photo logic here
-                    // This would typically upload to your storage service
-                }
-            }
+                Title = job.Title,
+                Description = job.Description,
+                Category = job.Category!.Value,
+                Urgency = job.Urgency,
+                Suburb = job.Suburb,
+                PostCode = job.Postcode,
+                Address = job.AddressDetails ?? string.Empty,
+                BudgetMin = job.BudgetMin,
+                BudgetMax = job.BudgetMax,
+                PreferredStartDate = job.PreferredStartDate,
+                IsFlexibleTiming = job.FlexibleOnDates,
+                ImageUrls = newPhotos.Select(p => p.Preview).ToList(),
+                RemovedImageIds = removedPhotoIds
+            };
 
             // Call the update service
             var response = await JobService.UpdateJobAsync(JobId, updateRequest);
@@ -504,7 +497,7 @@
             if (photo != null)
             {
                 job.Images.Remove(photo);
-                // You might want to track removed photos to delete them from storage
+                removedPhotoIds.Add(photo.Id);
             }
         }
     }
