@@ -199,6 +199,7 @@ public class JobRepository : IJobRepository
         }
         catch (DbUpdateConcurrencyException ex)
         {
+
             // Detach any JobImage entries that were modified or deleted by another
             // process. Missing child records shouldn't prevent the job itself from
             // being updated, but new images should remain tracked so they can be
@@ -207,6 +208,7 @@ public class JobRepository : IJobRepository
             {
                 if (entry.Entity is JobImage &&
                     (entry.State == EntityState.Deleted || entry.State == EntityState.Modified))
+
                 {
                     entry.State = EntityState.Detached;
                 }
