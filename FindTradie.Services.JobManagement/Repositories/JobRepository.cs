@@ -182,15 +182,22 @@ public class JobRepository : IJobRepository
 
         // Ensure any newly added images are tracked by the context. In some
         // scenarios the change tracker may not automatically detect new child
-        // entities that are added to an already tracked parent. Explicitly
-        // adding detached images to the DbSet guarantees that they will be
-        // persisted when SaveChanges is called.
-        foreach (var image in job.Images)
+
+        // entities that are added to an already tracked parent.  Compare the
+        // images on the job against those already stored in the database so we
+        // only add ones that don't yet exist.
+        var imageIds = job.Images.Select(i => i.Id).ToList();
+        var existingImageIds = new HashSet<Guid>(
+            _context.JobImages.Where(i => imageIds.Contains(i.Id)).Select(i => i.Id));
+
+        var imagesToAdd = job.Images
+            .Where(img => !existingImageIds.Contains(img.Id))
+            .ToList();
+
+        if (imagesToAdd.Count > 0)
         {
-            if (_context.Entry(image).State == EntityState.Detached)
-            {
-                _context.JobImages.Add(image);
-            }
+            _context.JobImages.AddRange(imagesToAdd);
+
         }
 
         try
@@ -208,7 +215,6 @@ public class JobRepository : IJobRepository
             {
                 if (entry.Entity is JobImage &&
                     (entry.State == EntityState.Deleted || entry.State == EntityState.Modified))
-
                 {
                     entry.State = EntityState.Detached;
                 }
