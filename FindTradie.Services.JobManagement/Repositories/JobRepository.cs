@@ -165,7 +165,14 @@ public class JobRepository : IJobRepository
 
     public async Task<Job> UpdateAsync(Job job)
     {
-        _context.Jobs.Update(job);
+        // The job is already being tracked by the context when retrieved through
+        // repository methods such as GetByIdWithDetailsAsync. Calling Update on
+        // the tracked entity forces EF Core to mark the entire object graph as
+        // modified, which causes new child entities (e.g. newly uploaded images)
+        // to be treated as updates rather than inserts. This results in a
+        // DbUpdateConcurrencyException when EF attempts to update rows that do
+        // not yet exist. Simply saving the context will persist any changes and
+        // correctly insert new child records.
         await _context.SaveChangesAsync();
         return job;
     }
