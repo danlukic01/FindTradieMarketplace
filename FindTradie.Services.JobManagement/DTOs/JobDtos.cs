@@ -49,8 +49,12 @@ public record UpdateJobRequest
     public DateTime? PreferredEndDate { get; init; }
     public bool IsFlexibleTiming { get; init; }
     public string? SpecialRequirements { get; init; }
-    public List<string>? ImageUrls { get; init; }
-    public List<Guid>? RemovedImageIds { get; init; }
+    // Optional collection of newly added image URLs. Defaults to an empty list
+    // so callers can add images without worrying about null checks.
+    public List<string>? ImageUrls { get; init; } = new();
+    // Optional collection of image identifiers to remove from the job.
+    // Initialised to an empty list to simplify consumer logic.
+    public List<Guid>? RemovedImageIds { get; init; } = new();
 }
 
 public record JobSummaryDto
