@@ -168,6 +168,23 @@ public class JobRepository : IJobRepository
         return job;
     }
 
+    public async Task<Job> UpdateTrackedAsync(Guid id, Action<Job> updateAction)
+    {
+        var job = await _context.Jobs
+            .Include(j => j.Images)
+            .Include(j => j.StatusHistory)
+            .FirstOrDefaultAsync(j => j.Id == id);
+
+        if (job == null)
+            throw new ArgumentException($"Job with ID {id} not found");
+
+        updateAction(job);
+
+        await _context.SaveChangesAsync();
+
+        return job;
+    }
+
     public async Task<Job> UpdateAsync(Job job)
     {
         // The job should already be tracked when retrieved via repository methods

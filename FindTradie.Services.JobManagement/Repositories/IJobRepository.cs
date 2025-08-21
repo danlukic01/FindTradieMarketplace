@@ -20,6 +20,7 @@ public interface IJobRepository
     Task<List<Job>> GetJobsByTradieAsync(Guid tradieId, int pageNumber = 1, int pageSize = 20);
     Task<Job> CreateAsync(Job job);
     Task<Job> UpdateAsync(Job job);
+    Task<Job> UpdateTrackedAsync(Guid id, Action<Job> updateAction);
     Task<bool> ExistsAsync(Guid id);
     Task<int> GetActiveJobsCountByCustomerAsync(Guid customerId);
     Task<List<Job>> GetJobsNeedingAttentionAsync();

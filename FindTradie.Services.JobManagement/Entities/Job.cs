@@ -110,15 +110,13 @@ public class QuoteItem : BaseEntity
 public class JobImage : BaseEntity
 {
     public Guid JobId { get; set; }
+    public Job Job { get; set; } = null!;
     public string ImageUrl { get; set; } = string.Empty;
     public string? Caption { get; set; }
     public string? Description { get; set; }
+    public int DisplayOrder { get; set; }
     public ImageType ImageType { get; set; } = ImageType.Problem;
     public bool IsMainImage { get; set; } = false;
-    public int DisplayOrder { get; set; }
-
-    // Navigation
-    public Job Job { get; set; } = null!;
 }
 
 public class JobMessage : BaseEntity
