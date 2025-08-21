@@ -5,6 +5,7 @@
 @using FindTradie.Services.JobManagement.DTOs
 @using System.ComponentModel.DataAnnotations
 @using System.Security.Claims
+@using System.IO
 @attribute [Authorize(Roles = "Customer")]
 @inject NavigationManager Navigation
 @inject IJSRuntime JSRuntime
@@ -476,16 +477,18 @@
                 continue;
             }
 
-            var buffer = new byte[file.Size];
-            await file.OpenReadStream(maxFileSize).ReadAsync(buffer);
-            var preview = $"data:{file.ContentType};base64,{Convert.ToBase64String(buffer)}";
+            using var stream = file.OpenReadStream(maxFileSize);
+            using var ms = new MemoryStream();
+            await stream.CopyToAsync(ms);
+            var base64 = Convert.ToBase64String(ms.ToArray());
+            var preview = $"data:{file.ContentType};base64,{base64}";
 
             newPhotos.Add(new NewPhotoModel
-                {
-                    Name = file.Name,
-                    Preview = preview,
-                    File = file
-                });
+            {
+                Name = file.Name,
+                Preview = preview,
+                File = file
+            });
         }
     }
 
