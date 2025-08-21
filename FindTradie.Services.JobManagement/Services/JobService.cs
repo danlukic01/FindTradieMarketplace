@@ -156,7 +156,9 @@ public class JobService : IJobService
                 job.IsFlexibleTiming = request.IsFlexibleTiming.Value;
             job.SpecialRequirements = request.SpecialRequirements ?? job.SpecialRequirements;
 
-            // Remove images
+            // Remove images - use soft delete to avoid concurrency issues when
+            // an image has already been deleted by another request.  Simply
+            // mark the image as deleted instead of physically removing it.
             if (request.RemovedImageIds?.Any() == true)
             {
                 var imagesToRemove = job.Images
@@ -165,7 +167,7 @@ public class JobService : IJobService
 
                 foreach (var image in imagesToRemove)
                 {
-                    job.Images.Remove(image);
+                    image.IsDeleted = true;
                 }
             }
 
