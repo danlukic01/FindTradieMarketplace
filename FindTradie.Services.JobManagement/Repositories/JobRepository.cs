@@ -180,7 +180,31 @@ public class JobRepository : IJobRepository
             _context.Attach(job);
         }
 
-        await _context.SaveChangesAsync();
+        try
+        {
+            await _context.SaveChangesAsync();
+        }
+        catch (DbUpdateConcurrencyException ex)
+        {
+            // If a concurrency exception occurs due to a related entity
+            // (e.g. a JobImage that has already been deleted), detach those
+            // entries and retry the save.  Missing children should not
+            // prevent the job itself from being updated.
+            foreach (var entry in ex.Entries)
+            {
+                if (entry.Entity is JobImage)
+                {
+                    entry.State = EntityState.Detached;
+                }
+                else
+                {
+                    throw;
+                }
+            }
+
+            await _context.SaveChangesAsync();
+        }
+
         return job;
     }
 
