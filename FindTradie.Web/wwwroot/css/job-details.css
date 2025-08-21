@@ -416,59 +416,43 @@
     font-size: 14px;
 }
 
-/* Photo Modal */
-.photo-modal {
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background: rgba(0, 0, 0, 0.8);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    z-index: 1000;
-}
 
-.photo-modal .modal-content {
-    position: relative;
-    max-width: 90%;
-    max-height: 90%;
-}
-
-.photo-modal .modal-content img {
-    max-width: 100%;
-    max-height: 100%;
-    border-radius: 8px;
-}
-
+/* Photo Modal - Fixed Close Button */
 .photo-modal .modal-close {
     position: absolute;
-    top: 10px;
-    right: 10px;
-
-    background: rgba(0, 0, 0, 0.6);
-    border: none;
-    color: #fff;
-    font-size: 1.5rem;
+    top: 20px;
+    right: 20px;
+    background: #000000; /* Solid black background */
+    border: 2px solid #ffffff; /* White border */
+    color: #ffffff; /* White X */
+    font-size: 24px;
+    font-weight: bold;
     cursor: pointer;
-    width: 40px;
-    height: 40px;
+    width: 45px;
+    height: 45px;
     border-radius: 50%;
     display: flex;
     align-items: center;
     justify-content: center;
-    transition: background 0.2s ease-in-out;
+    transition: all 0.2s ease-in-out;
+    z-index: 1001;
+    line-height: 1;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.5); /* Add shadow for more prominence */
 }
 
+    .photo-modal .modal-close:hover {
+        background: #ff0000; /* Red on hover */
+        border-color: #ffffff;
+        transform: scale(1.1);
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.7);
+    }
 
-    background: none;
-    border: none;
-    color: white;
-    font-size: 2rem;
-    cursor: pointer;
-
-}
+    /* Ensure the X symbol is visible */
+    .photo-modal .modal-close::before {
+        content: "✕"; /* Use a more prominent X symbol */
+        font-size: 26px;
+        font-weight: bold;
+    }
 
 /* Share Card */
 .share-card .btn {
