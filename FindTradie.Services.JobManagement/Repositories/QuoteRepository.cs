@@ -60,7 +60,11 @@ public class QuoteRepository : IQuoteRepository
 
     public async Task<Quote> UpdateAsync(Quote quote)
     {
-        _context.Quotes.Update(quote);
+        // Similar to jobs, quotes and their related items are tracked by the
+        // context. Using Update would mark new child entities as modified and
+        // lead to failed updates for non-existent rows. Saving changes directly
+        // ensures EF Core inserts new records and updates existing ones
+        // appropriately.
         await _context.SaveChangesAsync();
         return quote;
     }
