@@ -8,16 +8,14 @@
 @using System.IO
 @attribute [Authorize(Roles = "Customer")]
 @inject NavigationManager Navigation
-@inject IJSRuntime JSRuntime
 @inject IJobApiService JobService
-@inject IAuthService AuthService
 @inject AuthenticationStateProvider AuthStateProvider
 
 <PageTitle>Edit Job - FindTradie</PageTitle>
 <link rel="stylesheet" href="css/EditJob.css" />
 
 <div class="edit-job-container">
-    <SavingModal Show="@isSaving" />
+    <SavingModal Show="@isSaving" Message="Saving changes..." />
     <!-- Header with Back Button -->
     <section class="page-header-compact">
         <div class="container">
@@ -31,6 +29,12 @@
     <div class="container py-4">
         <h1>Edit Job</h1>
         <p class="lead">Update your job details to get better quotes from tradies</p>
+        @if (!string.IsNullOrEmpty(errorMessage))
+        {
+            <div class="alert alert-danger" role="alert">
+                @errorMessage
+            </div>
+        }
         @if (isLoading)
         {
             <div class="text-center py-5">
@@ -334,6 +338,7 @@
     private JobEditModel? job;
     private bool isLoading = true;
     private bool isSaving = false;
+    private string? errorMessage;
     private List<NewPhotoModel> newPhotos = new();
     private List<Guid> removedPhotoIds = new();
     private List<ServiceCategory> categories = Enum.GetValues<ServiceCategory>().ToList();
@@ -348,6 +353,7 @@
         try
         {
             isLoading = true;
+            errorMessage = null;
 
             // Get the current user
             var authState = await AuthStateProvider.GetAuthenticationStateAsync();
@@ -382,7 +388,7 @@
         }
         catch (Exception ex)
         {
-            await JSRuntime.InvokeVoidAsync("alert", $"Error loading job: {ex.Message}");
+            errorMessage = $"Error loading job: {ex.Message}";
             job = null;
         }
         finally
@@ -426,6 +432,7 @@
         try
         {
             isSaving = true;
+            errorMessage = null;
 
             // Prepare update request
             var updateRequest = new UpdateJobRequest
@@ -450,17 +457,16 @@
 
             if (response.Success)
             {
-                await JSRuntime.InvokeVoidAsync("alert", "Job updated successfully!");
                 Navigation.NavigateTo($"/my-jobs");
             }
             else
             {
-                await JSRuntime.InvokeVoidAsync("alert", $"Failed to update job: {response.Message}");
+                errorMessage = $"Failed to update job: {response.Message}";
             }
         }
         catch (Exception ex)
         {
-            await JSRuntime.InvokeVoidAsync("alert", $"Error updating job: {ex.Message}");
+            errorMessage = $"Error updating job: {ex.Message}";
         }
         finally
         {
@@ -473,11 +479,12 @@
         const int maxPhotos = 5;
         const long maxFileSize = 10 * 1024 * 1024; // 10MB
 
+        errorMessage = null;
         var remainingSlots = maxPhotos - (job?.Images?.Count ?? 0) - newPhotos.Count;
 
         if (remainingSlots <= 0)
         {
-            await JSRuntime.InvokeVoidAsync("alert", "Maximum 5 photos allowed");
+            errorMessage = "Maximum 5 photos allowed";
             return;
         }
 
@@ -485,7 +492,7 @@
         {
             if (file.Size > maxFileSize)
             {
-                await JSRuntime.InvokeVoidAsync("alert", $"File {file.Name} exceeds 10MB limit");
+                errorMessage = $"File {file.Name} exceeds 10MB limit";
                 continue;
             }
 
