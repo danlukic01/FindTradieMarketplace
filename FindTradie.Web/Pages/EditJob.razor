@@ -143,6 +143,14 @@
                                                placeholder="Any specific location details or access instructions" />
                                     <small class="form-text text-muted">This will only be shared with your chosen tradie</small>
                                 </div>
+                                @if (!string.IsNullOrWhiteSpace(job.Suburb) && !string.IsNullOrWhiteSpace(job.Postcode))
+                                {
+                                    <div class="map-container">
+                                        <iframe loading="lazy" allowfullscreen
+                                                src="@($"https://www.google.com/maps?q={GetMapQuery()}&output=embed")">
+                                        </iframe>
+                                    </div>
+                                }
                             </div>
 
                             <!-- Budget Section -->
@@ -204,9 +212,9 @@
                                                     <img src="@image.Url" alt="Job photo" class="img-thumbnail" />
                                                     @if (job.Status == JobStatus.Posted || job.Status == JobStatus.QuoteRequested)
                                                     {
-                                                        <button type="button" class="btn btn-sm btn-danger photo-remove"
+                                                        <button type="button" class="photo-remove"
                                                                 @onclick="() => RemovePhoto(image.Id)">
-                                                            <i class="bi bi-trash"></i>
+                                                            <i class="bi bi-x-lg"></i>
                                                         </button>
                                                     }
                                                 </div>
@@ -231,17 +239,17 @@
                                             <div class="photo-grid">
                                                 @foreach (var photo in newPhotos)
                                                 {
-                                                    <div class="photo-item">
-                                                        <img src="@photo.Preview" alt="New photo" class="img-thumbnail" />
-                                                        <button type="button" class="btn btn-sm btn-danger photo-remove"
-                                                                @onclick="() => RemoveNewPhoto(photo)">
-                                                            <i class="bi bi-trash"></i>
-                                                        </button>
-                                                    </div>
-                                                }
-                                            </div>
+                                                <div class="photo-item">
+                                                    <img src="@photo.Preview" alt="New photo" class="img-thumbnail" />
+                                                    <button type="button" class="photo-remove"
+                                                            @onclick="() => RemoveNewPhoto(photo)">
+                                                        <i class="bi bi-x-lg"></i>
+                                                    </button>
+                                                </div>
+                                            }
                                         </div>
-                                    }
+                                    </div>
+                                }
                                 }
                             </div>
 
@@ -530,6 +538,11 @@
             JobStatus.Cancelled => "badge-cancelled",
             _ => "badge-secondary"
         };
+    }
+
+    private string GetMapQuery()
+    {
+        return Uri.EscapeDataString($"{job.Suburb} {job.Postcode} {job.AddressDetails ?? string.Empty}");
     }
 
     // Models
