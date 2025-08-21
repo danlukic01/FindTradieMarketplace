@@ -141,8 +141,10 @@ public class JobService : IJobService
             // Update job properties only when values are provided
             job.Title = request.Title ?? job.Title;
             job.Description = request.Description ?? job.Description;
-            job.Category = request.Category ?? job.Category;
-            job.Urgency = request.Urgency ?? job.Urgency;
+            if (request.Category.HasValue)
+                job.Category = request.Category.Value;
+            if (request.Urgency.HasValue)
+                job.Urgency = request.Urgency.Value;
             job.Suburb = request.Suburb ?? job.Suburb;
             job.PostCode = request.PostCode ?? job.PostCode;
             job.Address = request.Address ?? job.Address;
@@ -150,7 +152,8 @@ public class JobService : IJobService
             job.BudgetMax = request.BudgetMax ?? job.BudgetMax;
             job.PreferredStartDate = request.PreferredStartDate ?? job.PreferredStartDate;
             job.PreferredEndDate = request.PreferredEndDate ?? job.PreferredEndDate;
-            job.IsFlexibleTiming = request.IsFlexibleTiming ?? job.IsFlexibleTiming;
+            if (request.IsFlexibleTiming.HasValue)
+                job.IsFlexibleTiming = request.IsFlexibleTiming.Value;
             job.SpecialRequirements = request.SpecialRequirements ?? job.SpecialRequirements;
 
             // Remove images
