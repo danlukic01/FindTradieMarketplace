@@ -25,7 +25,8 @@ public class CustomAuthStateProvider : AuthenticationStateProvider
                 new Claim(ClaimTypes.NameIdentifier, user.Id.ToString()),
                 new Claim(ClaimTypes.Email, user.Email),
                 new Claim(ClaimTypes.Name, $"{user.FirstName} {user.LastName}"),
-                new Claim("UserType", user.UserType.ToString())
+                new Claim("UserType", user.UserType.ToString()),
+                new Claim(ClaimTypes.Role, user.UserType.ToString())
             };
 
             var identity = new ClaimsIdentity(claims, "jwt");
