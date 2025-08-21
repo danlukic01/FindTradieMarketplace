@@ -133,7 +133,9 @@ public class JobDbContext : DbContext
         modelBuilder.Entity<JobImage>(entity =>
         {
             entity.HasKey(e => e.Id);
-            entity.Property(e => e.ImageUrl).IsRequired().HasMaxLength(500);
+            entity.Property(e => e.ImageUrl)
+                  .IsRequired()
+                  .HasColumnType("nvarchar(max)");
             entity.Property(e => e.Caption).HasMaxLength(200);
             entity.Property(e => e.Description).HasMaxLength(500);
 
