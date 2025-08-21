@@ -49,6 +49,8 @@ public record UpdateJobRequest
     public DateTime? PreferredEndDate { get; init; }
     public bool IsFlexibleTiming { get; init; }
     public string? SpecialRequirements { get; init; }
+    public List<string>? ImageUrls { get; init; }
+    public List<Guid>? RemovedImageIds { get; init; }
 }
 
 public record JobSummaryDto

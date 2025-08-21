@@ -127,7 +127,7 @@ public class JobService : IJobService
     {
         try
         {
-            var job = await _jobRepository.GetByIdAsync(id);
+            var job = await _jobRepository.GetByIdWithDetailsAsync(id);
             if (job == null)
             {
                 return ApiResponse<JobDetailDto>.ErrorResult("Job not found");
@@ -152,6 +152,28 @@ public class JobService : IJobService
             job.PreferredEndDate = request.PreferredEndDate;
             job.IsFlexibleTiming = request.IsFlexibleTiming;
             job.SpecialRequirements = request.SpecialRequirements;
+
+            // Remove images
+            if (request.RemovedImageIds?.Any() == true)
+            {
+                job.Images.RemoveAll(img => request.RemovedImageIds.Contains(img.Id));
+            }
+
+            // Add new images
+            if (request.ImageUrls?.Any() == true)
+            {
+                var startOrder = job.Images.Count + 1;
+                for (int i = 0; i < request.ImageUrls.Count; i++)
+                {
+                    job.Images.Add(new JobImage
+                    {
+                        ImageUrl = request.ImageUrls[i],
+                        ImageType = ImageType.Problem,
+                        IsMainImage = !job.Images.Any(x => x.IsMainImage) && i == 0,
+                        DisplayOrder = startOrder + i
+                    });
+                }
+            }
 
             await _jobRepository.UpdateAsync(job);
             var jobDetail = await GetJobWithDetailsAsync(id);
