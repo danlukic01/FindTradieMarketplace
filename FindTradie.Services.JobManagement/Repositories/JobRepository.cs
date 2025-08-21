@@ -182,6 +182,7 @@ public class JobRepository : IJobRepository
 
         // Ensure any newly added images are tracked by the context. In some
         // scenarios the change tracker may not automatically detect new child
+
         // entities that are added to an already tracked parent.  Compare the
         // images on the job against those already stored in the database so we
         // only add ones that don't yet exist.
@@ -196,6 +197,7 @@ public class JobRepository : IJobRepository
         if (imagesToAdd.Count > 0)
         {
             _context.JobImages.AddRange(imagesToAdd);
+
         }
 
         try
@@ -204,6 +206,7 @@ public class JobRepository : IJobRepository
         }
         catch (DbUpdateConcurrencyException ex)
         {
+
             // Detach any JobImage entries that were modified or deleted by another
             // process. Missing child records shouldn't prevent the job itself from
             // being updated, but new images should remain tracked so they can be
