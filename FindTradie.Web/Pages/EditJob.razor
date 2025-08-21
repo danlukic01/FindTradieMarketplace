@@ -13,25 +13,22 @@
 @inject AuthenticationStateProvider AuthStateProvider
 
 <PageTitle>Edit Job - FindTradie</PageTitle>
+<link rel="stylesheet" href="css/EditJob.css" />
 
 <div class="edit-job-container">
-    <!-- Page Header with Gradient Background -->
-    <div class="page-header">
+    <!-- Header with Back Button -->
+    <section class="page-header-compact">
         <div class="container">
-            <nav aria-label="breadcrumb">
-                <ol class="breadcrumb">
-                    <li class="breadcrumb-item"><a href="/dashboard">Dashboard</a></li>
-                    <li class="breadcrumb-item"><a href="/my-jobs">My Jobs</a></li>
-                    <li class="breadcrumb-item active">Edit Job</li>
-                </ol>
-            </nav>
-            <h1>Edit Job</h1>
-            <p class="lead">Update your job details to get better quotes from tradies</p>
+            <button class="back-btn" @onclick="GoBack">
+                <i class="fas fa-arrow-left"></i> Back to Job Details
+            </button>
         </div>
-    </div>
+    </section>
 
     <!-- Main Content -->
     <div class="container py-4">
+        <h1>Edit Job</h1>
+        <p class="lead">Update your job details to get better quotes from tradies</p>
         @if (isLoading)
         {
             <div class="text-center py-5">
@@ -516,6 +513,8 @@
     {
         newPhotos.Remove(photo);
     }
+    
+    private void GoBack() => Navigation.NavigateTo($"/job/{JobId}");
 
     private void Cancel()
     {
