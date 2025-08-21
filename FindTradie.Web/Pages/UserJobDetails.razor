@@ -344,6 +344,17 @@
     </section>
 </div>
 
+<!-- Image Modal -->
+@if (showImageModal && !string.IsNullOrEmpty(selectedImageUrl))
+{
+    <div class="photo-modal" @onclick="CloseImageModal">
+        <div class="modal-content" @onclick:stopPropagation="true">
+            <button class="modal-close" @onclick="CloseImageModal">&times;</button>
+            <img src="@selectedImageUrl" alt="Job image" />
+        </div>
+    </div>
+}
+
 @code {
     [Parameter] public Guid JobId { get; set; }
 
@@ -402,7 +413,20 @@
     private void CallTradie() { /* TODO */ }
     private void MarkComplete() { /* TODO */ }
     private void CancelJob() { /* TODO */ }
-    private void ViewImage(string url) { /* TODO: Open image modal */ }
+    private bool showImageModal = false;
+    private string? selectedImageUrl;
+
+    private void ViewImage(string url)
+    {
+        selectedImageUrl = url;
+        showImageModal = true;
+    }
+
+    private void CloseImageModal()
+    {
+        showImageModal = false;
+        selectedImageUrl = null;
+    }
 
     private string GetMapQuery()
     {
