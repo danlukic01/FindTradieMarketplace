@@ -1,0 +1,621 @@
+﻿@page "/edit-job/{JobId:guid}"
+@using Microsoft.AspNetCore.Components.Authorization
+@using Microsoft.AspNetCore.Authorization
+@attribute [Authorize(Roles = "Customer")]
+@inject NavigationManager Navigation
+@inject IJSRuntime JSRuntime
+@inject IJobService JobService
+@inject IAuthService AuthService
+
+<PageTitle>Edit Job - FindTradie</PageTitle>
+
+<div class="edit-job-container">
+    <!-- Page Header with Gradient Background -->
+    <div class="page-header">
+        <div class="container">
+            <nav aria-label="breadcrumb">
+                <ol class="breadcrumb">
+                    <li class="breadcrumb-item"><a href="/dashboard">Dashboard</a></li>
+                    <li class="breadcrumb-item"><a href="/my-jobs">My Jobs</a></li>
+                    <li class="breadcrumb-item active">Edit Job</li>
+                </ol>
+            </nav>
+            <h1>Edit Job</h1>
+            <p class="lead">Update your job details to get better quotes from tradies</p>
+        </div>
+    </div>
+
+    <!-- Main Content -->
+    <div class="container py-4">
+        @if (isLoading)
+        {
+            <div class="text-center py-5">
+                <div class="spinner-border text-primary" role="status">
+                    <span class="visually-hidden">Loading job details...</span>
+                </div>
+                <p class="mt-3">Loading job details...</p>
+            </div>
+        }
+        else if (job == null)
+        {
+            <div class="alert alert-danger" role="alert">
+                <i class="bi bi-exclamation-triangle-fill me-2"></i>
+                Job not found or you don't have permission to edit this job.
+            </div>
+        }
+        else
+        {
+            <div class="row">
+                <!-- Edit Form -->
+                <div class="col-lg-8">
+                    <div class="edit-form-card">
+                        <EditForm Model="@job" OnValidSubmit="@HandleValidSubmit">
+                            <DataAnnotationsValidator />
+
+                            <!-- Job Status Banner -->
+                            @if (job.Status != JobStatus.Open)
+                            {
+                                <div class="alert alert-warning mb-4">
+                                    <i class="bi bi-info-circle me-2"></i>
+                                    This job is currently <strong>@job.Status</strong>.
+                                    @if (job.Status == JobStatus.Assigned)
+                                    {
+                                        <span>Limited changes are allowed for assigned jobs.</span>
+                                    }
+                                </div>
+                            }
+
+                            <!-- Basic Information Section -->
+                            <div class="form-section">
+                                <h3 class="section-title">
+                                    <i class="bi bi-briefcase text-primary"></i> Job Details
+                                </h3>
+
+                                <div class="mb-3">
+                                    <label for="title" class="form-label">Job Title <span class="text-danger">*</span></label>
+                                    <InputText id="title" class="form-control" @bind-Value="job.Title"
+                                               disabled="@(job.Status != JobStatus.Open)" />
+                                    <ValidationMessage For="@(() => job.Title)" class="text-danger" />
+                                    <small class="form-text text-muted">A clear title helps tradies understand your needs</small>
+                                </div>
+
+                                <div class="mb-3">
+                                    <label for="description" class="form-label">Description <span class="text-danger">*</span></label>
+                                    <InputTextArea id="description" class="form-control" rows="5"
+                                                   @bind-Value="job.Description"
+                                                   disabled="@(job.Status != JobStatus.Open)" />
+                                    <ValidationMessage For="@(() => job.Description)" class="text-danger" />
+                                    <small class="form-text text-muted">Include all relevant details about the work required</small>
+                                </div>
+
+                                <div class="row">
+                                    <div class="col-md-6 mb-3">
+                                        <label for="category" class="form-label">Category <span class="text-danger">*</span></label>
+                                        <InputSelect id="category" class="form-select" @bind-Value="job.Category"
+                                                     disabled="@(job.Status != JobStatus.Open)">
+                                            <option value="">Select a category</option>
+                                            @foreach (var category in categories)
+                                            {
+                                                <option value="@category">@category</option>
+                                            }
+                                        </InputSelect>
+                                        <ValidationMessage For="@(() => job.Category)" class="text-danger" />
+                                    </div>
+
+                                    <div class="col-md-6 mb-3">
+                                        <label for="urgency" class="form-label">Urgency</label>
+                                        <InputSelect id="urgency" class="form-select" @bind-Value="job.Urgency">
+                                            <option value="@UrgencyLevel.Flexible">Flexible - I'm not in a rush</option>
+                                            <option value="@UrgencyLevel.WithinWeek">Within a week</option>
+                                            <option value="@UrgencyLevel.WithinDays">Within 2-3 days</option>
+                                            <option value="@UrgencyLevel.Urgent">Urgent - ASAP</option>
+                                        </InputSelect>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Location Section -->
+                            <div class="form-section">
+                                <h3 class="section-title">
+                                    <i class="bi bi-geo-alt text-primary"></i> Location
+                                </h3>
+
+                                <div class="row">
+                                    <div class="col-md-8 mb-3">
+                                        <label for="suburb" class="form-label">Suburb <span class="text-danger">*</span></label>
+                                        <InputText id="suburb" class="form-control" @bind-Value="job.Suburb" />
+                                        <ValidationMessage For="@(() => job.Suburb)" class="text-danger" />
+                                    </div>
+
+                                    <div class="col-md-4 mb-3">
+                                        <label for="postcode" class="form-label">Postcode <span class="text-danger">*</span></label>
+                                        <InputText id="postcode" class="form-control" @bind-Value="job.Postcode" />
+                                        <ValidationMessage For="@(() => job.Postcode)" class="text-danger" />
+                                    </div>
+                                </div>
+
+                                <div class="mb-3">
+                                    <label for="address" class="form-label">Address Details (Optional)</label>
+                                    <InputText id="address" class="form-control" @bind-Value="job.AddressDetails"
+                                               placeholder="Any specific location details or access instructions" />
+                                    <small class="form-text text-muted">This will only be shared with your chosen tradie</small>
+                                </div>
+                            </div>
+
+                            <!-- Budget Section -->
+                            <div class="form-section">
+                                <h3 class="section-title">
+                                    <i class="bi bi-cash-stack text-primary"></i> Budget
+                                </h3>
+
+                                <div class="row">
+                                    <div class="col-md-6 mb-3">
+                                        <label for="budgetMin" class="form-label">Minimum Budget ($)</label>
+                                        <InputNumber id="budgetMin" class="form-control" @bind-Value="job.BudgetMin" />
+                                        <ValidationMessage For="@(() => job.BudgetMin)" class="text-danger" />
+                                    </div>
+
+                                    <div class="col-md-6 mb-3">
+                                        <label for="budgetMax" class="form-label">Maximum Budget ($)</label>
+                                        <InputNumber id="budgetMax" class="form-control" @bind-Value="job.BudgetMax" />
+                                        <ValidationMessage For="@(() => job.BudgetMax)" class="text-danger" />
+                                    </div>
+                                </div>
+                                <small class="form-text text-muted">Setting a budget helps tradies provide accurate quotes</small>
+                            </div>
+
+                            <!-- Timing Section -->
+                            <div class="form-section">
+                                <h3 class="section-title">
+                                    <i class="bi bi-calendar text-primary"></i> Timing
+                                </h3>
+
+                                <div class="mb-3">
+                                    <label for="preferredDate" class="form-label">Preferred Start Date</label>
+                                    <InputDate id="preferredDate" class="form-control" @bind-Value="job.PreferredStartDate" />
+                                </div>
+
+                                <div class="mb-3">
+                                    <label class="form-check-label">
+                                        <InputCheckbox id="flexibleDates" class="form-check-input me-2"
+                                                       @bind-Value="job.FlexibleOnDates" />
+                                        I'm flexible with dates
+                                    </label>
+                                </div>
+                            </div>
+
+                            <!-- Photos Section -->
+                            <div class="form-section">
+                                <h3 class="section-title">
+                                    <i class="bi bi-camera text-primary"></i> Photos
+                                </h3>
+
+                                @if (job.Images != null && job.Images.Any())
+                                {
+                                    <div class="existing-photos mb-3">
+                                        <p class="text-muted">Current photos:</p>
+                                        <div class="photo-grid">
+                                            @foreach (var image in job.Images)
+                                            {
+                                                <div class="photo-item">
+                                                    <img src="@image.Url" alt="Job photo" class="img-thumbnail" />
+                                                    @if (job.Status == JobStatus.Open)
+                                                    {
+                                                        <button type="button" class="btn btn-sm btn-danger photo-remove"
+                                                                @onclick="() => RemovePhoto(image.Id)">
+                                                            <i class="bi bi-trash"></i>
+                                                        </button>
+                                                    }
+                                                </div>
+                                            }
+                                        </div>
+                                    </div>
+                                }
+
+                                @if (job.Status == JobStatus.Open)
+                                {
+                                    <div class="mb-3">
+                                        <label for="photos" class="form-label">Add More Photos</label>
+                                        <InputFile id="photos" class="form-control" multiple accept="image/*"
+                                                   OnChange="HandleFileSelect" />
+                                        <small class="form-text text-muted">Upload up to 5 photos (max 10MB each)</small>
+                                    </div>
+
+                                    @if (newPhotos.Any())
+                                    {
+                                        <div class="new-photos mb-3">
+                                            <p class="text-muted">New photos to upload:</p>
+                                            <div class="photo-grid">
+                                                @foreach (var photo in newPhotos)
+                                                {
+                                                    <div class="photo-item">
+                                                        <img src="@photo.Preview" alt="New photo" class="img-thumbnail" />
+                                                        <button type="button" class="btn btn-sm btn-danger photo-remove"
+                                                                @onclick="() => RemoveNewPhoto(photo)">
+                                                            <i class="bi bi-trash"></i>
+                                                        </button>
+                                                    </div>
+                                                }
+                                            </div>
+                                        </div>
+                                    }
+                                }
+                            </div>
+
+                            <!-- Form Actions -->
+                            <div class="form-actions">
+                                <button type="submit" class="btn btn-primary btn-lg" disabled="@isSaving">
+                                    @if (isSaving)
+                                    {
+                                        <span class="spinner-border spinner-border-sm me-2" role="status"></span>
+                                        <span>Saving Changes...</span>
+                                    }
+                                    else
+                                    {
+                                        <i class="bi bi-check-circle me-2"></i>
+                                        <span>Save Changes</span>
+                                    }
+                                </button>
+                                <button type="button" class="btn btn-outline-secondary btn-lg"
+                                        @onclick="Cancel" disabled="@isSaving">
+                                    Cancel
+                                </button>
+                            </div>
+                        </EditForm>
+                    </div>
+                </div>
+
+                <!-- Sidebar -->
+                <div class="col-lg-4">
+                    <!-- Job Summary Card -->
+                    <div class="sidebar-card">
+                        <h4 class="sidebar-card-title">Job Summary</h4>
+                        <div class="job-summary">
+                            <div class="summary-item">
+                                <span class="label">Status:</span>
+                                <span class="value">
+                                    <span class="badge @GetStatusBadgeClass(job.Status)">@job.Status</span>
+                                </span>
+                            </div>
+                            <div class="summary-item">
+                                <span class="label">Posted:</span>
+                                <span class="value">@job.CreatedAt.ToString("dd MMM yyyy")</span>
+                            </div>
+                            <div class="summary-item">
+                                <span class="label">Quotes Received:</span>
+                                <span class="value">@job.QuotesCount</span>
+                            </div>
+                            <div class="summary-item">
+                                <span class="label">Views:</span>
+                                <span class="value">@job.ViewsCount</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Help Tips -->
+                    <div class="sidebar-card">
+                        <h4 class="sidebar-card-title">
+                            <i class="bi bi-lightbulb text-warning"></i> Tips for Success
+                        </h4>
+                        <ul class="tips-list">
+                            <li>Be specific about what needs to be done</li>
+                            <li>Include clear photos of the work area</li>
+                            <li>Set a realistic budget range</li>
+                            <li>Respond promptly to tradie questions</li>
+                            <li>Update job details if requirements change</li>
+                        </ul>
+                    </div>
+
+                    <!-- Need Help -->
+                    <div class="sidebar-card bg-light">
+                        <h4 class="sidebar-card-title">Need Help?</h4>
+                        <p>Our support team is here to assist you.</p>
+                        <a href="/support" class="btn btn-outline-primary btn-sm">
+                            <i class="bi bi-headset"></i> Contact Support
+                        </a>
+                    </div>
+                </div>
+            </div>
+        }
+    </div>
+</div>
+
+@code {
+    [Parameter] public Guid JobId { get; set; }
+
+    private JobEditModel? job;
+    private bool isLoading = true;
+    private bool isSaving = false;
+    private List<NewPhotoModel> newPhotos = new();
+    private List<string> categories = new()
+    {
+        "Plumbing",
+        "Electrical",
+        "Carpentry",
+        "Painting",
+        "Landscaping",
+        "Roofing",
+        "Flooring",
+        "HVAC",
+        "General Handyman",
+        "Cleaning",
+        "Moving",
+        "Other"
+    };
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadJobDetails();
+    }
+
+    private async Task LoadJobDetails()
+    {
+        try
+        {
+            isLoading = true;
+
+            // Get the current user
+            var authState = await AuthStateProvider.GetAuthenticationStateAsync();
+            var userId = authState.User.FindFirst("UserId")?.Value;
+
+            if (string.IsNullOrEmpty(userId))
+            {
+                Navigation.NavigateTo("/login");
+                return;
+            }
+
+            // Load job details from the service
+            var response = await JobService.GetJobByIdAsync(JobId);
+
+            if (response.Success && response.Data != null)
+            {
+                // Check if the user owns this job
+                if (response.Data.CustomerId.ToString() != userId)
+                {
+                    job = null;
+                }
+                else
+                {
+                    job = MapToEditModel(response.Data);
+                }
+            }
+            else
+            {
+                job = null;
+            }
+        }
+        catch (Exception ex)
+        {
+            await JSRuntime.InvokeVoidAsync("alert", $"Error loading job: {ex.Message}");
+            job = null;
+        }
+        finally
+        {
+            isLoading = false;
+        }
+    }
+
+    private JobEditModel MapToEditModel(JobDetailDto dto)
+    {
+        return new JobEditModel
+            {
+                Id = dto.Id,
+                Title = dto.Title,
+                Description = dto.Description,
+                Category = dto.Category,
+                Urgency = dto.Urgency,
+                Status = dto.Status,
+                Suburb = dto.Suburb,
+                Postcode = dto.Postcode,
+                AddressDetails = dto.AddressDetails,
+                BudgetMin = dto.BudgetMin,
+                BudgetMax = dto.BudgetMax,
+                PreferredStartDate = dto.PreferredStartDate,
+                FlexibleOnDates = dto.FlexibleOnDates,
+                Images = dto.Images?.Select(img => new ImageModel
+                {
+                    Id = img.Id,
+                    Url = img.Url
+                }).ToList() ?? new List<ImageModel>(),
+                QuotesCount = dto.Quotes?.Count ?? 0,
+                ViewsCount = dto.ViewsCount,
+                CreatedAt = dto.CreatedAt
+            };
+    }
+
+    private async Task HandleValidSubmit()
+    {
+        try
+        {
+            isSaving = true;
+
+            // Prepare update request
+            var updateRequest = new UpdateJobRequest
+                {
+                    Title = job.Title,
+                    Description = job.Description,
+                    Category = job.Category,
+                    Urgency = job.Urgency,
+                    Suburb = job.Suburb,
+                    Postcode = job.Postcode,
+                    AddressDetails = job.AddressDetails,
+                    BudgetMin = job.BudgetMin,
+                    BudgetMax = job.BudgetMax,
+                    PreferredStartDate = job.PreferredStartDate,
+                    FlexibleOnDates = job.FlexibleOnDates
+                };
+
+            // Upload new photos if any
+            if (newPhotos.Any())
+            {
+                foreach (var photo in newPhotos)
+                {
+                    // Upload photo logic here
+                    // This would typically upload to your storage service
+                }
+            }
+
+            // Call the update service
+            var response = await JobService.UpdateJobAsync(JobId, updateRequest);
+
+            if (response.Success)
+            {
+                await JSRuntime.InvokeVoidAsync("alert", "Job updated successfully!");
+                Navigation.NavigateTo($"/my-jobs");
+            }
+            else
+            {
+                await JSRuntime.InvokeVoidAsync("alert", $"Failed to update job: {response.Message}");
+            }
+        }
+        catch (Exception ex)
+        {
+            await JSRuntime.InvokeVoidAsync("alert", $"Error updating job: {ex.Message}");
+        }
+        finally
+        {
+            isSaving = false;
+        }
+    }
+
+    private async Task HandleFileSelect(InputFileChangeEventArgs e)
+    {
+        const int maxPhotos = 5;
+        const long maxFileSize = 10 * 1024 * 1024; // 10MB
+
+        var remainingSlots = maxPhotos - (job?.Images?.Count ?? 0) - newPhotos.Count;
+
+        if (remainingSlots <= 0)
+        {
+            await JSRuntime.InvokeVoidAsync("alert", "Maximum 5 photos allowed");
+            return;
+        }
+
+        foreach (var file in e.GetMultipleFiles(remainingSlots))
+        {
+            if (file.Size > maxFileSize)
+            {
+                await JSRuntime.InvokeVoidAsync("alert", $"File {file.Name} exceeds 10MB limit");
+                continue;
+            }
+
+            var buffer = new byte[file.Size];
+            await file.OpenReadStream(maxFileSize).ReadAsync(buffer);
+            var preview = $"data:{file.ContentType};base64,{Convert.ToBase64String(buffer)}";
+
+            newPhotos.Add(new NewPhotoModel
+                {
+                    Name = file.Name,
+                    Preview = preview,
+                    File = file
+                });
+        }
+    }
+
+    private async Task RemovePhoto(Guid photoId)
+    {
+        if (job?.Images != null)
+        {
+            var photo = job.Images.FirstOrDefault(p => p.Id == photoId);
+            if (photo != null)
+            {
+                job.Images.Remove(photo);
+                // You might want to track removed photos to delete them from storage
+            }
+        }
+    }
+
+    private void RemoveNewPhoto(NewPhotoModel photo)
+    {
+        newPhotos.Remove(photo);
+    }
+
+    private void Cancel()
+    {
+        Navigation.NavigateTo("/my-jobs");
+    }
+
+    private string GetStatusBadgeClass(JobStatus status)
+    {
+        return status switch
+        {
+            JobStatus.Open => "badge-open",
+            JobStatus.Assigned => "badge-assigned",
+            JobStatus.Completed => "badge-completed",
+            JobStatus.Cancelled => "badge-cancelled",
+            _ => "badge-secondary"
+        };
+    }
+
+    // Models
+    private class JobEditModel
+    {
+        public Guid Id { get; set; }
+
+        [Required(ErrorMessage = "Job title is required")]
+        [StringLength(100, MinimumLength = 10, ErrorMessage = "Title must be between 10 and 100 characters")]
+        public string Title { get; set; } = string.Empty;
+
+        [Required(ErrorMessage = "Description is required")]
+        [StringLength(2000, MinimumLength = 50, ErrorMessage = "Description must be between 50 and 2000 characters")]
+        public string Description { get; set; } = string.Empty;
+
+        [Required(ErrorMessage = "Category is required")]
+        public string Category { get; set; } = string.Empty;
+
+        public UrgencyLevel Urgency { get; set; }
+        public JobStatus Status { get; set; }
+
+        [Required(ErrorMessage = "Suburb is required")]
+        public string Suburb { get; set; } = string.Empty;
+
+        [Required(ErrorMessage = "Postcode is required")]
+        [RegularExpression(@"^\d{4}$", ErrorMessage = "Please enter a valid 4-digit postcode")]
+        public string Postcode { get; set; } = string.Empty;
+
+        public string? AddressDetails { get; set; }
+
+        [Range(0, 1000000, ErrorMessage = "Please enter a valid budget amount")]
+        public decimal? BudgetMin { get; set; }
+
+        [Range(0, 1000000, ErrorMessage = "Please enter a valid budget amount")]
+        public decimal? BudgetMax { get; set; }
+
+        public DateTime? PreferredStartDate { get; set; }
+        public bool FlexibleOnDates { get; set; }
+
+        public List<ImageModel> Images { get; set; } = new();
+        public int QuotesCount { get; set; }
+        public int ViewsCount { get; set; }
+        public DateTime CreatedAt { get; set; }
+    }
+
+    private class ImageModel
+    {
+        public Guid Id { get; set; }
+        public string Url { get; set; } = string.Empty;
+    }
+
+    private class NewPhotoModel
+    {
+        public string Name { get; set; } = string.Empty;
+        public string Preview { get; set; } = string.Empty;
+        public IBrowserFile File { get; set; } = null!;
+    }
+
+    private enum JobStatus
+    {
+        Open,
+        Assigned,
+        Completed,
+        Cancelled
+    }
+
+    private enum UrgencyLevel
+    {
+        Flexible,
+        WithinWeek,
+        WithinDays,
+        Urgent
+    }
+}
