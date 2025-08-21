@@ -34,16 +34,22 @@ public record CreateJobRequest(
     List<string>? ImageUrls = null
 );
 
-public record UpdateJobRequest(
-    string Title,
-    string Description,
-    decimal? BudgetMin,
-    decimal? BudgetMax,
-    DateTime? PreferredStartDate,
-    DateTime? PreferredEndDate,
-    bool IsFlexibleTiming,
-    string? SpecialRequirements
-);
+public record UpdateJobRequest
+{
+    public string Title { get; init; } = string.Empty;
+    public string Description { get; init; } = string.Empty;
+    public ServiceCategory Category { get; init; }
+    public JobUrgency Urgency { get; init; }
+    public string Suburb { get; init; } = string.Empty;
+    public string PostCode { get; init; } = string.Empty;
+    public string Address { get; init; } = string.Empty;
+    public decimal? BudgetMin { get; init; }
+    public decimal? BudgetMax { get; init; }
+    public DateTime? PreferredStartDate { get; init; }
+    public DateTime? PreferredEndDate { get; init; }
+    public bool IsFlexibleTiming { get; init; }
+    public string? SpecialRequirements { get; init; }
+}
 
 public record JobSummaryDto
 {

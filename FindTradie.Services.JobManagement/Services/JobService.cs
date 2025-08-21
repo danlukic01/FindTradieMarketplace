@@ -141,6 +141,11 @@ public class JobService : IJobService
             // Update job properties
             job.Title = request.Title;
             job.Description = request.Description;
+            job.Category = request.Category;
+            job.Urgency = request.Urgency;
+            job.Suburb = request.Suburb;
+            job.PostCode = request.PostCode;
+            job.Address = request.Address;
             job.BudgetMin = request.BudgetMin;
             job.BudgetMax = request.BudgetMax;
             job.PreferredStartDate = request.PreferredStartDate;
