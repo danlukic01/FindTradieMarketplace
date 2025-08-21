@@ -138,10 +138,9 @@
                             @if (job.IsLocationVisible)
                             {
                                 <div class="map-container">
-                                    <div class="map-placeholder">
-                                        <i class="fas fa-map"></i>
-                                        <span>Map View</span>
-                                    </div>
+                                    <iframe loading="lazy" allowfullscreen
+                                            src="@($"https://www.google.com/maps?q={GetMapQuery()}&output=embed")">
+                                    </iframe>
                                 </div>
                             }
                         </div>
@@ -404,6 +403,11 @@
     private void MarkComplete() { /* TODO */ }
     private void CancelJob() { /* TODO */ }
     private void ViewImage(string url) { /* TODO: Open image modal */ }
+
+    private string GetMapQuery()
+    {
+        return Uri.EscapeDataString($"{job.Address ?? string.Empty} {job.Suburb} {job.State} {job.PostCode}");
+    }
 
     private string GetStatusDisplay(JobStatus status) => status switch
     {
