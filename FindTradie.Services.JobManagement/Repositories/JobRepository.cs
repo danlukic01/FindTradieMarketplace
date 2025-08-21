@@ -182,7 +182,6 @@ public class JobRepository : IJobRepository
 
         // Ensure any newly added images are tracked by the context. In some
         // scenarios the change tracker may not automatically detect new child
-
         // entities that are added to an already tracked parent.  Compare the
         // images on the job against those already stored in the database so we
         // only add ones that don't yet exist.
