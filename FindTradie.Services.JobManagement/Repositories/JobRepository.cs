@@ -180,7 +180,29 @@ public class JobRepository : IJobRepository
 
         updateAction(job);
 
-        await _context.SaveChangesAsync();
+        try
+        {
+            await _context.SaveChangesAsync();
+        }
+        catch (DbUpdateConcurrencyException ex)
+        {
+            // Similar to UpdateAsync, detach any JobImage entries that were
+            // removed or updated by another process.  Missing child records
+            // shouldn't prevent the job itself from being updated.
+            foreach (var entry in ex.Entries)
+            {
+                if (entry.Entity is JobImage)
+                {
+                    entry.State = EntityState.Detached;
+                }
+                else
+                {
+                    throw;
+                }
+            }
+
+            await _context.SaveChangesAsync();
+        }
 
         return job;
     }
