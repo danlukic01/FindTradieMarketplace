@@ -4,6 +4,7 @@
 @using FindTradie.Shared.Domain.Enums
 @using FindTradie.Services.JobManagement.DTOs
 @using System.ComponentModel.DataAnnotations
+@using System.Security.Claims
 @attribute [Authorize(Roles = "Customer")]
 @inject NavigationManager Navigation
 @inject IJSRuntime JSRuntime
@@ -342,7 +343,8 @@
 
             // Get the current user
             var authState = await AuthStateProvider.GetAuthenticationStateAsync();
-            var userId = authState.User.FindFirst("UserId")?.Value;
+            var userId = authState.User.FindFirst(ClaimTypes.NameIdentifier)?.Value
+                         ?? authState.User.FindFirst("UserId")?.Value;
 
             if (string.IsNullOrEmpty(userId))
             {
