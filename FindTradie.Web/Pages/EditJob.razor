@@ -1,11 +1,14 @@
-﻿@page "/edit-job/{JobId:guid}"
+﻿@page "/job/{JobId:guid}/edit"
 @using Microsoft.AspNetCore.Components.Authorization
 @using Microsoft.AspNetCore.Authorization
+@using FindTradie.Shared.Domain.Enums
+@using System.ComponentModel.DataAnnotations
 @attribute [Authorize(Roles = "Customer")]
 @inject NavigationManager Navigation
 @inject IJSRuntime JSRuntime
-@inject IJobService JobService
+@inject IJobApiService JobService
 @inject IAuthService AuthService
+@inject AuthenticationStateProvider AuthStateProvider
 
 <PageTitle>Edit Job - FindTradie</PageTitle>
 
@@ -53,12 +56,12 @@
                             <DataAnnotationsValidator />
 
                             <!-- Job Status Banner -->
-                            @if (job.Status != JobStatus.Open)
+                            @if (job.Status != JobStatus.Posted)
                             {
                                 <div class="alert alert-warning mb-4">
                                     <i class="bi bi-info-circle me-2"></i>
                                     This job is currently <strong>@job.Status</strong>.
-                                    @if (job.Status == JobStatus.Assigned)
+                                    @if (job.Status == JobStatus.Booked)
                                     {
                                         <span>Limited changes are allowed for assigned jobs.</span>
                                     }
@@ -74,7 +77,7 @@
                                 <div class="mb-3">
                                     <label for="title" class="form-label">Job Title <span class="text-danger">*</span></label>
                                     <InputText id="title" class="form-control" @bind-Value="job.Title"
-                                               disabled="@(job.Status != JobStatus.Open)" />
+                                               disabled="@(job.Status != JobStatus.Posted)" />
                                     <ValidationMessage For="@(() => job.Title)" class="text-danger" />
                                     <small class="form-text text-muted">A clear title helps tradies understand your needs</small>
                                 </div>
@@ -83,7 +86,7 @@
                                     <label for="description" class="form-label">Description <span class="text-danger">*</span></label>
                                     <InputTextArea id="description" class="form-control" rows="5"
                                                    @bind-Value="job.Description"
-                                                   disabled="@(job.Status != JobStatus.Open)" />
+                                                   disabled="@(job.Status != JobStatus.Posted)" />
                                     <ValidationMessage For="@(() => job.Description)" class="text-danger" />
                                     <small class="form-text text-muted">Include all relevant details about the work required</small>
                                 </div>
@@ -92,12 +95,12 @@
                                     <div class="col-md-6 mb-3">
                                         <label for="category" class="form-label">Category <span class="text-danger">*</span></label>
                                         <InputSelect id="category" class="form-select" @bind-Value="job.Category"
-                                                     disabled="@(job.Status != JobStatus.Open)">
+                                                     disabled="@(job.Status != JobStatus.Posted)">
                                             <option value="">Select a category</option>
-                                            @foreach (var category in categories)
-                                            {
-                                                <option value="@category">@category</option>
-                                            }
+        @foreach (var category in categories)
+        {
+            <option value="@category">@category</option>
+        }
                                         </InputSelect>
                                         <ValidationMessage For="@(() => job.Category)" class="text-danger" />
                                     </div>
@@ -105,10 +108,10 @@
                                     <div class="col-md-6 mb-3">
                                         <label for="urgency" class="form-label">Urgency</label>
                                         <InputSelect id="urgency" class="form-select" @bind-Value="job.Urgency">
-                                            <option value="@UrgencyLevel.Flexible">Flexible - I'm not in a rush</option>
-                                            <option value="@UrgencyLevel.WithinWeek">Within a week</option>
-                                            <option value="@UrgencyLevel.WithinDays">Within 2-3 days</option>
-                                            <option value="@UrgencyLevel.Urgent">Urgent - ASAP</option>
+                                            @foreach (var urgency in Enum.GetValues<JobUrgency>())
+                                            {
+                                                <option value="@urgency">@urgency</option>
+                                            }
                                         </InputSelect>
                                     </div>
                                 </div>
@@ -199,7 +202,7 @@
                                             {
                                                 <div class="photo-item">
                                                     <img src="@image.Url" alt="Job photo" class="img-thumbnail" />
-                                                    @if (job.Status == JobStatus.Open)
+                                                    @if (job.Status == JobStatus.Posted)
                                                     {
                                                         <button type="button" class="btn btn-sm btn-danger photo-remove"
                                                                 @onclick="() => RemovePhoto(image.Id)">
@@ -212,7 +215,7 @@
                                     </div>
                                 }
 
-                                @if (job.Status == JobStatus.Open)
+                                @if (job.Status == JobStatus.Posted)
                                 {
                                     <div class="mb-3">
                                         <label for="photos" class="form-label">Add More Photos</label>
@@ -285,10 +288,6 @@
                                 <span class="label">Quotes Received:</span>
                                 <span class="value">@job.QuotesCount</span>
                             </div>
-                            <div class="summary-item">
-                                <span class="label">Views:</span>
-                                <span class="value">@job.ViewsCount</span>
-                            </div>
                         </div>
                     </div>
 
@@ -327,21 +326,7 @@
     private bool isLoading = true;
     private bool isSaving = false;
     private List<NewPhotoModel> newPhotos = new();
-    private List<string> categories = new()
-    {
-        "Plumbing",
-        "Electrical",
-        "Carpentry",
-        "Painting",
-        "Landscaping",
-        "Roofing",
-        "Flooring",
-        "HVAC",
-        "General Handyman",
-        "Cleaning",
-        "Moving",
-        "Other"
-    };
+    private List<ServiceCategory> categories = Enum.GetValues<ServiceCategory>().ToList();
 
     protected override async Task OnInitializedAsync()
     {
@@ -365,7 +350,7 @@
             }
 
             // Load job details from the service
-            var response = await JobService.GetJobByIdAsync(JobId);
+            var response = await JobService.GetJobAsync(JobId);
 
             if (response.Success && response.Data != null)
             {
@@ -406,19 +391,18 @@
                 Urgency = dto.Urgency,
                 Status = dto.Status,
                 Suburb = dto.Suburb,
-                Postcode = dto.Postcode,
-                AddressDetails = dto.AddressDetails,
+                Postcode = dto.PostCode,
+                AddressDetails = dto.Address,
                 BudgetMin = dto.BudgetMin,
                 BudgetMax = dto.BudgetMax,
                 PreferredStartDate = dto.PreferredStartDate,
-                FlexibleOnDates = dto.FlexibleOnDates,
+                FlexibleOnDates = dto.IsFlexibleTiming,
                 Images = dto.Images?.Select(img => new ImageModel
                 {
                     Id = img.Id,
-                    Url = img.Url
+                    Url = img.ImageUrl
                 }).ToList() ?? new List<ImageModel>(),
                 QuotesCount = dto.Quotes?.Count ?? 0,
-                ViewsCount = dto.ViewsCount,
                 CreatedAt = dto.CreatedAt
             };
     }
@@ -434,15 +418,15 @@
                 {
                     Title = job.Title,
                     Description = job.Description,
-                    Category = job.Category,
+                    Category = job.Category!.Value,
                     Urgency = job.Urgency,
                     Suburb = job.Suburb,
-                    Postcode = job.Postcode,
-                    AddressDetails = job.AddressDetails,
+                    PostCode = job.Postcode,
+                    Address = job.AddressDetails ?? string.Empty,
                     BudgetMin = job.BudgetMin,
                     BudgetMax = job.BudgetMax,
                     PreferredStartDate = job.PreferredStartDate,
-                    FlexibleOnDates = job.FlexibleOnDates
+                    IsFlexibleTiming = job.FlexibleOnDates
                 };
 
             // Upload new photos if any
@@ -539,8 +523,8 @@
     {
         return status switch
         {
-            JobStatus.Open => "badge-open",
-            JobStatus.Assigned => "badge-assigned",
+            JobStatus.Posted or JobStatus.QuoteRequested or JobStatus.QuoteReceived => "badge-open",
+            JobStatus.Booked or JobStatus.InProgress => "badge-assigned",
             JobStatus.Completed => "badge-completed",
             JobStatus.Cancelled => "badge-cancelled",
             _ => "badge-secondary"
@@ -561,9 +545,9 @@
         public string Description { get; set; } = string.Empty;
 
         [Required(ErrorMessage = "Category is required")]
-        public string Category { get; set; } = string.Empty;
+        public ServiceCategory? Category { get; set; }
 
-        public UrgencyLevel Urgency { get; set; }
+        public JobUrgency Urgency { get; set; }
         public JobStatus Status { get; set; }
 
         [Required(ErrorMessage = "Suburb is required")]
@@ -586,7 +570,6 @@
 
         public List<ImageModel> Images { get; set; } = new();
         public int QuotesCount { get; set; }
-        public int ViewsCount { get; set; }
         public DateTime CreatedAt { get; set; }
     }
 
@@ -603,19 +586,4 @@
         public IBrowserFile File { get; set; } = null!;
     }
 
-    private enum JobStatus
-    {
-        Open,
-        Assigned,
-        Completed,
-        Cancelled
-    }
-
-    private enum UrgencyLevel
-    {
-        Flexible,
-        WithinWeek,
-        WithinDays,
-        Urgent
-    }
 }
