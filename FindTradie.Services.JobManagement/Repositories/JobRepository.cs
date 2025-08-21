@@ -22,12 +22,17 @@ public class JobRepository : IJobRepository
 
     public async Task<Job?> GetByIdAsync(Guid id)
     {
-        return await _context.Jobs.FirstOrDefaultAsync(j => j.Id == id);
+        // Ensure entity tracking so updates can be persisted without explicit attach
+        return await _context.Jobs
+            .AsTracking()
+            .FirstOrDefaultAsync(j => j.Id == id);
     }
 
     public async Task<Job?> GetByIdWithDetailsAsync(Guid id)
     {
+        // Explicitly enable tracking for complex queries to maintain change tracking
         return await _context.Jobs
+            .AsTracking()
             .Include(j => j.Images.OrderBy(i => i.DisplayOrder))
             .Include(j => j.Quotes.Where(q => !q.IsDeleted))
                 .ThenInclude(q => q.Items)
@@ -165,14 +170,16 @@ public class JobRepository : IJobRepository
 
     public async Task<Job> UpdateAsync(Job job)
     {
-        // The job is already being tracked by the context when retrieved through
-        // repository methods such as GetByIdWithDetailsAsync. Calling Update on
-        // the tracked entity forces EF Core to mark the entire object graph as
-        // modified, which causes new child entities (e.g. newly uploaded images)
-        // to be treated as updates rather than inserts. This results in a
-        // DbUpdateConcurrencyException when EF attempts to update rows that do
-        // not yet exist. Simply saving the context will persist any changes and
-        // correctly insert new child records.
+        // The job should already be tracked when retrieved via repository methods
+        // like GetByIdWithDetailsAsync. If it isn't, attach it so EF Core can
+        // determine which properties changed. Avoid calling Update(), which
+        // forces all properties and child entities to be marked as modified and
+        // can lead to DbUpdateConcurrencyException when new children are added.
+        if (_context.Entry(job).State == EntityState.Detached)
+        {
+            _context.Attach(job);
+        }
+
         await _context.SaveChangesAsync();
         return job;
     }
