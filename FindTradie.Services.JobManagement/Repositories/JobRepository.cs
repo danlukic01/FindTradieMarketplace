@@ -199,6 +199,23 @@ public class JobRepository : IJobRepository
 
         }
 
+        // Similar to images, newly added status history records may not be
+        // automatically tracked when the job was loaded without its full child
+        // graph. Ensure any untracked history entries are marked as Added so
+        // EF Core will insert them correctly.
+        var historyIds = job.StatusHistory.Select(h => h.Id).ToList();
+        var existingHistoryIds = new HashSet<Guid>(
+            _context.JobStatusHistory.Where(h => historyIds.Contains(h.Id)).Select(h => h.Id));
+
+        var historyToAdd = job.StatusHistory
+            .Where(h => !existingHistoryIds.Contains(h.Id))
+            .ToList();
+
+        if (historyToAdd.Count > 0)
+        {
+            _context.JobStatusHistory.AddRange(historyToAdd);
+        }
+
         try
         {
             await _context.SaveChangesAsync();
@@ -208,11 +225,11 @@ public class JobRepository : IJobRepository
 
             // Detach any JobImage entries that were modified or deleted by another
             // process. Missing child records shouldn't prevent the job itself from
-            // being updated, but new images should remain tracked so they can be
-            // persisted.
+            // being updated, but new images or status history entries should
+            // remain tracked so they can be persisted.
             foreach (var entry in ex.Entries)
             {
-                if (entry.Entity is JobImage &&
+                if ((entry.Entity is JobImage || entry.Entity is JobStatusHistory) &&
                     (entry.State == EntityState.Deleted || entry.State == EntityState.Modified))
                 {
                     entry.State = EntityState.Detached;
@@ -241,6 +258,21 @@ public class JobRepository : IJobRepository
             _context.Attach(job);
         }
 
+        // Ensure any newly added status history entries are properly tracked so
+        // EF Core generates INSERT statements rather than attempting to UPDATE
+        // non-existent rows which can trigger concurrency errors.  When the job
+        // is retrieved without its StatusHistory collection loaded, adding a new
+        // history entry will leave it in the Detached state.  Explicitly attach
+        // such entries as Added before saving.
+        foreach (var history in job.StatusHistory)
+        {
+            var historyEntry = _context.Entry(history);
+            if (historyEntry.State == EntityState.Detached)
+            {
+                _context.JobStatusHistory.Add(history);
+            }
+        }
+
         try
         {
             await _context.SaveChangesAsync();
@@ -248,12 +280,13 @@ public class JobRepository : IJobRepository
         catch (DbUpdateConcurrencyException ex)
         {
             // If a concurrency exception occurs due to a related entity
-            // (e.g. a JobImage that has already been deleted), detach those
+            // (e.g. a JobImage or JobStatusHistory entry that has already been
+            // deleted), detach those
             // entries and retry the save.  Missing children should not
             // prevent the job itself from being updated.
             foreach (var entry in ex.Entries)
             {
-                if (entry.Entity is JobImage)
+                if (entry.Entity is JobImage || entry.Entity is JobStatusHistory)
                 {
                     entry.State = EntityState.Detached;
                 }
