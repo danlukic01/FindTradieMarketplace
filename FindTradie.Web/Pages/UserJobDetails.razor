@@ -344,6 +344,22 @@
     </section>
 </div>
 
+<!-- Cancel Job Modal -->
+@if (showCancelModal)
+{
+    <div class="cancel-modal" @onclick="CloseCancelModal">
+        <div class="modal-content" @onclick:stopPropagation="true">
+            <h3>Cancel Job</h3>
+            <p>Are you sure you want to cancel this job?</p>
+            <textarea class="form-control" placeholder="Reason (optional)" @bind="cancelReason"></textarea>
+            <div class="modal-actions">
+                <button class="btn btn-secondary" @onclick="CloseCancelModal">Keep Job</button>
+                <button class="btn btn-danger" @onclick="ConfirmCancelJob">Cancel Job</button>
+            </div>
+        </div>
+    </div>
+}
+
 <!-- Image Modal -->
 @if (showImageModal && !string.IsNullOrEmpty(selectedImageUrl))
 {
@@ -355,11 +371,16 @@
     </div>
 }
 
+<SavingModal Show="@isSaving" Message="Cancelling job..." />
+
 @code {
     [Parameter] public Guid JobId { get; set; }
 
     private JobDetailViewModel job = new();
     private bool isLoading = true;
+    private bool showCancelModal = false;
+    private bool isSaving = false;
+    private string cancelReason = string.Empty;
 
     protected override async Task OnInitializedAsync()
     {
@@ -412,7 +433,30 @@
     private void LeaveReview() => Navigation.NavigateTo($"/job/{JobId}/review");
     private void CallTradie() { /* TODO */ }
     private void MarkComplete() { /* TODO */ }
-    private void CancelJob() { /* TODO */ }
+    private void CancelJob() => showCancelModal = true;
+
+    private void CloseCancelModal()
+    {
+        showCancelModal = false;
+        cancelReason = string.Empty;
+    }
+
+    private async Task ConfirmCancelJob()
+    {
+        isSaving = true;
+        var response = await JobService.UpdateJobStatusAsync(JobId, JobStatus.Cancelled, cancelReason);
+        isSaving = false;
+        showCancelModal = false;
+
+        if (response.Success)
+        {
+            Navigation.NavigateTo("/my-jobs");
+        }
+        else
+        {
+            await JSRuntime.InvokeVoidAsync("alert", $"Failed to cancel job: {response.Message}");
+        }
+    }
     private bool showImageModal = false;
     private string? selectedImageUrl;
 
