@@ -138,20 +138,20 @@ public class JobService : IJobService
                 return ApiResponse<JobDetailDto>.ErrorResult("Job cannot be updated in its current status");
             }
 
-            // Update job properties
-            job.Title = request.Title;
-            job.Description = request.Description;
-            job.Category = request.Category;
-            job.Urgency = request.Urgency;
-            job.Suburb = request.Suburb;
-            job.PostCode = request.PostCode;
-            job.Address = request.Address;
-            job.BudgetMin = request.BudgetMin;
-            job.BudgetMax = request.BudgetMax;
-            job.PreferredStartDate = request.PreferredStartDate;
-            job.PreferredEndDate = request.PreferredEndDate;
-            job.IsFlexibleTiming = request.IsFlexibleTiming;
-            job.SpecialRequirements = request.SpecialRequirements;
+            // Update job properties only when values are provided
+            job.Title = request.Title ?? job.Title;
+            job.Description = request.Description ?? job.Description;
+            job.Category = request.Category ?? job.Category;
+            job.Urgency = request.Urgency ?? job.Urgency;
+            job.Suburb = request.Suburb ?? job.Suburb;
+            job.PostCode = request.PostCode ?? job.PostCode;
+            job.Address = request.Address ?? job.Address;
+            job.BudgetMin = request.BudgetMin ?? job.BudgetMin;
+            job.BudgetMax = request.BudgetMax ?? job.BudgetMax;
+            job.PreferredStartDate = request.PreferredStartDate ?? job.PreferredStartDate;
+            job.PreferredEndDate = request.PreferredEndDate ?? job.PreferredEndDate;
+            job.IsFlexibleTiming = request.IsFlexibleTiming ?? job.IsFlexibleTiming;
+            job.SpecialRequirements = request.SpecialRequirements ?? job.SpecialRequirements;
 
             // Remove images
             if (request.RemovedImageIds?.Any() == true)

@@ -36,18 +36,18 @@ public record CreateJobRequest(
 
 public record UpdateJobRequest
 {
-    public string Title { get; init; } = string.Empty;
-    public string Description { get; init; } = string.Empty;
-    public ServiceCategory Category { get; init; }
-    public JobUrgency Urgency { get; init; }
-    public string Suburb { get; init; } = string.Empty;
-    public string PostCode { get; init; } = string.Empty;
-    public string Address { get; init; } = string.Empty;
+    public string? Title { get; init; }
+    public string? Description { get; init; }
+    public ServiceCategory? Category { get; init; }
+    public JobUrgency? Urgency { get; init; }
+    public string? Suburb { get; init; }
+    public string? PostCode { get; init; }
+    public string? Address { get; init; }
     public decimal? BudgetMin { get; init; }
     public decimal? BudgetMax { get; init; }
     public DateTime? PreferredStartDate { get; init; }
     public DateTime? PreferredEndDate { get; init; }
-    public bool IsFlexibleTiming { get; init; }
+    public bool? IsFlexibleTiming { get; init; }
     public string? SpecialRequirements { get; init; }
     // Optional collection of newly added image URLs. Defaults to an empty list
     // so callers can add images without worrying about null checks.
