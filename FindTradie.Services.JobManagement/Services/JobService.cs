@@ -6,6 +6,7 @@ using FindTradie.Services.JobManagement.Repositories;
 using FindTradie.Shared.Contracts.Common;
 using FindTradie.Shared.Domain.Enums;
 using Microsoft.Extensions.Logging;
+using Microsoft.EntityFrameworkCore;
 using System.Threading.Tasks;
 using System;
 using System.Collections.Generic;
@@ -127,70 +128,75 @@ public class JobService : IJobService
     {
         try
         {
-            var job = await _jobRepository.GetByIdWithDetailsAsync(id);
-            if (job == null)
+            var job = await _jobRepository.UpdateTrackedAsync(id, job =>
             {
-                return ApiResponse<JobDetailDto>.ErrorResult("Job not found");
-            }
+                job.Title = request.Title ?? job.Title;
+                job.Description = request.Description ?? job.Description;
 
-            if (job.Status != JobStatus.Posted && job.Status != JobStatus.QuoteRequested)
-            {
-                return ApiResponse<JobDetailDto>.ErrorResult("Job cannot be updated in its current status");
-            }
+                if (request.Category.HasValue)
+                    job.Category = request.Category.Value;
+                if (request.Urgency.HasValue)
+                    job.Urgency = request.Urgency.Value;
 
-            // Update job properties only when values are provided
-            job.Title = request.Title ?? job.Title;
-            job.Description = request.Description ?? job.Description;
-            if (request.Category.HasValue)
-                job.Category = request.Category.Value;
-            if (request.Urgency.HasValue)
-                job.Urgency = request.Urgency.Value;
-            job.Suburb = request.Suburb ?? job.Suburb;
-            job.PostCode = request.PostCode ?? job.PostCode;
-            job.Address = request.Address ?? job.Address;
-            job.BudgetMin = request.BudgetMin ?? job.BudgetMin;
-            job.BudgetMax = request.BudgetMax ?? job.BudgetMax;
-            job.PreferredStartDate = request.PreferredStartDate ?? job.PreferredStartDate;
-            job.PreferredEndDate = request.PreferredEndDate ?? job.PreferredEndDate;
-            if (request.IsFlexibleTiming.HasValue)
-                job.IsFlexibleTiming = request.IsFlexibleTiming.Value;
-            job.SpecialRequirements = request.SpecialRequirements ?? job.SpecialRequirements;
+                job.Suburb = request.Suburb ?? job.Suburb;
+                job.PostCode = request.PostCode ?? job.PostCode;
+                job.Address = request.Address ?? job.Address;
+                job.BudgetMin = request.BudgetMin ?? job.BudgetMin;
+                job.BudgetMax = request.BudgetMax ?? job.BudgetMax;
+                job.PreferredStartDate = request.PreferredStartDate ?? job.PreferredStartDate;
+                job.PreferredEndDate = request.PreferredEndDate ?? job.PreferredEndDate;
 
-            // Remove images - use soft delete to avoid concurrency issues when
-            // an image has already been deleted by another request.  Simply
-            // mark the image as deleted instead of physically removing it.
-            if (request.RemovedImageIds?.Any() == true)
-            {
-                var imagesToRemove = job.Images
-                    .Where(img => request.RemovedImageIds.Contains(img.Id))
-                    .ToList();
+                if (request.IsFlexibleTiming.HasValue)
+                    job.IsFlexibleTiming = request.IsFlexibleTiming.Value;
 
-                foreach (var image in imagesToRemove)
+                job.SpecialRequirements = request.SpecialRequirements ?? job.SpecialRequirements;
+
+                if (request.RemovedImageIds?.Any() == true)
                 {
-                    image.IsDeleted = true;
-                }
-            }
+                    var imagesToRemove = job.Images
+                        .Where(img => request.RemovedImageIds.Contains(img.Id))
+                        .ToList();
 
-            // Add new images
-            if (request.ImageUrls?.Any() == true)
-            {
-                var startOrder = job.Images.Count + 1;
-                for (int i = 0; i < request.ImageUrls.Count; i++)
-                {
-                    job.Images.Add(new JobImage
+                    foreach (var image in imagesToRemove)
                     {
-                        ImageUrl = request.ImageUrls[i],
-                        ImageType = ImageType.Problem,
-                        IsMainImage = !job.Images.Any(x => x.IsMainImage) && i == 0,
-                        DisplayOrder = startOrder + i
-                    });
+                        image.IsDeleted = true;
+                    }
                 }
-            }
 
-            await _jobRepository.UpdateAsync(job);
+                if (request.ImageUrls?.Any() == true)
+                {
+                    var maxOrder = job.Images.Any() ? job.Images.Max(i => i.DisplayOrder) : 0;
+
+                    for (int i = 0; i < request.ImageUrls.Count; i++)
+                    {
+                        var newImage = new JobImage
+                        {
+                            Id = Guid.NewGuid(),
+                            JobId = job.Id,
+                            ImageUrl = request.ImageUrls[i],
+                            ImageType = ImageType.Problem,
+                            IsMainImage = !job.Images.Any(x => !x.IsDeleted && x.IsMainImage) && i == 0,
+                            DisplayOrder = maxOrder + i + 1,
+                            CreatedAt = DateTime.UtcNow,
+                            IsDeleted = false
+                        };
+
+                        job.Images.Add(newImage);
+                    }
+                }
+            });
+
             var jobDetail = await GetJobWithDetailsAsync(id);
-
             return ApiResponse<JobDetailDto>.SuccessResult(jobDetail, "Job updated successfully");
+        }
+        catch (ArgumentException ex)
+        {
+            return ApiResponse<JobDetailDto>.ErrorResult(ex.Message);
+        }
+        catch (DbUpdateConcurrencyException ex)
+        {
+            _logger.LogError(ex, "Concurrency error updating job {JobId}", id);
+            return ApiResponse<JobDetailDto>.ErrorResult("The job was modified by another user. Please reload and try again.");
         }
         catch (Exception ex)
         {

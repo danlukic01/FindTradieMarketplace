@@ -202,7 +202,7 @@
                                             {
                                                 <div class="photo-item">
                                                     <img src="@image.Url" alt="Job photo" class="img-thumbnail" />
-                                                    @if (job.Status == JobStatus.Posted)
+                                                    @if (job.Status == JobStatus.Posted || job.Status == JobStatus.QuoteRequested)
                                                     {
                                                         <button type="button" class="btn btn-sm btn-danger photo-remove"
                                                                 @onclick="() => RemovePhoto(image.Id)">
@@ -215,7 +215,7 @@
                                     </div>
                                 }
 
-                                @if (job.Status == JobStatus.Posted)
+                                @if (job.Status == JobStatus.Posted || job.Status == JobStatus.QuoteRequested)
                                 {
                                     <div class="mb-3">
                                         <label for="photos" class="form-label">Add More Photos</label>
@@ -385,28 +385,31 @@
     private JobEditModel MapToEditModel(JobDetailDto dto)
     {
         return new JobEditModel
-            {
-                Id = dto.Id,
-                Title = dto.Title,
-                Description = dto.Description,
-                Category = dto.Category,
-                Urgency = dto.Urgency,
-                Status = dto.Status,
-                Suburb = dto.Suburb,
-                Postcode = dto.PostCode,
-                AddressDetails = dto.Address,
-                BudgetMin = dto.BudgetMin,
-                BudgetMax = dto.BudgetMax,
-                PreferredStartDate = dto.PreferredStartDate,
-                FlexibleOnDates = dto.IsFlexibleTiming,
-                Images = dto.Images?.Select(img => new ImageModel
+        {
+            Id = dto.Id,
+            Title = dto.Title,
+            Description = dto.Description,
+            Category = dto.Category,
+            Urgency = dto.Urgency,
+            Status = dto.Status,
+            Suburb = dto.Suburb,
+            Postcode = dto.PostCode,
+            AddressDetails = dto.Address,
+            BudgetMin = dto.BudgetMin,
+            BudgetMax = dto.BudgetMax,
+            PreferredStartDate = dto.PreferredStartDate,
+            FlexibleOnDates = dto.IsFlexibleTiming,
+            Images = dto.Images?
+                .Where(img => !img.IsDeleted)
+                .Select(img => new ImageModel
                 {
                     Id = img.Id,
                     Url = img.ImageUrl
                 }).ToList() ?? new List<ImageModel>(),
-                QuotesCount = dto.Quotes?.Count ?? 0,
-                CreatedAt = dto.CreatedAt
-            };
+            QuotesCount = dto.Quotes?.Count ?? 0,
+            ViewsCount = 0,
+            CreatedAt = dto.CreatedAt
+        };
     }
 
     private async Task HandleValidSubmit()
@@ -568,6 +571,7 @@
 
         public List<ImageModel> Images { get; set; } = new();
         public int QuotesCount { get; set; }
+        public int ViewsCount { get; set; }
         public DateTime CreatedAt { get; set; }
     }
 

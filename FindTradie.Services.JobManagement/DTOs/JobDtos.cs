@@ -116,15 +116,18 @@ public record JobDetailDto
     public List<JobMessageDto> RecentMessages { get; init; } = new();
 }
 
-public record JobImageDto(
-    Guid Id,
-    string ImageUrl,
-    string? Caption,
-    string? Description,
-    ImageType ImageType,
-    bool IsMainImage,
-    int DisplayOrder
-);
+public class JobImageDto
+{
+    public Guid Id { get; set; }
+    public string ImageUrl { get; set; } = string.Empty;
+    public string? Caption { get; set; }
+    public string? Description { get; set; }
+    public int DisplayOrder { get; set; }
+    public ImageType ImageType { get; set; }
+    public bool IsMainImage { get; set; }
+    public bool IsDeleted { get; set; }
+    public DateTime CreatedAt { get; set; }
+}
 
 public record QuoteSummaryDto(
     Guid Id,
