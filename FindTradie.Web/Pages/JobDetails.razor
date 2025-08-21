@@ -9,6 +9,7 @@
 <link rel="stylesheet" href="css/job-details.css" />
 
 <div class="job-details-page">
+    <SavingModal Show="@isSaving" Message="Saving job..." />
     @if (isLoading)
     {
         <div class="loading-container">
@@ -287,6 +288,7 @@
     private bool hasAlreadyQuoted = false;
     private bool showPhotoModal = false;
     private PhotoDto? selectedPhoto;
+    private bool isSaving = false;
 
     protected override async Task OnInitializedAsync()
     {
@@ -404,8 +406,16 @@
 
     private async Task SaveJob()
     {
-        // Implement save functionality
-        await Task.CompletedTask;
+        isSaving = true;
+        try
+        {
+            // Implement save functionality
+            await Task.CompletedTask;
+        }
+        finally
+        {
+            isSaving = false;
+        }
     }
 
     private async Task ShareJob()
