@@ -199,14 +199,16 @@ public class JobRepository : IJobRepository
         }
         catch (DbUpdateConcurrencyException ex)
         {
-            // Similar to UpdateAsync, detach any JobImage entries that were
-            // removed or updated by another process.  Missing child records
-            // shouldn't prevent the job itself from being updated.  Only detach
-            // entries that were being deleted to avoid dropping newly added
-            // images from the save operation.
+
+            // Detach any JobImage entries that were modified or deleted by another
+            // process. Missing child records shouldn't prevent the job itself from
+            // being updated, but new images should remain tracked so they can be
+            // persisted.
             foreach (var entry in ex.Entries)
             {
-                if (entry.Entity is JobImage && entry.State == EntityState.Deleted)
+                if (entry.Entity is JobImage &&
+                    (entry.State == EntityState.Deleted || entry.State == EntityState.Modified))
+
                 {
                     entry.State = EntityState.Detached;
                 }
