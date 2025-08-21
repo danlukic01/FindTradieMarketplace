@@ -14,6 +14,7 @@
 <PageTitle>Post a Job - FindTradie</PageTitle>
 
 <div class="post-job-page">
+    <SavingModal Show="@isSaving" />
     <!-- Progress Bar -->
     <div class="progress-bar-container">
         <div class="container">
@@ -347,6 +348,7 @@
     private JobPostModel job = new();
     private List<PhotoModel> uploadedPhotos = new();
     private bool agreedToTerms = false;
+    private bool isSaving = false;
 
     private void NextStep()
     {
@@ -390,44 +392,52 @@
 
     private async Task PostJobAsync()
     {
-        var user = await AuthService.GetCurrentUserAsync();
-        if (user == null) return;
+        isSaving = true;
+        try
+        {
+            var user = await AuthService.GetCurrentUserAsync();
+            if (user == null) return;
 
-        // Map UI service string to enum (no dependency on ServiceCategory.Other)
-        var category = MapCategory(job.ServiceType);
+            // Map UI service string to enum (no dependency on ServiceCategory.Other)
+            var category = MapCategory(job.ServiceType);
 
-        var (budgetMin, budgetMax) = ParseBudget(job.BudgetRange);
+            var (budgetMin, budgetMax) = ParseBudget(job.BudgetRange);
 
-        var request = new CreateJobRequest(
-            Title: job.Title,
-            Description: job.Description,
-            Category: category,
-            SubCategory: job.ServiceType,      // keep original text, including "Other"
-            Urgency: JobUrgency.Normal,
-            BudgetMin: budgetMin,
-            BudgetMax: budgetMax,
-            PreferredStartDate: null,
-            PreferredEndDate: null,
-            IsFlexibleTiming: string.Equals(job.Timing, "flexible", StringComparison.OrdinalIgnoreCase),
-            CustomerId: user.Id,
-            CustomerName: $"{user.FirstName} {user.LastName}",
-            CustomerEmail: user.Email,
-            CustomerPhone: user.PhoneNumber,
-            Address: job.Address,
-            Suburb: job.Suburb,
-            State: job.State,
-            PostCode: job.Postcode,
-            Latitude: 0,
-            Longitude: 0,
-            SpecialRequirements: null,
-            RequiresLicense: false,
-            RequiresInsurance: false,
-            ImageUrls: uploadedPhotos.Select(p => p.Url).ToList()
-        );
+            var request = new CreateJobRequest(
+                Title: job.Title,
+                Description: job.Description,
+                Category: category,
+                SubCategory: job.ServiceType,      // keep original text, including "Other"
+                Urgency: JobUrgency.Normal,
+                BudgetMin: budgetMin,
+                BudgetMax: budgetMax,
+                PreferredStartDate: null,
+                PreferredEndDate: null,
+                IsFlexibleTiming: string.Equals(job.Timing, "flexible", StringComparison.OrdinalIgnoreCase),
+                CustomerId: user.Id,
+                CustomerName: $"{user.FirstName} {user.LastName}",
+                CustomerEmail: user.Email,
+                CustomerPhone: user.PhoneNumber,
+                Address: job.Address,
+                Suburb: job.Suburb,
+                State: job.State,
+                PostCode: job.Postcode,
+                Latitude: 0,
+                Longitude: 0,
+                SpecialRequirements: null,
+                RequiresLicense: false,
+                RequiresInsurance: false,
+                ImageUrls: uploadedPhotos.Select(p => p.Url).ToList()
+            );
 
-        var result = await JobService.CreateJobAsync(request);
-        if (result.Success && result.Data != null)
-            Navigation.NavigateTo($"/job-posted/{result.Data.Id}");
+            var result = await JobService.CreateJobAsync(request);
+            if (result.Success && result.Data != null)
+                Navigation.NavigateTo($"/job-posted/{result.Data.Id}");
+        }
+        finally
+        {
+            isSaving = false;
+        }
     }
 
     private static (decimal? min, decimal? max) ParseBudget(string range) => range switch

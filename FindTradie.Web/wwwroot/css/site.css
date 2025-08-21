@@ -2594,3 +2594,27 @@ h1, h2, h3, h4, h5, h6, p, span, div, label {
         margin-bottom: 8px;
     }
 }
+
+/* Save modal overlay */
+.save-modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.5);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 2000;
+}
+
+.save-modal-content {
+    background: #ffffff;
+    padding: 2rem;
+    border-radius: 8px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 1rem;
+}
