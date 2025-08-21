@@ -180,18 +180,33 @@ public class JobRepository : IJobRepository
 
         updateAction(job);
 
+        // Ensure any newly added images are tracked by the context. In some
+        // scenarios the change tracker may not automatically detect new child
+        // entities that are added to an already tracked parent. Explicitly
+        // adding detached images to the DbSet guarantees that they will be
+        // persisted when SaveChanges is called.
+        foreach (var image in job.Images)
+        {
+            if (_context.Entry(image).State == EntityState.Detached)
+            {
+                _context.JobImages.Add(image);
+            }
+        }
+
         try
         {
             await _context.SaveChangesAsync();
         }
         catch (DbUpdateConcurrencyException ex)
         {
-            // Similar to UpdateAsync, detach any JobImage entries that were
-            // removed or updated by another process.  Missing child records
-            // shouldn't prevent the job itself from being updated.
+            // Detach any JobImage entries that were modified or deleted by another
+            // process. Missing child records shouldn't prevent the job itself from
+            // being updated, but new images should remain tracked so they can be
+            // persisted.
             foreach (var entry in ex.Entries)
             {
-                if (entry.Entity is JobImage)
+                if (entry.Entity is JobImage &&
+                    (entry.State == EntityState.Deleted || entry.State == EntityState.Modified))
                 {
                     entry.State = EntityState.Detached;
                 }
