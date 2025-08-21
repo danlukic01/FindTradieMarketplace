@@ -130,10 +130,38 @@ textarea.form-control {
 
 .photo-remove {
     position: absolute;
-    top: 5px;
-    right: 5px;
-    padding: 0.25rem 0.5rem;
-    border-radius: 4px;
+    top: 6px;
+    right: 6px;
+    width: 24px;
+    height: 24px;
+    border: none;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.9);
+    color: #dc3545;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    box-shadow: 0 0 4px rgba(0, 0, 0, 0.2);
+}
+
+.photo-remove:hover {
+    background: #dc3545;
+    color: #fff;
+}
+
+/* Map preview */
+.map-container {
+    margin-top: 1rem;
+    border-radius: 8px;
+    overflow: hidden;
+    height: 240px;
+}
+
+.map-container iframe {
+    width: 100%;
+    height: 100%;
+    border: 0;
 }
 
 /* Form Actions */
