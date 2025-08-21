@@ -159,7 +159,14 @@ public class JobService : IJobService
             // Remove images
             if (request.RemovedImageIds?.Any() == true)
             {
-                job.Images.RemoveAll(img => request.RemovedImageIds.Contains(img.Id));
+                var imagesToRemove = job.Images
+                    .Where(img => request.RemovedImageIds.Contains(img.Id))
+                    .ToList();
+
+                foreach (var image in imagesToRemove)
+                {
+                    job.Images.Remove(image);
+                }
             }
 
             // Add new images
