@@ -12,6 +12,7 @@
 @inject NavigationManager Navigation
 
 <PageTitle>Post a Job - FindTradie</PageTitle>
+<link rel="stylesheet" href="css/post-job.css" />
 
 <div class="post-job-page">
     <SavingModal Show="@isSaving" />
@@ -40,7 +41,8 @@
     </div>
 
     <div class="container">
-        <div class="post-job-content">
+        <div class="row g-4 post-job-content">
+            <div class="col-lg-8">
             <!-- Step 1: Job Details -->
             @if (currentStep == 1)
             {
@@ -290,56 +292,57 @@
                     <button class="btn btn-primary btn-lg" @onclick="PostJobAsync" disabled="@(!agreedToTerms)">Post Job</button>
                 }
             </div>
+            </div>
+
+            <!-- Sidebar Tips -->
+            <aside class="col-lg-4 tips-sidebar">
+                <div class="tips-card">
+                    <h3>💡 Tips for Success</h3>
+
+                    @if (currentStep == 1)
+                    {
+                        <ul>
+                            <li>Be specific about what needs to be done</li>
+                            <li>Mention any special requirements</li>
+                            <li>Include brand names if relevant</li>
+                            <li>Describe the problem, not just the solution</li>
+                        </ul>
+                    }
+                    else if (currentStep == 2)
+                    {
+                        <ul>
+                            <li>Accurate location helps tradies plan</li>
+                            <li>Flexible timing gets more quotes</li>
+                            <li>Mention parking availability</li>
+                            <li>Note any access issues</li>
+                        </ul>
+                    }
+                    else if (currentStep == 3)
+                    {
+                        <ul>
+                            <li>Photos get 3x more quotes</li>
+                            <li>Show the problem area clearly</li>
+                            <li>Include wide and close-up shots</li>
+                            <li>Setting a budget helps filter quotes</li>
+                        </ul>
+                    }
+                    else
+                    {
+                        <ul>
+                            <li>Jobs typically get quotes within 2 hours</li>
+                            <li>You'll be notified of new quotes</li>
+                            <li>No obligation to accept any quote</li>
+                            <li>Chat with tradies before deciding</li>
+                        </ul>
+                    }
+                </div>
+
+                <div class="tips-card">
+                    <h3>🔒 Your Privacy</h3>
+                    <p>Your exact address is only shared with tradies you choose to hire.</p>
+                </div>
+            </aside>
         </div>
-
-        <!-- Sidebar Tips -->
-        <aside class="tips-sidebar">
-            <div class="tips-card">
-                <h3>💡 Tips for Success</h3>
-
-                @if (currentStep == 1)
-                {
-                    <ul>
-                        <li>Be specific about what needs to be done</li>
-                        <li>Mention any special requirements</li>
-                        <li>Include brand names if relevant</li>
-                        <li>Describe the problem, not just the solution</li>
-                    </ul>
-                }
-                else if (currentStep == 2)
-                {
-                    <ul>
-                        <li>Accurate location helps tradies plan</li>
-                        <li>Flexible timing gets more quotes</li>
-                        <li>Mention parking availability</li>
-                        <li>Note any access issues</li>
-                    </ul>
-                }
-                else if (currentStep == 3)
-                {
-                    <ul>
-                        <li>Photos get 3x more quotes</li>
-                        <li>Show the problem area clearly</li>
-                        <li>Include wide and close-up shots</li>
-                        <li>Setting a budget helps filter quotes</li>
-                    </ul>
-                }
-                else
-                {
-                    <ul>
-                        <li>Jobs typically get quotes within 2 hours</li>
-                        <li>You'll be notified of new quotes</li>
-                        <li>No obligation to accept any quote</li>
-                        <li>Chat with tradies before deciding</li>
-                    </ul>
-                }
-            </div>
-
-            <div class="tips-card">
-                <h3>🔒 Your Privacy</h3>
-                <p>Your exact address is only shared with tradies you choose to hire.</p>
-            </div>
-        </aside>
     </div>
 </div>
 
